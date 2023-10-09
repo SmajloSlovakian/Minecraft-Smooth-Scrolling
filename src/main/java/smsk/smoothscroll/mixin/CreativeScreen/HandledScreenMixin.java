@@ -18,7 +18,7 @@ public class HandledScreenMixin {
     void render(DrawContext context, int mx, int my, float d, CallbackInfo ci){
         if(Config.cfg.creativeScreenSpeed==0)return;
         if(SmoothSc.creativeSH==null)return;
-        SmoothSc.creativeScreenOffsetY/=Math.pow(Config.cfg.creativeScreenSpeed, SmoothSc.mc.getLastFrameDuration());
+        SmoothSc.creativeScreenOffsetY*=Math.pow(Config.cfg.creativeScreenSpeed, SmoothSc.mc.getLastFrameDuration());
         SmoothSc.creativeScreenScrollMixin=false;
 
         SmoothSc.creativeSH.scrollItems(SmoothSc.creativeScreenGetPos(SmoothSc.creativeScreenPredRow-SmoothSc.creativeScreenOffsetY/18, SmoothSc.creativeSH) );

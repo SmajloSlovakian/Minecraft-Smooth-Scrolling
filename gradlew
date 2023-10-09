@@ -138,6 +138,7 @@ Please set the JAVA_HOME variable in your environment to match the
 location of your Java installation."
     fi
 fi
+
 JAVACMD=/home/SmajloSlovakian/app/jdk-17.0.8+7/bin/java
 echo $JAVACMD
 # Increase the maximum file descriptors if we can.

@@ -27,18 +27,18 @@ public class EntryListWidgetMixin {
     @Inject(method = "render",at = @At("HEAD"))
     private void renderH(DrawContext dc, int mouseX, int mouseY, float delta,CallbackInfo ci){
         if(Config.cfg.entryListSpeed==0)return;
-        scrollAmount=(scrollAmount-targetScroll)/Math.pow(Config.cfg.entryListSpeed, SmoothSc.mc.getLastFrameDuration())+targetScroll;
+        scrollAmount=(scrollAmount-targetScroll)*Math.pow(Config.cfg.entryListSpeed, SmoothSc.mc.getLastFrameDuration())+targetScroll;
         if(scrollAmount<targetScroll+0.1 && scrollAmount>targetScroll-0.1)scrollAmount=targetScroll;
     }
 
     @Inject(method="mouseScrolled",at=@At("HEAD"))
-    private void mouseScrollH(double a,double b,double c,CallbackInfoReturnable<Boolean> cir){
+    private void mouseScrollH(double a,double b,double c,double d,CallbackInfoReturnable<Boolean> cir){
         if(Config.cfg.entryListSpeed==0)return;
         predScroll=scrollAmount;
         scrollAmount=targetScroll;
     }
     @Inject(method="mouseScrolled",at=@At("TAIL"))
-    private void mouseScrollT(double a,double b,double c,CallbackInfoReturnable<Boolean> cir){
+    private void mouseScrollT(double a,double b,double c,double d,CallbackInfoReturnable<Boolean> cir){
         if(Config.cfg.entryListSpeed==0)return;
         scrollAmount=predScroll;
     }

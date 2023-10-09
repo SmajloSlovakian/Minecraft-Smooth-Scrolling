@@ -13,11 +13,14 @@ import net.fabricmc.loader.api.FabricLoader;
 
 public class Config {
     public static Cdata cfg;
+    public static float cfgVersion=1.6f;
+    public static boolean problemReading=false;
     public Config(){
         File cfgfile=FabricLoader.getInstance().getConfigDir().resolve("smoothscroll.json").toFile();
         if(cfgfile.exists()){
             cfg=readFile(cfgfile);
             if(cfg==null){
+                problemReading=true;
                 SmoothSc.print("There was a problem reading the config file, using the default values.");
                 cfg=new Cdata();
             }
@@ -27,18 +30,23 @@ public class Config {
             writeFile(cfgfile);
         }
 
-        if(cfg.chatSpeed==0){
-        }else if(cfg.chatSpeed<1)SmoothSc.print("Safe values for chatSpeed are >1");
+        
 
-        if(cfg.hotbarSpeed==0){
-        }else if(cfg.hotbarSpeed<1)SmoothSc.print("Safe values for hotbarSpeed are >1");
-
-        if(cfg.creativeScreenSpeed==0){
-        }else if(cfg.creativeScreenSpeed<1)SmoothSc.print("Safe values for creativeScreenSpeed are >1");
-
-        if(cfg.entryListSpeed==0){
-        }else if(cfg.entryListSpeed<1)SmoothSc.print("Safe values for entryListSpeed are >1");
-
+        if(!problemReading){ //config updating system
+            if(cfg.cfgVersion<cfgVersion)SmoothSc.print("Config values before updating:\n"+printify());
+            if(cfg.cfgVersion<1.6f){
+                if(cfg.hotbarSpeed!=0.2f){
+                    if(cfg.hotbarSpeed!=0)cfg.hotbarSpeed=1/cfg.hotbarSpeed;
+                    if(cfg.chatSpeed!=0)cfg.chatSpeed=1/cfg.chatSpeed;
+                    if(cfg.creativeScreenSpeed!=0)cfg.creativeScreenSpeed=1/cfg.creativeScreenSpeed;
+                    if(cfg.entryListSpeed!=0)cfg.entryListSpeed=1/cfg.entryListSpeed;
+                }
+                cfg.cfgVersion=1.6f;
+            }
+            cfg.note="Safe values for settings are 0 - 1 (inclusive). 0 means animation off (infinite speed) and bigger values mean slower speed (up to 1).";
+            writeFile(cfgfile);
+        }
+        SmoothSc.print("Config values:\n"+printify());
     }
     Cdata readFile(File f){
         FileReader fr=null;
@@ -65,14 +73,27 @@ public class Config {
             fw.close();
         }catch(Exception e){}
     }
+    String printify(){
+        return(
+            "Hotbar speed: "+cfg.hotbarSpeed+
+            "\nChat speed: "+cfg.chatSpeed+
+            "\nCreative screen speed: "+cfg.creativeScreenSpeed+
+            "\nEntry list speed: "+cfg.entryListSpeed+
+            "\nConfig version: "+cfg.cfgVersion
+        );
+    }
     public class Cdata implements Serializable{
         @Expose
-        public float hotbarSpeed=5;
+        public String note="";
         @Expose
-        public float chatSpeed=2;
+        public float hotbarSpeed=0.2f;
         @Expose
-        public float creativeScreenSpeed=3;
+        public float chatSpeed=0.5f;
         @Expose
-        public float entryListSpeed=3;
+        public float creativeScreenSpeed=0.334f;
+        @Expose
+        public float entryListSpeed=0.334f;
+        @Expose
+        public float cfgVersion=0;
     }
 }

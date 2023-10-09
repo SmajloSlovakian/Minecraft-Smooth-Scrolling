@@ -20,5 +20,6 @@ public class MinecraftClientMixin {
             var sh=((CreativeScreenHandler)((ScreenHandlerProvider<?>)s).getScreenHandler());
             if(sh!=null)SmoothSc.creativeSH=sh;
         } catch (Exception e){}
+        SmoothSc.creativeScreenOffsetY=0;
     }
 }

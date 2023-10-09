@@ -21,10 +21,12 @@ public class SmoothSc implements ModInitializer {
 	public static int creativeScreenPredRow=0;
 	public static int hotbarRollover=0;
 	public static Config cfg;
+	public static int chatOffsetY=0;
 
 	@Override
 	public void onInitialize() {
 		cfg=new Config();
+		
 	}
 	public static void print(Object s){
 		LOGGER.info(s+"");

@@ -15,10 +15,10 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.text.OrderedText;
 import smsk.smoothscroll.Config;
+import smsk.smoothscroll.SmoothSc;
 
 @Mixin(ChatHud.class)
 public class ChatHudMixin{
-    int scrollPosYBuffer=0;
     @Shadow int scrolledLines;
     int scrolledLinesA;
 
@@ -28,16 +28,16 @@ public class ChatHudMixin{
     }
     @Inject(method="scroll",at=@At("TAIL"))
     public void scrollT(int scroll, CallbackInfo ci){
-        scrollPosYBuffer+=(scrolledLines-scrolledLinesA)*9;
+        SmoothSc.chatOffsetY+=(scrolledLines-scrolledLinesA)*9;
     }
 
     @Inject(method = "render",at=@At("HEAD"))
     public void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, CallbackInfo ci){
         if(Config.cfg.chatSpeed==0)return;
 		MinecraftClient mc=MinecraftClient.getInstance();
-        scrollPosYBuffer/=Math.pow(Config.cfg.chatSpeed,mc.getLastFrameDuration());
+        SmoothSc.chatOffsetY*=Math.pow(Config.cfg.chatSpeed,mc.getLastFrameDuration());
         scrolledLinesA=scrolledLines;
-        scrolledLines-=scrollPosYBuffer/getLineHeight();
+        scrolledLines-=SmoothSc.chatOffsetY/getLineHeight();
         if(scrolledLines<0)scrolledLines=0;
     }
     @Inject(method = "render",at=@At("TAIL"))
@@ -49,12 +49,12 @@ public class ChatHudMixin{
     @ModifyArg(method="render",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/OrderedText;III)I",ordinal=0),index=3)
     private int changeTextPosY(int y){
         if(Config.cfg.chatSpeed==0)return(y);
-        return(y-scrollPosYBuffer+(scrollPosYBuffer/getLineHeight()*getLineHeight()));
+        return(y-SmoothSc.chatOffsetY+(SmoothSc.chatOffsetY/getLineHeight()*getLineHeight()));
     }
 
     @ModifyVariable(method="addMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageSignatureData;ILnet/minecraft/client/gui/hud/MessageIndicator;Z)V",at=@At("STORE"),ordinal = 0)
     List<OrderedText> onNewMessage(List<OrderedText> ot){
-        scrollPosYBuffer-=ot.size()*getLineHeight();
+        SmoothSc.chatOffsetY-=ot.size()*getLineHeight();
         return(ot);
     }
 

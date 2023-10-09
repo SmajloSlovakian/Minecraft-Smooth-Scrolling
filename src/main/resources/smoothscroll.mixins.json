@@ -7,9 +7,12 @@
 		"PlayerInventoryMixin",
 		"ChatHudMixin",
 		"CreativeScreen.CreativeScreenHandlerMixin",
+		"CreativeScreen.CreativeScreenMixin",
 		"CreativeScreen.HandledScreenMixin",
 		"CreativeScreen.MinecraftClientMixin",
-		"EntryListWidgetMixin"
+		"EntryListWidgetMixin",
+		"ChatHeadsMixin",
+		"ChatHudAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
