@@ -1,9 +1,12 @@
 package smsk.smoothscroll.mixin.CreativeScreen;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.At;
 
 import net.minecraft.client.MinecraftClient;
@@ -16,10 +19,15 @@ import net.minecraft.client.gui.screen.ingame.ScreenHandlerProvider;
 public class MinecraftClientMixin {
     @Inject(method = "setScreen",at = @At("TAIL"))
     private void setScreenT(@Nullable Screen s, CallbackInfo ci){
+        //SmoothSc.print(s);
         try {
             var sh=((CreativeScreenHandler)((ScreenHandlerProvider<?>)s).getScreenHandler());
             if(sh!=null)SmoothSc.creativeSH=sh;
         } catch (Exception e){}
         SmoothSc.creativeScreenOffsetY=0;
+    }
+    @Inject(method = "reloadResources",at = @At("HEAD"))
+    void onResReload(CallbackInfoReturnable<CompletableFuture<Void>> cir){
+        SmoothSc.updateConfig();
     }
 }

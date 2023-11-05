@@ -12,7 +12,8 @@
 		"CreativeScreen.MinecraftClientMixin",
 		"EntryListWidgetMixin",
 		"ChatHeadsMixin",
-		"ChatHudAccessor"
+		"ChatHudAccessor",
+		"SuggestionWindowMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

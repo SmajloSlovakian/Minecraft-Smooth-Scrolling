@@ -30,8 +30,6 @@ public class Config {
             writeFile(cfgfile);
         }
 
-        
-
         if(!problemReading){ //config updating system
             if(cfg.cfgVersion<cfgVersion)SmoothSc.print("Config values before updating:\n"+printify());
             if(cfg.cfgVersion<1.6f){

@@ -25,8 +25,7 @@ public class SmoothSc implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		cfg=new Config();
-		
+		updateConfig();
 	}
 	public static void print(Object s){
 		LOGGER.info(s+"");
@@ -34,4 +33,7 @@ public class SmoothSc implements ModInitializer {
     public static float creativeScreenGetPos(int row,CreativeScreenHandler that){
         return MathHelper.clamp((float)row / ((float)MathHelper.ceilDiv(SmoothSc.creativeSH.itemList.size(), 9) - 5), 0.0F, 1.0F);
     }
+	public static void updateConfig(){
+		cfg=new Config();
+	}
 }

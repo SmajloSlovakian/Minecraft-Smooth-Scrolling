@@ -2,14 +2,14 @@
 	"schemaVersion": 1,
 	"id": "smoothscroll",
 	"version": "${version}",
-	"name": "SmoothScroll",
+	"name": "Smooth Scrolling",
 	"description": "Makes scrolling much more smooth",
 	"authors": [
 		"SlovakSmileSK"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://modrinth.com/mod/smooth-scroll",
+		"sources": "https://github.com/SmajloSlovakian/Minecraft-Smooth-Scrolling"
 	},
 	"license": "gpl-3.0",
 	"icon": "assets/smoothscroll/icon.png",
@@ -24,7 +24,7 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.14.21",
-		"minecraft": ">=1.20.2",
+		"minecraft": ">=1.20.1",
 		"java": ">=17"
 	},
 	"suggests": {
