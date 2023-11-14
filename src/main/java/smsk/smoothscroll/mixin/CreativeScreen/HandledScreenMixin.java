@@ -34,7 +34,7 @@ public class HandledScreenMixin {
     }
     @Inject(method = "render",at = @At(value = "INVOKE",target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V"))
     void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci){
-        if(Config.cfg.creativeScreenSpeed==0||scrollItemCount<=0)return;
+        if(Config.cfg.creativeScreenSpeed==0||scrollItemCount<=0||SmoothSc.creativeScreenOffsetY==0)return;
         context.enableScissor(0, context.getScaledWindowHeight()/2-51, context.getScaledWindowWidth(), context.getScaledWindowHeight()/2+39);
         cutenabled=true;
     }
