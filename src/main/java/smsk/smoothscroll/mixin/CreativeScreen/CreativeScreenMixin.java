@@ -30,15 +30,15 @@ public class CreativeScreenMixin {
         if(SmoothSc.creativeScreenOffsetY==0||Config.cfg.creativeScreenSpeed==0||SmoothSc.creativeSH==null)return;
 
         int x0=Math.roundHalfUp(context.getScaledWindowWidth()/2f)-90;
-        int y0=context.getScaledWindowHeight()/2-50;
+        int y0=context.getScaledWindowHeight()/2-51;
         int x1=162;
-        int y1=88;
+        int y1=90;
         int x2=8;
         int y2=17;
 
         //context.drawText(SmoothSc.mc.textRenderer, mouseX+" - "+mouseY, 10, 10, ColorHelper.Argb.getArgb(255, 0, 255, 255), true);
         //context.fill(0, 0, 1920, 1080, ColorHelper.Argb.getArgb(50, 255, 128, 0));
-        context.enableScissor(x0, y0, x0+x1, y0+y1);
+        context.enableScissor(x0, y0+1, x0+x1, y0+y1-1);
         context.drawTexture(new Identifier("textures/gui/container/creative_inventory/tab_"+selectedTab.getTexture()), x0, y0+(SmoothSc.creativeScreenOffsetY-SmoothSc.creativeScreenOffsetY/18*18), x2, y2, x1, y1);
         context.drawTexture(new Identifier("textures/gui/container/creative_inventory/tab_"+selectedTab.getTexture()), x0, y0+(SmoothSc.creativeScreenOffsetY-SmoothSc.creativeScreenOffsetY/18*18)-y1*Math.signum(SmoothSc.creativeScreenOffsetY), x2, y2, x1, y1);
         context.disableScissor();

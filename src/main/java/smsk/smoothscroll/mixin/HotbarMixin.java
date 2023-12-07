@@ -15,8 +15,8 @@ public class HotbarMixin {
 
 	private static float selslotvisual=0;
 
-	@ModifyArg(method="renderHotbar",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V",ordinal = 1),index = 1,require=0) private int selectedSlotX201(int x){return(selectedSlotXcommon(x));}
-	@ModifyArg(method="renderHotbar",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1),index = 1,require=0) private int selectedSlotX202(int x){return(selectedSlotXcommon(x));}
+	@ModifyArg(method="renderHotbar",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1),index = 1,require=0) private int selectedSlotX201(int x){return(selectedSlotXcommon(x));}
+	@ModifyArg(method="renderHotbar",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V",ordinal = 1),index = 1,require=0) private int selectedSlotX202(int x){return(selectedSlotXcommon(x));}
 	private int selectedSlotXcommon(int x){
 		if(Config.cfg.hotbarSpeed==0)return(x);
 		MinecraftClient mc=MinecraftClient.getInstance();
