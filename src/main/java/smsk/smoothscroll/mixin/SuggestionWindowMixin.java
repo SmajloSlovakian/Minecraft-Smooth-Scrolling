@@ -5,6 +5,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -41,7 +42,6 @@ public class SuggestionWindowMixin {
 
     @Inject(method = "mouseScrolled",at = @At("HEAD"))
     private void mScrollH(double am,CallbackInfoReturnable<Boolean> ci){
-        SmoothSc.print(inWindowIndex);
         pIndex=inWindowIndex;
     }
     @Inject(method = "mouseScrolled",at = @At("RETURN"))
@@ -59,5 +59,16 @@ public class SuggestionWindowMixin {
         offsetY+=(inWindowIndex-pIndex)*12;
         tarIndex=inWindowIndex;
         inWindowIndex=pIndex;
+    }
+
+    @ModifyVariable(method = "render", at = @At("STORE"),ordinal = 2)
+    private int addLinesAbove(int i){
+        if(Config.cfg.chatSpeed==0||offsetY>=0)return(i);
+        return(i+1);
+    }
+    @ModifyVariable(method = "render", at = @At("STORE"),ordinal = 4)
+    private int addLinesUnder(int r){
+        if(Config.cfg.chatSpeed==0||offsetY<=0)return(r);
+        return(r-1);
     }
 }

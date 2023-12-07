@@ -15,8 +15,9 @@ public class HotbarMixin {
 
 	private static float selslotvisual=0;
 
-	@ModifyArg(method="renderHotbar",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V",ordinal = 1),index = 1,require=0)
-	private int selectedSlotX(int x){ //1.20.1: drawTexture(identifier;IIIIII)V; 1.20.2: drawGuiTexture(identifier;IIII)V
+	@ModifyArg(method="renderHotbar",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V",ordinal = 1),index = 1,require=0) private int selectedSlotX201(int x){return(selectedSlotXcommon(x));}
+	@ModifyArg(method="renderHotbar",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1),index = 1,require=0) private int selectedSlotX202(int x){return(selectedSlotXcommon(x));}
+	private int selectedSlotXcommon(int x){
 		if(Config.cfg.hotbarSpeed==0)return(x);
 		MinecraftClient mc=MinecraftClient.getInstance();
 		PlayerInventory inv=mc.player.getInventory();
@@ -31,7 +32,7 @@ public class HotbarMixin {
 		}
 
 		if(inv.selectedSlot+0.05>selslotvisual && inv.selectedSlot<selslotvisual) selslotvisual=inv.selectedSlot;
-		if(inv.selectedSlot-0.05<selslotvisual && inv.selectedSlot>selslotvisual) selslotvisual=inv.selectedSlot;/**/
+		if(inv.selectedSlot-0.05<selslotvisual && inv.selectedSlot>selslotvisual) selslotvisual=inv.selectedSlot;
 
 		x-=inv.selectedSlot*20;
 		x+=selslotvisual*20;

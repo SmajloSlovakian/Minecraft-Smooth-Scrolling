@@ -10,6 +10,7 @@
 		"CreativeScreen.CreativeScreenMixin",
 		"CreativeScreen.HandledScreenMixin",
 		"CreativeScreen.MinecraftClientMixin",
+		"CreativeScreen.CreativeScreenHandlerAccessor",
 		"EntryListWidgetMixin",
 		"ChatHeadsMixin",
 		"ChatHudAccessor",

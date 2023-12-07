@@ -5,7 +5,6 @@ import java.util.List;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,6 +31,14 @@ public class ChatHudMixin{
     }
     @Inject(method="scroll",at=@At("TAIL"))
     public void scrollT(int scroll, CallbackInfo ci){
+        SmoothSc.chatOffsetY+=(scrolledLines-scrolledLinesA)*9;
+    }
+    @Inject(method="resetScroll",at=@At("HEAD"))
+    public void scrollResetH(CallbackInfo ci){
+        scrolledLinesA=scrolledLines;
+    }
+    @Inject(method="resetScroll",at=@At("TAIL"))
+    public void scrollResetT(CallbackInfo ci){
         SmoothSc.chatOffsetY+=(scrolledLines-scrolledLinesA)*9;
     }
 
@@ -67,19 +74,11 @@ public class ChatHudMixin{
         scrolledLines=scrolledLinesA;
     }
 
-    @ModifyArg(method="render",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/OrderedText;III)I",ordinal=0),index=3)
-    private int changeTextPosY(int y){
+    @ModifyVariable(method="render",at=@At(value="STORE"),ordinal=18)
+    private int changePosY(int y){
         if(Config.cfg.chatSpeed==0)return(y);
         return(y-SmoothSc.chatOffsetY+(SmoothSc.chatOffsetY/getLineHeight()*getLineHeight()));
     }
-    /*@ModifyArgs(method="render",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;fill(IIIII)V",ordinal = 0))
-    private void changeBackgroundY(Args ar){
-        if(Config.cfg.chatSpeed==0)return;
-        int a=ar.get(1);
-        int b=ar.get(3);
-        ar.set(1, a-SmoothSc.chatOffsetY+(SmoothSc.chatOffsetY/getLineHeight()*getLineHeight()));
-        ar.set(3, b-SmoothSc.chatOffsetY+(SmoothSc.chatOffsetY/getLineHeight()*getLineHeight()));
-    }/* */
 
     @ModifyVariable(method="addMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageSignatureData;ILnet/minecraft/client/gui/hud/MessageIndicator;Z)V",at=@At("STORE"),ordinal = 0)
     List<OrderedText> onNewMessage(List<OrderedText> ot){
@@ -87,9 +86,21 @@ public class ChatHudMixin{
         return(ot);
     }
 
+    @ModifyVariable(method="render",at=@At(value="STORE"),ordinal=3)
+    private int addLinesAbove(int i){
+        if(Config.cfg.chatSpeed==0||SmoothSc.chatOffsetY>=0)return(i);
+        return(i+1);
+    }
+    @ModifyVariable(method="render",at=@At(value="STORE"),ordinal=12)
+    private int addLinesUnder(int r){
+        if(Config.cfg.chatSpeed==0||SmoothSc.chatOffsetY<=0)return(r);
+        return(r-1);
+    }
+
     @Shadow private int getLineHeight(){return(0);}
     @Shadow private double getChatScale(){return(0);}
     @Shadow private int getWidth(){return(0);}
     @Shadow private int getVisibleLineCount(){return(0);}
     @Shadow private boolean isChatHidden(){return(false);}
+    @Shadow private boolean isChatFocused(){return(false);}
 }

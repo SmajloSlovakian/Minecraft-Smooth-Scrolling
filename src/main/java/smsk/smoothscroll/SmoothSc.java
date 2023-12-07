@@ -3,7 +3,6 @@ package smsk.smoothscroll;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeScreenHandler;
-import net.minecraft.util.math.MathHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +29,6 @@ public class SmoothSc implements ModInitializer {
 	public static void print(Object s){
 		LOGGER.info(s+"");
 	}
-    public static float creativeScreenGetPos(int row,CreativeScreenHandler that){
-        return MathHelper.clamp((float)row / ((float)MathHelper.ceilDiv(SmoothSc.creativeSH.itemList.size(), 9) - 5), 0.0F, 1.0F);
-    }
 	public static void updateConfig(){
 		cfg=new Config();
 	}
