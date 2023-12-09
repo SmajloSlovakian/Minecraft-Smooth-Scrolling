@@ -12,7 +12,6 @@
 		"CreativeScreen.MinecraftClientMixin",
 		"CreativeScreen.CreativeScreenHandlerAccessor",
 		"EntryListWidgetMixin",
-		"ChatHeadsMixin",
 		"ChatHudAccessor",
 		"SuggestionWindowMixin"
 	],

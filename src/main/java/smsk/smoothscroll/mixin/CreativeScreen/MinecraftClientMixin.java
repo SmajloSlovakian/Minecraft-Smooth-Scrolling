@@ -19,7 +19,6 @@ import net.minecraft.client.gui.screen.ingame.ScreenHandlerProvider;
 public class MinecraftClientMixin {
     @Inject(method = "setScreen",at = @At("TAIL"))
     private void setScreenT(@Nullable Screen s, CallbackInfo ci){
-        //SmoothSc.print(s);
         try {
             var sh=((CreativeScreenHandler)((ScreenHandlerProvider<?>)s).getScreenHandler());
             if(sh!=null)SmoothSc.creativeSH=sh;

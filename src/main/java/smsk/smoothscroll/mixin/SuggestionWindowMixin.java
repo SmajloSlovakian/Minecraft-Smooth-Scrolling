@@ -1,5 +1,7 @@
 package smsk.smoothscroll.mixin;
 
+import java.util.List;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -8,6 +10,8 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import com.mojang.brigadier.suggestion.Suggestion;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ChatInputSuggestor.SuggestionWindow;
@@ -20,13 +24,14 @@ public class SuggestionWindowMixin {
     private int pIndex;
     private int offsetY=0;
     @Shadow int inWindowIndex;
+    @Shadow List<Suggestion> suggestions;
     @Shadow private Rect2i area;
     private int tarIndex;
 
     @Inject(method = "render",at = @At("HEAD"))
     private void renderH(DrawContext context, int mouseX, int mouseY,CallbackInfo ci){
         offsetY*=Math.pow(Config.cfg.chatSpeed,SmoothSc.mc.getLastFrameDuration());
-        inWindowIndex=tarIndex-offsetY/12;
+        inWindowIndex=fixIndex(tarIndex-offsetY/12); // the fixindex is there as a workaround to a crash
         context.enableScissor(area.getX()-1, area.getY()-1, area.getX()+area.getWidth()+1, area.getY()+area.getHeight()+1);
     }
     @Inject(method = "render",at = @At("TAIL"))
@@ -61,14 +66,24 @@ public class SuggestionWindowMixin {
         inWindowIndex=pIndex;
     }
 
+    @ModifyVariable(method = "render", at = @At("STORE"),ordinal = 4)
+    private int addLineAbove(int r){ // this function gets called three times for just one line for some reason
+        if(Config.cfg.chatSpeed==0||offsetY<=0||inWindowIndex<=0)return(r); // the inwindowindex check is there as a workaround to a crash
+        return(r-1);
+    }
     @ModifyVariable(method = "render", at = @At("STORE"),ordinal = 2)
-    private int addLinesAbove(int i){
-        if(Config.cfg.chatSpeed==0||offsetY>=0)return(i);
+    private int addLineUnder(int i){
+        if(Config.cfg.chatSpeed==0||offsetY>=0||inWindowIndex>=suggestions.size()-10)return(i);
         return(i+1);
     }
-    @ModifyVariable(method = "render", at = @At("STORE"),ordinal = 4)
-    private int addLinesUnder(int r){
-        if(Config.cfg.chatSpeed==0||offsetY<=0)return(r);
-        return(r-1);
+
+    int fixIndex(int index){
+        if(index>suggestions.size()-10){
+            index=suggestions.size()-10;
+        }
+        if(index<0){
+            index=0;
+        }
+        return(index);
     }
 }
