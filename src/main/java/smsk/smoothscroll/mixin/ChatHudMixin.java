@@ -14,7 +14,6 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.ChatHudLine;
 import net.minecraft.text.OrderedText;
-import net.minecraft.util.math.MathHelper;
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
 
@@ -51,19 +50,17 @@ public class ChatHudMixin{
         scrolledLinesA=scrolledLines;
         scrolledLines-=SmoothSc.chatOffsetY/getLineHeight();
         if(scrolledLines<0)scrolledLines=0;
-
-        if(this.isChatHidden()||visibleMessages.size()<=0)return;
-        int o = this.getLineHeight();
-        float f = (float)this.getChatScale();
-        int l = context.getScaledWindowHeight();
-        int m = MathHelper.floor((float)(l - 40) / f);
-        int minx = m;
-        int maxx = m - (getVisibleLineCount()-1) * o;
-        context.enableScissor(0, maxx - o, context.getScaledWindowWidth(), minx);
-        //context.fill(0, 0, 9999, 9999, ColorHelper.Argb.getArgb(50, 255, 0, 255));
+    }
+    @ModifyVariable(method = "render",at = @At("STORE"),ordinal = 7)
+    private int mask(int m){
+        if(Config.cfg.chatSpeed==0||this.isChatHidden())return(m);
+        int miny = m;
+        int maxy = m - (getVisibleLineCount()-1) * getLineHeight();
+        currContext.enableScissor(0, maxy - getLineHeight(), currContext.getScaledWindowWidth(), miny);
+        return(m);
     }
     @ModifyVariable(method = "render",at = @At("STORE"))
-    private long renderMid0(long a){
+    private long demask(long a){
         if(Config.cfg.chatSpeed==0||this.isChatHidden())return(a);
         currContext.disableScissor();
         return(a);
