@@ -21,6 +21,7 @@ import smsk.smoothscroll.SmoothSc;
 public class ChatHudMixin{
     @Shadow int scrolledLines;
     @Shadow private List<ChatHudLine.Visible> visibleMessages;
+    boolean refreshing=false;
     int scrolledLinesA;
     DrawContext currContext;
 
@@ -30,7 +31,7 @@ public class ChatHudMixin{
     }
     @Inject(method="scroll",at=@At("TAIL"))
     public void scrollT(int scroll, CallbackInfo ci){
-        SmoothSc.chatOffsetY+=(scrolledLines-scrolledLinesA)*9;
+        SmoothSc.chatOffsetY+=(scrolledLines-scrolledLinesA)*getLineHeight();
     }
     @Inject(method="resetScroll",at=@At("HEAD"))
     public void scrollResetH(CallbackInfo ci){
@@ -38,7 +39,7 @@ public class ChatHudMixin{
     }
     @Inject(method="resetScroll",at=@At("TAIL"))
     public void scrollResetT(CallbackInfo ci){
-        SmoothSc.chatOffsetY+=(scrolledLines-scrolledLinesA)*9;
+        SmoothSc.chatOffsetY+=(scrolledLines-scrolledLinesA)*getLineHeight();
     }
 
     @Inject(method = "render",at=@At("HEAD"))
@@ -79,6 +80,7 @@ public class ChatHudMixin{
 
     @ModifyVariable(method="addMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageSignatureData;ILnet/minecraft/client/gui/hud/MessageIndicator;Z)V",at=@At("STORE"),ordinal = 0)
     List<OrderedText> onNewMessage(List<OrderedText> ot){
+        if(refreshing)return(ot);
         SmoothSc.chatOffsetY-=ot.size()*getLineHeight();
         return(ot);
     }
@@ -93,6 +95,12 @@ public class ChatHudMixin{
         if(Config.cfg.chatSpeed==0||SmoothSc.chatOffsetY<=0)return(r);
         return(r-1);
     }
+
+    @Inject(method = "refresh",at = @At("HEAD"))
+    private void refreshH(CallbackInfo ci){refreshing=true;}
+
+    @Inject(method = "refresh",at = @At("TAIL"))
+    private void refreshT(CallbackInfo ci){refreshing=false;}
 
     @Shadow private int getLineHeight(){return(0);}
     @Shadow private double getChatScale(){return(0);}
