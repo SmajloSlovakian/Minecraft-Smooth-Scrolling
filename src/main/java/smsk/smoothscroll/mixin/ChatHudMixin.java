@@ -5,25 +5,30 @@ import java.util.List;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import org.spongepowered.asm.mixin.injection.At;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.ChatHudLine;
 import net.minecraft.text.OrderedText;
+import net.minecraft.util.math.ColorHelper;
+import net.minecraft.util.math.Vec2f;
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
 
-@Mixin(ChatHud.class)
+@Mixin(value = ChatHud.class, priority = 1001) // i want mods to modify the chat position before, so i get to know where they put it
 public class ChatHudMixin{
     @Shadow int scrolledLines;
     @Shadow private List<ChatHudLine.Visible> visibleMessages;
     boolean refreshing=false;
     int scrolledLinesA;
     DrawContext currContext;
+    Vec2f mtc=new Vec2f(0, 0); // matrix translate
+    int upperMaskBuffer;
 
     @Inject(method="scroll",at=@At("HEAD"))
     public void scrollH(int scroll, CallbackInfo ci){
@@ -46,23 +51,34 @@ public class ChatHudMixin{
     public void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, CallbackInfo ci){
         if(Config.cfg.chatSpeed==0)return;
         currContext=context;
-		MinecraftClient mc=MinecraftClient.getInstance();
-        SmoothSc.chatOffsetY*=Math.pow(Config.cfg.chatSpeed,mc.getLastFrameDuration());
+        SmoothSc.chatOffsetY*=Math.pow(Config.cfg.chatSpeed,SmoothSc.mc.getLastFrameDuration());
         scrolledLinesA=scrolledLines;
         scrolledLines-=SmoothSc.chatOffsetY/getLineHeight();
         if(scrolledLines<0)scrolledLines=0;
     }
+    @ModifyArgs(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V", ordinal = 0))
+    private void matrixTranslateCorrector(Args args){
+        int x=(int)(float)args.get(0)-4;
+        int y=(int)(float)args.get(1);
+        y=(int)((mtc.y-y)*Math.pow(Config.cfg.chatSpeed,SmoothSc.mc.getLastFrameDuration()))+y;
+        args.set(1, (float)y);
+        mtc=new Vec2f(x,y);
+    }
     @ModifyVariable(method = "render",at = @At("STORE"),ordinal = 7)
-    private int mask(int m){
+    private int mask(int m){ // m - the height of the chat
         if(Config.cfg.chatSpeed==0||this.isChatHidden())return(m);
         int miny = m;
         int maxy = m - (getVisibleLineCount()-1) * getLineHeight();
-        currContext.enableScissor(0, maxy - getLineHeight(), currContext.getScaledWindowWidth(), miny);
+        var masktop = maxy - getLineHeight()+(int)mtc.y;
+        var maskbottom = miny+(int)mtc.y;
+
+        currContext.enableScissor(0, masktop, currContext.getScaledWindowWidth(), maskbottom);
         return(m);
     }
     @ModifyVariable(method = "render",at = @At("STORE"))
     private long demask(long a){
         if(Config.cfg.chatSpeed==0||this.isChatHidden())return(a);
+        if(Config.cfg.enableMaskDebug)currContext.fill(-100,-100,currContext.getScaledWindowWidth(),currContext.getScaledWindowHeight(),ColorHelper.Argb.getArgb(50, 255, 0, 255));
         currContext.disableScissor();
         return(a);
     }

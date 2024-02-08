@@ -41,7 +41,7 @@ public class Config {
                 }
                 cfg.cfgVersion=1.6f;
             }
-            cfg.note="Safe values for settings are 0 - 1 (inclusive). 0 means animation off (infinite speed) and bigger values mean slower speed (up to 1).";
+            cfg.note="Safe values for settings are 0 - 1 (inclusive). 0 means animation off (infinite speed) and bigger values mean slower speed (up to 1). Press F3+T in a world to update config.";
             writeFile(cfgfile);
         }
         SmoothSc.print("Config values:\n"+printify());
@@ -77,6 +77,7 @@ public class Config {
             "\nChat speed: "+cfg.chatSpeed+
             "\nCreative screen speed: "+cfg.creativeScreenSpeed+
             "\nEntry list speed: "+cfg.entryListSpeed+
+            "\nMask debug enabled: "+cfg.enableMaskDebug+
             "\nConfig version: "+cfg.cfgVersion
         );
     }
@@ -88,9 +89,11 @@ public class Config {
         @Expose
         public float chatSpeed=0.5f;
         @Expose
-        public float creativeScreenSpeed=0.334f;
+        public float creativeScreenSpeed=0.5f;
         @Expose
         public float entryListSpeed=0.334f;
+        @Expose 
+        public boolean enableMaskDebug=false;
         @Expose
         public float cfgVersion=0;
     }

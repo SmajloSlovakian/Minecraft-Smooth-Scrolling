@@ -16,6 +16,7 @@ import com.mojang.brigadier.suggestion.Suggestion;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ChatInputSuggestor.SuggestionWindow;
 import net.minecraft.client.util.math.Rect2i;
+import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
 
@@ -37,6 +38,7 @@ public class SuggestionWindowMixin {
     @Inject(method = "render",at = @At("TAIL"))
     private void renderT(DrawContext context, int mouseX, int mouseY,CallbackInfo ci){
         inWindowIndex=tarIndex;
+        if(Config.cfg.enableMaskDebug)context.fill(-100,-100,context.getScaledWindowWidth(),context.getScaledWindowHeight(),ColorHelper.Argb.getArgb(50, 255, 255, 0));
         context.disableScissor();
     }
     @ModifyArg(method = "render",at = @At(value = "INVOKE",target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)I"),index = 3)

@@ -12,6 +12,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
 
@@ -41,6 +42,7 @@ public class CreativeScreenMixin {
         context.enableScissor(x0, y0+1, x0+x1, y0+y1-1);
         context.drawTexture(new Identifier("textures/gui/container/creative_inventory/tab_"+selectedTab.getTexture()), x0, y0+(SmoothSc.creativeScreenOffsetY-SmoothSc.creativeScreenOffsetY/18*18), x2, y2, x1, y1);
         context.drawTexture(new Identifier("textures/gui/container/creative_inventory/tab_"+selectedTab.getTexture()), x0, y0+(SmoothSc.creativeScreenOffsetY-SmoothSc.creativeScreenOffsetY/18*18)-y1*Math.signum(SmoothSc.creativeScreenOffsetY), x2, y2, x1, y1);
+        if(Config.cfg.enableMaskDebug)context.fill(-100,-100,context.getScaledWindowWidth(),context.getScaledWindowHeight(),ColorHelper.Argb.getArgb(50, 255, 255, 0));
         context.disableScissor();
     }
 }

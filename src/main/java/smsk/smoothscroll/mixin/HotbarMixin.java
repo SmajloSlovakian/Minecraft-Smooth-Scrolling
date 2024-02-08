@@ -10,14 +10,13 @@ import net.minecraft.entity.player.PlayerInventory;
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
 
-@Mixin(InGameHud.class)
+@Mixin(value = InGameHud.class, priority = 999) // if bedrockify applies its mixin before smoothsc, modifyarg crashes
 public class HotbarMixin {
 
 	private static float selslotvisual=0;
-
-	@ModifyArg(method="renderHotbar",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1),index = 1,require=0) private int selectedSlotX201(int x){return(selectedSlotXcommon(x));}
-	@ModifyArg(method="renderHotbar",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V",ordinal = 1),index = 1,require=0) private int selectedSlotX202(int x){return(selectedSlotXcommon(x));}
-	private int selectedSlotXcommon(int x){
+	
+	@ModifyArg(method="renderHotbar",at=@At(value="INVOKE",target="Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V",ordinal = 1),index = 1)
+	private int selectedSlotX(int x){
 		if(Config.cfg.hotbarSpeed==0)return(x);
 		MinecraftClient mc=MinecraftClient.getInstance();
 		PlayerInventory inv=mc.player.getInventory();

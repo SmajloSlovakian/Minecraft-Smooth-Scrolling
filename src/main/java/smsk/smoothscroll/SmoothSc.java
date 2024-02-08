@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SmoothSc implements ModInitializer {
-    public static final Logger LOGGER = LoggerFactory.getLogger("smoothscroll");
+    public static final Logger LOGGER = LoggerFactory.getLogger("Smooth Scrolling");
     public static final MinecraftClient mc = MinecraftClient.getInstance();
 
 	public static int creativeScreenOffsetY=0;
