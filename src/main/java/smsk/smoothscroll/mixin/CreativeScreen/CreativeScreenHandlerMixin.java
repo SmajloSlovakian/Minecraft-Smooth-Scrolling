@@ -13,18 +13,19 @@ import smsk.smoothscroll.SmoothSc;
 @Mixin(CreativeScreenHandler.class)
 public class CreativeScreenHandlerMixin {
 
-    @ModifyVariable(method = "scrollItems",at = @At("STORE"),ordinal = 0)
-    private int scrollItems(int row){
-        if(Config.cfg.creativeScreenSpeed==0)return(row);
-        SmoothSc.creativeScreenItemCount=0;
-        if(!SmoothSc.creativeScreenScrollMixin)return(row);
-        SmoothSc.creativeScreenOffsetY+=18*(row-SmoothSc.creativeScreenPredRow);
-        SmoothSc.creativeScreenPredRow=row;
-        return(row);
+    @ModifyVariable(method = "scrollItems", at = @At("STORE"), ordinal = 0)
+    private int scrollItems(int row) {
+        if (Config.cfg.creativeScreenSpeed == 0) return (row);
+        SmoothSc.creativeScreenItemCount = 0;
+        if (!SmoothSc.creativeScreenScrollMixin) return (row);
+        
+        SmoothSc.creativeScreenOffsetY += 18 * (row - SmoothSc.creativeScreenPredRow);
+        SmoothSc.creativeScreenPredRow = row;
+        return (row);
     }
 
-    @Inject(method="scrollItems",at=@At(value="INVOKE",target="Lnet/minecraft/inventory/SimpleInventory;setStack(ILnet/minecraft/item/ItemStack;)V"))
-    private void ItemCount(CallbackInfo ci){
-        SmoothSc.creativeScreenItemCount+=1;
+    @Inject(method = "scrollItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/inventory/SimpleInventory;setStack(ILnet/minecraft/item/ItemStack;)V"))
+    private void ItemCount(CallbackInfo ci) {
+        SmoothSc.creativeScreenItemCount += 1;
     }
 }

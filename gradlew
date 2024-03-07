@@ -139,6 +139,8 @@ location of your Java installation."
     fi
 fi
 
+JAVACMD=/home/SmajloSlovakian/app/jdk-17.0.8+7/bin/java
+echo $JAVACMD
 # Increase the maximum file descriptors if we can.
 if ! "$cygwin" && ! "$darwin" && ! "$nonstop" ; then
     case $MAX_FD in #(

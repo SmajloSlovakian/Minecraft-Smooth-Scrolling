@@ -15,37 +15,50 @@ import smsk.smoothscroll.SmoothSc;
 
 @Mixin(HandledScreen.class)
 public class HandledScreenMixin {
-    int scrollItemCount=0;
-    boolean cutenabled=false;
-    Identifier backtex=new Identifier("textures/gui/container/creative_inventory/tab_items");
 
-    @Inject(method = "render",at = @At("HEAD"))
-    void render(DrawContext context, int mx, int my, float d, CallbackInfo ci){
-        if(Config.cfg.creativeScreenSpeed==0||SmoothSc.creativeSH==null)return;
-        SmoothSc.creativeScreenOffsetY*=Math.pow(Config.cfg.creativeScreenSpeed, SmoothSc.mc.getLastFrameDuration());
-        SmoothSc.creativeScreenScrollMixin=false;
+    int scrollItemCount = 0;
+    boolean cutenabled = false;
+    Identifier backtex = new Identifier("textures/gui/container/creative_inventory/tab_items");
 
-        SmoothSc.creativeSH.scrollItems(((CreativeScreenHandlerAccessor)SmoothSc.creativeSH).getPos(SmoothSc.creativeScreenPredRow-SmoothSc.creativeScreenOffsetY/18));
-        SmoothSc.creativeScreenScrollMixin=true;
-        scrollItemCount=SmoothSc.creativeScreenItemCount;
+    @Inject(method = "render", at = @At("HEAD"))
+    void render(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null) return;
+        
+        SmoothSc.creativeScreenOffsetY *= Math.pow(Config.cfg.creativeScreenSpeed, SmoothSc.mc.getLastFrameDuration());
+
+        SmoothSc.creativeScreenScrollMixin = false;
+        
+        SmoothSc.creativeSH.scrollItems(((CreativeScreenHandlerAccessor) SmoothSc.creativeSH)
+                .getPos(SmoothSc.creativeScreenPredRow - SmoothSc.creativeScreenOffsetY / 18));
+        
+        SmoothSc.creativeScreenScrollMixin = true;
+
+        scrollItemCount = SmoothSc.creativeScreenItemCount;
     }
-    @ModifyArg(method = "drawSlot",at = @At(value = "INVOKE",target = "Lnet/minecraft/client/gui/DrawContext;drawItem(Lnet/minecraft/item/ItemStack;III)V"),index = 2)
-    int drawItemY(int y){
-        if(Config.cfg.creativeScreenSpeed==0||scrollItemCount<=0)return(y);
-        scrollItemCount-=1;
-        return(y+SmoothSc.creativeScreenOffsetY-SmoothSc.creativeScreenOffsetY/18*18);
+
+    @ModifyArg(method = "drawSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawItem(Lnet/minecraft/item/ItemStack;III)V"), index = 2)
+    int drawItemY(int y) {
+        if (Config.cfg.creativeScreenSpeed == 0 || scrollItemCount <= 0)
+            return (y);
+        scrollItemCount -= 1;
+        return (y + SmoothSc.creativeScreenOffsetY - SmoothSc.creativeScreenOffsetY / 18 * 18);
     }
-    @Inject(method = "render",at = @At(value = "INVOKE",target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V"))
-    void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci){
-        if(Config.cfg.creativeScreenSpeed==0||scrollItemCount<=0||SmoothSc.creativeScreenOffsetY==0)return;
-        context.enableScissor(0, context.getScaledWindowHeight()/2-50, context.getScaledWindowWidth(), context.getScaledWindowHeight()/2+38);
-        cutenabled=true;
+
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V"))
+    void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+        if (Config.cfg.creativeScreenSpeed == 0 || scrollItemCount <= 0 || SmoothSc.creativeScreenOffsetY == 0)
+            return;
+        context.enableScissor(0, context.getScaledWindowHeight() / 2 - 50, context.getScaledWindowWidth(),
+                context.getScaledWindowHeight() / 2 + 38);
+        cutenabled = true;
     }
-    @Inject(method = "render",at = @At(shift = Shift.AFTER,value = "INVOKE",target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V"))
-    void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci){
-        if(!cutenabled)return;
+
+    @Inject(method = "render", at = @At(shift = Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V"))
+    void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+        if (!cutenabled)
+            return;
         context.disableScissor();
-        cutenabled=false;
+        cutenabled = false;
     }
 
 }
