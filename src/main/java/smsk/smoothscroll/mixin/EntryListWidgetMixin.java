@@ -14,35 +14,38 @@ import smsk.smoothscroll.SmoothSc;
 
 @Mixin(EntryListWidget.class)
 public class EntryListWidgetMixin {
-    @Shadow double scrollAmount;
+    @Shadow double scrollAmount; // this is the number of pixels
     double targetScroll;
-    double predScroll;
-    boolean updateScActive=false;
-    
-    @Inject(method="setScrollAmount",at = @At("TAIL"))
-    private void setScrollT(double s, CallbackInfo ci){
-        targetScroll=scrollAmount;
-    }
-    
-    //@Inject(method="render",at = @At("HEAD"),require = 0) private void renderH201(DrawContext dc, int mouseX, int mouseY, float delta, CallbackInfo ci){updateScroll(dc, mouseX, mouseY, delta, ci);}
-    @Inject(method="renderWidget",at = @At("HEAD"),require = 0)// private void renderH203(DrawContext dc, int mouseX, int mouseY, float delta, CallbackInfo ci){updateScroll(dc, mouseX, mouseY, delta, ci);}
-    private void updateScroll(DrawContext dc, int mouseX, int mouseY, float delta, CallbackInfo ci){
-        updateScActive=true;
-        if(Config.cfg.entryListSpeed==0||targetScroll==scrollAmount)return;
-        scrollAmount=(int)((scrollAmount-targetScroll)*Math.pow(Config.cfg.entryListSpeed, SmoothSc.mc.getLastFrameDuration())+targetScroll);
+    double scrollValBefore;
+    boolean updateScActive = false; // this makes the mod know, when things aren't working as expected and lets the user scroll non-smoothly
+    float lFDBuffer;
+
+    @Inject(method = "setScrollAmount", at = @At("TAIL"))
+    private void setScrollT(double s, CallbackInfo ci) {
+        targetScroll = scrollAmount;
     }
 
-    //@Inject(method="method_25401(DDD)Z",at=@At("HEAD"),require = 0) private void mouseScrollH201(double mouseX, double mouseY, double hA, CallbackInfoReturnable<Boolean> cir){mouseScrollH(mouseX, mouseY, hA, 0, cir);}
-    @Inject(method="mouseScrolled",     at=@At("HEAD"),require = 0)// private void mouseScrollH202(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir){mouseScrollH(mouseX, mouseY, hA, vA, cir);}
-    private void mouseScrollH(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir){
-        if(Config.cfg.entryListSpeed==0||!updateScActive)return;
-        predScroll=scrollAmount;
-        scrollAmount=targetScroll;
+    @Inject(method = "renderWidget", at = @At("HEAD"), require = 0)
+    private void updateScroll(DrawContext dc, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+        if (Config.cfg.entryListSpeed == 0) return;
+        updateScActive = true;
+
+        lFDBuffer += SmoothSc.mc.getLastFrameDuration();
+        var a = scrollAmount;
+        scrollAmount = Math.round((scrollAmount - targetScroll) * Math.pow(Config.cfg.entryListSpeed, lFDBuffer) + targetScroll);
+        if(a != scrollAmount || scrollAmount == targetScroll) lFDBuffer = 0;
     }
-    //@Inject(method="method_25401(DDD)Z",at=@At("TAIL"),require = 0) private void mouseScrollT201(double mouseX, double mouseY, double hA, CallbackInfoReturnable<Boolean> cir){mouseScrollT(mouseX, mouseY, hA, 0, cir);}
-    @Inject(method="mouseScrolled",     at=@At("TAIL"),require = 0)// private void mouseScrollT202(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir){mouseScrollT(mouseX, mouseY, hA, vA, cir);}
-    private void mouseScrollT(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir){
-        if(Config.cfg.entryListSpeed==0||!updateScActive)return;
-        scrollAmount=predScroll;
+
+    @Inject(method = "mouseScrolled", at = @At("HEAD"), require = 0)
+    private void mouseScrollH(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir) {
+        if (Config.cfg.entryListSpeed == 0 || !updateScActive) return;
+        scrollValBefore = scrollAmount;
+        scrollAmount = targetScroll;
+    }
+
+    @Inject(method = "mouseScrolled", at = @At("TAIL"), require = 0)
+    private void mouseScrollT(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir) {
+        if (Config.cfg.entryListSpeed == 0 || !updateScActive) return;
+        scrollAmount = scrollValBefore;
     }
 }

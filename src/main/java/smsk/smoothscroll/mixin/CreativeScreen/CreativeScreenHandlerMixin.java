@@ -19,7 +19,7 @@ public class CreativeScreenHandlerMixin {
         SmoothSc.creativeScreenItemCount = 0;
         if (!SmoothSc.creativeScreenScrollMixin) return (row);
         
-        SmoothSc.creativeScreenOffsetY += 18 * (row - SmoothSc.creativeScreenPredRow);
+        SmoothSc.creativeScreenScrollOffset += 18 * (row - SmoothSc.creativeScreenPredRow);
         SmoothSc.creativeScreenPredRow = row;
         return (row);
     }

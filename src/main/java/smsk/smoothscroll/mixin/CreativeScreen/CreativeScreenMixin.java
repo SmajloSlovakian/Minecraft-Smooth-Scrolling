@@ -1,6 +1,5 @@
 package smsk.smoothscroll.mixin.CreativeScreen;
 
-import org.joml.Math;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,14 +23,14 @@ public class CreativeScreenMixin {
 
     @Inject(method = "setSelectedTab", at = @At("TAIL"))
     void setSelectedTabT(ItemGroup group, CallbackInfo ci) {
-        SmoothSc.creativeScreenOffsetY = 0;
+        SmoothSc.creativeScreenScrollOffset = 0;
     }
 
     @Inject(method = "drawBackground", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V"))
     void drawBackground(DrawContext context, float delta, int mouseX, int mouseY, CallbackInfo ci) {
-        if (SmoothSc.creativeScreenOffsetY == 0 || Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null) return;
+        if (SmoothSc.creativeScreenScrollOffset == 0 || Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null) return;
 
-        int x0 = Math.roundHalfUp(context.getScaledWindowWidth() / 2f) - 90;
+        int x0 = Math.round(context.getScaledWindowWidth() / 2f) - 90;
         int y0 = context.getScaledWindowHeight() / 2 - 51;
         int x1 = 162;
         int y1 = 90;
@@ -42,9 +41,9 @@ public class CreativeScreenMixin {
         // context.fill(0, 0, 1920, 1080, ColorHelper.Argb.getArgb(50, 255, 128, 0));
         context.enableScissor(x0, y0 + 1, x0 + x1, y0 + y1 - 1);
         context.drawTexture(new Identifier("textures/gui/container/creative_inventory/tab_" + selectedTab.getTexture()),
-                x0, y0 + (SmoothSc.creativeScreenOffsetY - SmoothSc.creativeScreenOffsetY / 18 * 18), x2, y2, x1, y1);
+                x0, y0 + (SmoothSc.creativeScreenScrollOffset - SmoothSc.creativeScreenScrollOffset / 18 * 18), x2, y2, x1, y1);
         context.drawTexture(new Identifier("textures/gui/container/creative_inventory/tab_" + selectedTab.getTexture()),
-                x0, y0 + (SmoothSc.creativeScreenOffsetY - SmoothSc.creativeScreenOffsetY / 18 * 18) - y1 * Math.signum(SmoothSc.creativeScreenOffsetY),
+                x0, (int) (y0 + (SmoothSc.creativeScreenScrollOffset - SmoothSc.creativeScreenScrollOffset / 18 * 18) - y1 * Math.signum(SmoothSc.creativeScreenScrollOffset)),
                 x2, y2, x1, y1);
 
         if (Config.cfg.enableMaskDebug)
