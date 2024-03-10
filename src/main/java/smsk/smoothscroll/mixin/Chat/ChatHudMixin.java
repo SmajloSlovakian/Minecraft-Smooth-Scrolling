@@ -27,12 +27,16 @@ public class ChatHudMixin {
     @Shadow List<ChatHudLine.Visible> visibleMessages;
 
     int scrollOffset;
-    int upperMaskBuffer;
+    int maskHeightBuffer;
     boolean refreshing = false;
     int scrollValBefore;
-    float lFDBuffer;
+    float chatLFDBuffer;
+    float mTCLFDBuffer;
+    float maskLFDBuffer;
     DrawContext currentContext;
+    int currentTickBuffer;
     Vec2f mtc = new Vec2f(0, 0); // matrix translate
+    int shownLineCount;
 
     @Inject(method = "scroll", at = @At("HEAD"))
     public void scrollH(int scroll, CallbackInfo ci) {
@@ -58,11 +62,12 @@ public class ChatHudMixin {
     public void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, CallbackInfo ci) {
         if (Config.cfg.chatSpeed == 0) return;
         currentContext = context;
+        currentTickBuffer = currentTick;
 
-        lFDBuffer += SmoothSc.mc.getLastFrameDuration();
+        chatLFDBuffer += SmoothSc.mc.getLastFrameDuration();
         var a = scrollOffset;
-        scrollOffset = (int) Math.round(((double) scrollOffset) * Math.pow(Config.cfg.chatSpeed, lFDBuffer));
-        if (scrollOffset != a || scrollOffset == 0) lFDBuffer = 0;
+        scrollOffset = (int) Math.round(((double) scrollOffset) * Math.pow(Config.cfg.chatSpeed, chatLFDBuffer));
+        if (scrollOffset != a || scrollOffset == 0) chatLFDBuffer = 0;
 
         scrollValBefore = scrolledLines;
         scrolledLines -= scrollOffset / getLineHeight();
@@ -73,25 +78,41 @@ public class ChatHudMixin {
     private void matrixTranslateCorrector(Args args) {
         int x = (int) (float) args.get(0) - 4;
         int y = (int) (float) args.get(1);
-        y = (int) ((mtc.y - y) * Math.pow(Config.cfg.chatSpeed, SmoothSc.mc.getLastFrameDuration())) + y;
-        args.set(1, (float) y);
-        mtc = new Vec2f(x, y);
+
+        mTCLFDBuffer += SmoothSc.mc.getLastFrameDuration();
+        var a = mtc.y;
+        var newY = (int) Math.round((mtc.y - y) * Math.pow(Config.cfg.chatSpeed, mTCLFDBuffer) + y);
+        if (newY != a || y == newY) mTCLFDBuffer = 0;
+
+        args.set(1, (float) newY);
+        mtc = new Vec2f(x, newY);
     }
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 7)
-    private int mask(int m) { // m - the height of the chat
-        if (Config.cfg.chatSpeed == 0 || this.isChatHidden()) return (m);
-        int miny = m;
-        int maxy = m - (getVisibleLineCount() - 1) * getLineHeight();
-        var masktop = maxy - getLineHeight() + (int) mtc.y;
-        var maskbottom = miny + (int) mtc.y;
+    private int mask(int m) { // m - the y position of the chat
+        if (Config.cfg.chatSpeed == 0 || isChatHidden()) return (m);
+
+        var shownLineCount = 0;
+        for(int r = 0; r + scrolledLines < visibleMessages.size() && r < getVisibleLineCount(); r++) {
+            if (currentTickBuffer - visibleMessages.get(r).addedTime() < 200 || isChatFocused()) shownLineCount++;
+        }
+        // var targetHeight = getVisibleLineCount() * getLineHeight();
+        var targetHeight = shownLineCount * getLineHeight();
+
+        maskLFDBuffer += SmoothSc.mc.getLastFrameDuration();
+        var a = maskHeightBuffer;
+        maskHeightBuffer = (int) Math.round((maskHeightBuffer - targetHeight) * Math.pow(Config.cfg.chatSpeed, maskLFDBuffer) + targetHeight);
+        if (a != maskHeightBuffer || maskHeightBuffer == targetHeight) maskLFDBuffer = 0;
+
+        var masktop = m - maskHeightBuffer + (int) mtc.y;
+        var maskbottom = m + (int) mtc.y;
 
         currentContext.enableScissor(0, masktop, currentContext.getScaledWindowWidth(), maskbottom);
         return (m);
     }
 
     @ModifyVariable(method = "render", at = @At("STORE"))
-    private long demask(long a) {
+    private long demask(long a) { // after the cycle
         if (Config.cfg.chatSpeed == 0 || this.isChatHidden()) return (a);
         if (Config.cfg.enableMaskDebug) currentContext.fill(-100, -100, currentContext.getScaledWindowWidth(), currentContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
         currentContext.disableScissor();
@@ -119,8 +140,10 @@ public class ChatHudMixin {
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 3)
     private int addLinesAbove(int i) {
-        if (Config.cfg.chatSpeed == 0 || scrollOffset >= 0) return (i);
-        return (i + 1);
+        if (Config.cfg.chatSpeed == 0) return (i);
+        return (maskHeightBuffer / getLineHeight() + 1);
+        //if (scrollOffset >= 0) return (i);
+        //return (i + 1);
     }
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 12)
