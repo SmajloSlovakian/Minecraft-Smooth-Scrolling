@@ -15,7 +15,7 @@ public class HotbarMixin {
 	int selectedPixelBuffer = 0;
 	float lFDBuffer;
 
-	@ModifyArg(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1), index = 1)
+	@ModifyArg(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1), index = 1)
 	private int selectedSlotX(int x) {
 		if (Config.cfg.hotbarSpeed == 0) return (x);
 		PlayerInventory inv = SmoothSc.mc.player.getInventory();
