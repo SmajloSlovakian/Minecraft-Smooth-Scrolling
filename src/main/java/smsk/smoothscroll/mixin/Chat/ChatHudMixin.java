@@ -99,6 +99,14 @@ public class ChatHudMixin {
         // var targetHeight = getVisibleLineCount() * getLineHeight();
         var targetHeight = shownLineCount * getLineHeight();
 
+        // mask doesn't really match the smooth scrolling with the first few messages
+        // i really don't know the root cause currently
+        // cause: targetHeight matches the interpolated scroll value for some reason
+        //     when the shownlinecount is equal to the size of visible messages
+        //     so the mask falls behind sometimes
+        // not working great workaround:
+        // if (shownLineCount == visibleMessages.size()) maskHeightBuffer = targetHeight;
+        // else {
         maskLFDBuffer += SmoothSc.mc.getLastFrameDuration();
         var a = maskHeightBuffer;
         maskHeightBuffer = (int) Math.round((maskHeightBuffer - targetHeight) * Math.pow(Config.cfg.chatSpeed, maskLFDBuffer) + targetHeight);
@@ -107,8 +115,21 @@ public class ChatHudMixin {
         var masktop = m - maskHeightBuffer + (int) mtc.y;
         var maskbottom = m + (int) mtc.y;
 
+        //currentContext.fill(0, m-targetHeight, 2, maskbottom, ColorHelper.Argb.getArgb(50, 255, 255, 0));
         currentContext.enableScissor(0, masktop, currentContext.getScaledWindowWidth(), maskbottom);
         return (m);
+    }
+
+    @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 14)
+    private int opacity(int t) {
+        if (Config.cfg.chatSpeed == 0) return (t);
+        return (0);
+    }
+
+    @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 18)
+    private int changePosY(int y) {
+        if (Config.cfg.chatSpeed == 0) return (y);
+        return (y - scrollOffset + (scrollOffset / getLineHeight() * getLineHeight()));
     }
 
     @ModifyVariable(method = "render", at = @At("STORE"))
@@ -125,12 +146,6 @@ public class ChatHudMixin {
         scrolledLines = scrollValBefore;
     }
 
-    @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 18)
-    private int changePosY(int y) {
-        if (Config.cfg.chatSpeed == 0) return (y);
-        return (y - scrollOffset + (scrollOffset / getLineHeight() * getLineHeight()));
-    }
-
     @ModifyVariable(method = "addMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageSignatureData;ILnet/minecraft/client/gui/hud/MessageIndicator;Z)V", at = @At("STORE"), ordinal = 0)
     List<OrderedText> onNewMessage(List<OrderedText> ot) {
         if (refreshing) return (ot);
@@ -141,9 +156,9 @@ public class ChatHudMixin {
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 3)
     private int addLinesAbove(int i) {
         if (Config.cfg.chatSpeed == 0) return (i);
-        return (maskHeightBuffer / getLineHeight() + 1);
-        //if (scrollOffset >= 0) return (i);
-        //return (i + 1);
+        int a = 0;
+        if (scrollOffset < 0) a = 1;
+        return ((int) Math.ceil(maskHeightBuffer / (float) getLineHeight()) + a);
     }
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 12)
