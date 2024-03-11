@@ -33,36 +33,16 @@ public class ChatHudMixin {
     float chatLFDBuffer;
     float mTCLFDBuffer;
     float maskLFDBuffer;
-    DrawContext currentContext;
-    int currentTickBuffer;
+    DrawContext savedContext;
+    int savedCurrentTick;
     Vec2f mtc = new Vec2f(0, 0); // matrix translate
     int shownLineCount;
-
-    @Inject(method = "scroll", at = @At("HEAD"))
-    public void scrollH(int scroll, CallbackInfo ci) {
-        scrollValBefore = scrolledLines;
-    }
-
-    @Inject(method = "scroll", at = @At("TAIL"))
-    public void scrollT(int scroll, CallbackInfo ci) {
-        scrollOffset += (scrolledLines - scrollValBefore) * getLineHeight();
-    }
-
-    @Inject(method = "resetScroll", at = @At("HEAD"))
-    public void scrollResetH(CallbackInfo ci) {
-        scrollValBefore = scrolledLines;
-    }
-
-    @Inject(method = "resetScroll", at = @At("TAIL"))
-    public void scrollResetT(CallbackInfo ci) {
-        scrollOffset += (scrolledLines - scrollValBefore) * getLineHeight();
-    }
 
     @Inject(method = "render", at = @At("HEAD"))
     public void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, CallbackInfo ci) {
         if (Config.cfg.chatSpeed == 0) return;
-        currentContext = context;
-        currentTickBuffer = currentTick;
+        savedContext = context;
+        savedCurrentTick = currentTick;
 
         chatLFDBuffer += SmoothSc.mc.getLastFrameDuration();
         var a = scrollOffset;
@@ -94,7 +74,7 @@ public class ChatHudMixin {
 
         var shownLineCount = 0;
         for(int r = 0; r + scrolledLines < visibleMessages.size() && r < getVisibleLineCount(); r++) {
-            if (currentTickBuffer - visibleMessages.get(r).addedTime() < 200 || isChatFocused()) shownLineCount++;
+            if (savedCurrentTick - visibleMessages.get(r).addedTime() < 200 || isChatFocused()) shownLineCount++;
         }
         // var targetHeight = getVisibleLineCount() * getLineHeight();
         var targetHeight = shownLineCount * getLineHeight();
@@ -116,7 +96,7 @@ public class ChatHudMixin {
         var maskbottom = m + (int) mtc.y;
 
         //currentContext.fill(0, m-targetHeight, 2, maskbottom, ColorHelper.Argb.getArgb(50, 255, 255, 0));
-        currentContext.enableScissor(0, masktop, currentContext.getScaledWindowWidth(), maskbottom);
+        savedContext.enableScissor(0, masktop, savedContext.getScaledWindowWidth(), maskbottom);
         return (m);
     }
 
@@ -135,8 +115,8 @@ public class ChatHudMixin {
     @ModifyVariable(method = "render", at = @At("STORE"))
     private long demask(long a) { // after the cycle
         if (Config.cfg.chatSpeed == 0 || this.isChatHidden()) return (a);
-        if (Config.cfg.enableMaskDebug) currentContext.fill(-100, -100, currentContext.getScaledWindowWidth(), currentContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
-        currentContext.disableScissor();
+        if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
+        savedContext.disableScissor();
         return (a);
     }
 
@@ -151,6 +131,26 @@ public class ChatHudMixin {
         if (refreshing) return (ot);
         scrollOffset -= ot.size() * getLineHeight();
         return (ot);
+    }
+
+    @Inject(method = "scroll", at = @At("HEAD"))
+    public void scrollH(int scroll, CallbackInfo ci) {
+        scrollValBefore = scrolledLines;
+    }
+
+    @Inject(method = "scroll", at = @At("TAIL"))
+    public void scrollT(int scroll, CallbackInfo ci) {
+        scrollOffset += (scrolledLines - scrollValBefore) * getLineHeight();
+    }
+
+    @Inject(method = "resetScroll", at = @At("HEAD"))
+    public void scrollResetH(CallbackInfo ci) {
+        scrollValBefore = scrolledLines;
+    }
+
+    @Inject(method = "resetScroll", at = @At("TAIL"))
+    public void scrollResetT(CallbackInfo ci) {
+        scrollOffset += (scrolledLines - scrollValBefore) * getLineHeight();
     }
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 3)

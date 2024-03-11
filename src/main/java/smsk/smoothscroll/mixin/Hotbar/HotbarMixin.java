@@ -12,29 +12,29 @@ import smsk.smoothscroll.SmoothSc;
 @Mixin(value = InGameHud.class, priority = 999) // if bedrockify applies its mixin before smoothsc, modifyarg crashes
 public class HotbarMixin {
 
-	private static float selslotvisual = 0;
+	int selectedPixelBuffer = 0;
+	float lFDBuffer;
 
 	@ModifyArg(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1), index = 1)
 	private int selectedSlotX(int x) {
 		if (Config.cfg.hotbarSpeed == 0) return (x);
-		var mc = SmoothSc.mc;
-		PlayerInventory inv = mc.player.getInventory();
+		PlayerInventory inv = SmoothSc.mc.player.getInventory();
 
-		selslotvisual = (float) ((selslotvisual - (inv.selectedSlot - SmoothSc.hotbarRollover * 9)) * Math.pow(Config.cfg.hotbarSpeed, mc.getLastFrameDuration()) + (inv.selectedSlot - SmoothSc.hotbarRollover * 9));
+		lFDBuffer += SmoothSc.mc.getLastFrameDuration();
+		var a = selectedPixelBuffer;
+		selectedPixelBuffer = (int) Math.round((selectedPixelBuffer - (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20) * Math.pow(Config.cfg.hotbarSpeed, lFDBuffer) + (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20);
+		if (selectedPixelBuffer != a || selectedPixelBuffer == inv.selectedSlot * 20) lFDBuffer = 0;
 		
-		if (selslotvisual * 20 < -10) {
-			selslotvisual += 9;
+		if (selectedPixelBuffer < -10) {
+			selectedPixelBuffer += 9 * 20;
 			SmoothSc.hotbarRollover -= 1;
-		} else if (selslotvisual * 20 > 20 * 9 - 10) {
-			selslotvisual -= 9;
+		} else if (selectedPixelBuffer > 20 * 9 - 10) {
+			selectedPixelBuffer -= 9 * 20;
 			SmoothSc.hotbarRollover += 1;
 		}
 
-		if (inv.selectedSlot + 0.05 > selslotvisual && inv.selectedSlot < selslotvisual) selslotvisual = inv.selectedSlot;
-		if (inv.selectedSlot - 0.05 < selslotvisual && inv.selectedSlot > selslotvisual) selslotvisual = inv.selectedSlot;
-
 		x -= inv.selectedSlot * 20;
-		x += selslotvisual * 20;
+		x += selectedPixelBuffer;
 		return (x);
 	}
 }

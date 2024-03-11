@@ -15,6 +15,6 @@ public class PlayerInventoryMixin {
         var s = Math.signum(d);
         PlayerInventory inv = SmoothSc.mc.player.getInventory();
         if (inv.selectedSlot - s < 0) SmoothSc.hotbarRollover += 1;
-        if (inv.selectedSlot - s > 8) SmoothSc.hotbarRollover -= 1;
+        if (inv.selectedSlot - s > 8) SmoothSc.hotbarRollover += -1;
     }
 }
