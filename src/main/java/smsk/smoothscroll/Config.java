@@ -46,7 +46,7 @@ public class Config {
                 if (cfg.entryListSpeed == 0.334f) cfg.entryListSpeed = 0.5f;
             }
             if (cfg.cfgVersion < 1.91f) {
-                cfg.cfgVersion = 0.5f;
+                cfg.chatOpeningSpeed = 0.5f;
             }
             cfg.cfgVersion = cfgVersion;
             cfg.note = "Safe values for settings are 0 - 1 (inclusive). 0 means animation off (infinite speed) and bigger values mean slower speed (up to 1). Press F3+T in a world to update config.";
