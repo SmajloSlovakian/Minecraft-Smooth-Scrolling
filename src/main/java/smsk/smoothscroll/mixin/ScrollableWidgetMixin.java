@@ -12,23 +12,26 @@ import smsk.smoothscroll.SmoothSc;
 
 @Mixin(ScrollableWidget.class)
 public class ScrollableWidgetMixin { // DISABLED
-    
+
     @Shadow double scrollY;
     double predScrollY;
     double targetScrollY;
 
-    @Inject(method = "setScrollY(D)V",at = @At("HEAD"))
-    private void SetScrollYH(double s,CallbackInfo ci){
-        predScrollY=scrollY;
+    @Inject(method = "setScrollY(D)V", at = @At("HEAD"))
+    private void SetScrollYH(double s, CallbackInfo ci) {
+        predScrollY = scrollY;
     }
-    @Inject(method = "setScrollY(D)V",at = @At("TAIL"))
-    private void SetScrollYT(double s,CallbackInfo ci){
-        targetScrollY=scrollY;
-        scrollY=predScrollY;
+
+    @Inject(method = "setScrollY(D)V", at = @At("TAIL"))
+    private void SetScrollYT(double s, CallbackInfo ci) {
+        targetScrollY = scrollY;
+        scrollY = predScrollY;
     }
-    @Inject(method = "drawScrollbar",at = @At("HEAD"))
-    private void drawScrollbarH(DrawContext context,CallbackInfo ci){
-        scrollY=(scrollY-targetScrollY)/Math.pow(2, SmoothSc.mc.getLastFrameDuration())+targetScrollY;
-        if(scrollY<targetScrollY+0.1 && scrollY>targetScrollY-0.1)scrollY=targetScrollY;
+
+    @Inject(method = "drawScrollbar", at = @At("HEAD"))
+    private void drawScrollbarH(DrawContext context, CallbackInfo ci) {
+        scrollY = (scrollY - targetScrollY) / Math.pow(2, SmoothSc.mc.getLastFrameDuration()) + targetScrollY;
+        if (scrollY < targetScrollY + 0.1 && scrollY > targetScrollY - 0.1)
+            scrollY = targetScrollY;
     }
 }

@@ -17,16 +17,17 @@ import net.minecraft.client.gui.screen.ingame.ScreenHandlerProvider;
 
 @Mixin(MinecraftClient.class)
 public class MinecraftClientMixin {
-    @Inject(method = "setScreen",at = @At("TAIL"))
-    private void setScreenT(@Nullable Screen s, CallbackInfo ci){
+    @Inject(method = "setScreen", at = @At("TAIL"))
+    private void setScreenT(@Nullable Screen s, CallbackInfo ci) {
         try {
-            var sh=((CreativeScreenHandler)((ScreenHandlerProvider<?>)s).getScreenHandler());
-            if(sh!=null)SmoothSc.creativeSH=sh;
-        } catch (Exception e){}
-        SmoothSc.creativeScreenOffsetY=0;
+            var sh = ((CreativeScreenHandler) ((ScreenHandlerProvider<?>) s).getScreenHandler());
+            if (sh != null) SmoothSc.creativeSH = sh;
+        } catch (Exception e) {}
+        SmoothSc.creativeScreenScrollOffset = 0;
     }
-    @Inject(method = "reloadResources",at = @At("HEAD"))
-    void onResReload(CallbackInfoReturnable<CompletableFuture<Void>> cir){
+
+    @Inject(method = "reloadResources", at = @At("HEAD"))
+    void onResReload(CallbackInfoReturnable<CompletableFuture<Void>> cir) {
         SmoothSc.updateConfig();
     }
 }
