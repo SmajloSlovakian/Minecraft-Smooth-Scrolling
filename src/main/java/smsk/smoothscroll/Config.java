@@ -13,7 +13,7 @@ import net.fabricmc.loader.api.FabricLoader;
 
 public class Config {
     public static Cdata cfg;
-    public static float cfgVersion = 1.9f;
+    public static float cfgVersion = 1.91f;
     public static boolean problemReading = false;
 
     public Config() {
@@ -45,7 +45,10 @@ public class Config {
             if (cfg.cfgVersion < 1.9f) {
                 if (cfg.entryListSpeed == 0.334f) cfg.entryListSpeed = 0.5f;
             }
-            cfg.cfgVersion = 1.9f;
+            if (cfg.cfgVersion < 1.91f) {
+                cfg.cfgVersion = 0.5f;
+            }
+            cfg.cfgVersion = cfgVersion;
             cfg.note = "Safe values for settings are 0 - 1 (inclusive). 0 means animation off (infinite speed) and bigger values mean slower speed (up to 1). Press F3+T in a world to update config.";
             writeFile(cfgfile);
         }
@@ -82,6 +85,7 @@ public class Config {
     String printify() {
         return ("Hotbar speed: " + cfg.hotbarSpeed +
                 "\nChat speed: " + cfg.chatSpeed +
+                "\nChat Opening speed: " + cfg.chatOpeningSpeed +
                 "\nCreative screen speed: " + cfg.creativeScreenSpeed +
                 "\nEntry list speed: " + cfg.entryListSpeed +
                 "\nMask debug enabled: " + cfg.enableMaskDebug +
@@ -95,6 +99,8 @@ public class Config {
         public float hotbarSpeed = 0.2f;
         @Expose
         public float chatSpeed = 0.5f;
+        @Expose
+        public float chatOpeningSpeed = 0.5f;
         @Expose
         public float creativeScreenSpeed = 0.5f;
         @Expose

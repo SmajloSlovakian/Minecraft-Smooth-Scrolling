@@ -61,7 +61,7 @@ public class ChatHudMixin {
 
         mTCLFDBuffer += SmoothSc.mc.getLastFrameDuration();
         var a = mtc.y;
-        var newY = (int) Math.round((mtc.y - y) * Math.pow(Config.cfg.chatSpeed, mTCLFDBuffer) + y);
+        var newY = (int) Math.round((mtc.y - y) * Math.pow(Config.cfg.chatOpeningSpeed, mTCLFDBuffer) + y);
         if (newY != a || y == newY) mTCLFDBuffer = 0;
 
         args.set(1, (float) newY);
@@ -70,7 +70,7 @@ public class ChatHudMixin {
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 7)
     private int mask(int m) { // m - the y position of the chat
-        if (Config.cfg.chatSpeed == 0 || isChatHidden()) return (m);
+        if ((Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) || isChatHidden()) return (m);
 
         var shownLineCount = 0;
         for(int r = 0; r + scrolledLines < visibleMessages.size() && r < getVisibleLineCount(); r++) {
@@ -89,7 +89,7 @@ public class ChatHudMixin {
         // else {
         maskLFDBuffer += SmoothSc.mc.getLastFrameDuration();
         var a = maskHeightBuffer;
-        maskHeightBuffer = (int) Math.round((maskHeightBuffer - targetHeight) * Math.pow(Config.cfg.chatSpeed, maskLFDBuffer) + targetHeight);
+        maskHeightBuffer = (int) Math.round((maskHeightBuffer - targetHeight) * Math.pow(Config.cfg.chatOpeningSpeed, maskLFDBuffer) + targetHeight);
         if (a != maskHeightBuffer || maskHeightBuffer == targetHeight) maskLFDBuffer = 0;
 
         var masktop = m - maskHeightBuffer + (int) mtc.y;
@@ -102,7 +102,7 @@ public class ChatHudMixin {
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 14)
     private int opacity(int t) {
-        if (Config.cfg.chatSpeed == 0) return (t);
+        if (Config.cfg.chatOpeningSpeed == 0) return (t);
         return (0);
     }
 
