@@ -25,7 +25,7 @@ public class SmoothSc implements ModInitializer {
 	public static int creativeScreenItemCount = 0;
 	public static CreativeScreenHandler creativeSH;
 	public static boolean creativeScreenScrollMixin = true;
-	public static int creativeScreenPredRow = 0;
+	public static int creativeScreenPrevRow = 0;
 	public static int hotbarRollover = 0;
 
 	@Override
