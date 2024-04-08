@@ -49,7 +49,7 @@ public class HandledScreenMixin {
         var currRow = SmoothSc.creativeScreenPrevRow - SmoothSc.creativeScreenScrollOffset / 18;
         var fromIndex = currRow * 9 + overUnder;
         for(int i = fromIndex; i >= 0 && i < SmoothSc.creativeSH.itemList.size() && i < fromIndex + 9; i++) {
-            context.drawItem(SmoothSc.creativeSH.itemList.get(i), 9 + i % 9 * 18, currRow + (SmoothSc.creativeScreenScrollOffset > 0 ? 0 : 18 * 6));
+            context.drawItem(SmoothSc.creativeSH.itemList.get(i), 9 + i % 9 * 18, SmoothSc.creativeScreenScrollOffset - SmoothSc.creativeScreenScrollOffset / 18 * 18 + (SmoothSc.creativeScreenScrollOffset > 0 ? 0 : 18 * 6));
         }
     }
 
