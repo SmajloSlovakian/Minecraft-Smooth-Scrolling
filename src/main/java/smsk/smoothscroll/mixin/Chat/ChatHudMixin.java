@@ -73,9 +73,9 @@ public class ChatHudMixin {
         if ((Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) || isChatHidden()) return (m);
 
         var shownLineCount = 0;
-        SmoothSc.print("1: "+visibleMessages.size());
+        //SmoothSc.print("1: "+visibleMessages.size());
         for(int r = 0; r + scrolledLines < visibleMessages.size() && r < getVisibleLineCount(); r++) {
-            SmoothSc.print("2: "+(savedCurrentTick - visibleMessages.get(r).addedTime()));
+            //SmoothSc.print("2: "+(savedCurrentTick - visibleMessages.get(r).addedTime()));
             if (savedCurrentTick - visibleMessages.get(r).addedTime() < 200 || isChatFocused()) shownLineCount++;
         }
         // var targetHeight = getVisibleLineCount() * getLineHeight();
