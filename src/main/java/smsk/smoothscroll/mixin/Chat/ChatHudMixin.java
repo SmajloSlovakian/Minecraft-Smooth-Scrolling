@@ -73,7 +73,9 @@ public class ChatHudMixin {
         if ((Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) || isChatHidden()) return (m);
 
         var shownLineCount = 0;
+        //SmoothSc.print("1: "+visibleMessages.size());
         for(int r = 0; r + scrolledLines < visibleMessages.size() && r < getVisibleLineCount(); r++) {
+            //SmoothSc.print("2: "+(savedCurrentTick - visibleMessages.get(r).addedTime()));
             if (savedCurrentTick - visibleMessages.get(r).addedTime() < 200 || isChatFocused()) shownLineCount++;
         }
         // var targetHeight = getVisibleLineCount() * getLineHeight();
@@ -95,7 +97,16 @@ public class ChatHudMixin {
         var masktop = m - maskHeightBuffer + (int) mtc.y;
         var maskbottom = m + (int) mtc.y;
 
-        //currentContext.fill(0, m-targetHeight, 2, maskbottom, ColorHelper.Argb.getArgb(50, 255, 255, 0));
+        // this makes underlined text and such correct again
+        if (scrollOffset == 0 && maskHeightBuffer != 0) {
+            if (maskHeightBuffer == targetHeight) {
+                maskbottom += 2;
+                masktop -= 2;
+            } else {
+                maskbottom += 2;
+            }
+        }
+
         savedContext.enableScissor(0, masktop, savedContext.getScaledWindowWidth(), maskbottom);
         return (m);
     }
@@ -115,7 +126,7 @@ public class ChatHudMixin {
     @ModifyVariable(method = "render", at = @At("STORE"))
     private long demask(long a) { // after the cycle
         if (Config.cfg.chatSpeed == 0 || this.isChatHidden()) return (a);
-        if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
+        if (Config.cfg.enableMaskDebug) SmoothSc.unmodifiedFill(savedContext, -100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
         savedContext.disableScissor();
         return (a);
     }

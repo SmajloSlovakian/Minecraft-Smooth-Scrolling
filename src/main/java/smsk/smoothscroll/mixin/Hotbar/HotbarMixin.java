@@ -2,10 +2,16 @@ package smsk.smoothscroll.mixin.Hotbar;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArgs;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
 
@@ -14,16 +20,33 @@ public class HotbarMixin {
 
 	int selectedPixelBuffer = 0;
 	float lFDBuffer;
+	boolean masked = false;
+	DrawContext savedContext;
 
-	@ModifyArg(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1), index = 1)
-	private int selectedSlotX(int x) {
-		if (Config.cfg.hotbarSpeed == 0) return (x);
+	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
+	private void draw1(float tickDelta, DrawContext context, CallbackInfo ci) {
+		if (Config.cfg.hotbarSpeed == 0) return;
+		var x = context.getScaledWindowWidth() / 2 - 91;
+		var y = context.getScaledWindowHeight() - 22;
+		context.enableScissor(x - 1, y - 1, x + 182 + 1, y + 22 + 1);
+		savedContext = context;
+	}
+
+	@ModifyArgs(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
+	private void selectedSlotX(Args args) {
+		if (Config.cfg.hotbarSpeed == 0) return;
+		Identifier texture = args.get(0);
+		int x = args.get(1);
+		int y = args.get(2);
+		int width = args.get(3);
+		int height = args.get(4);
 		PlayerInventory inv = SmoothSc.mc.player.getInventory();
 
 		lFDBuffer += SmoothSc.mc.getLastFrameDuration();
 		var a = selectedPixelBuffer;
-		selectedPixelBuffer = (int) Math.round((selectedPixelBuffer - (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20) * Math.pow(Config.cfg.hotbarSpeed, lFDBuffer) + (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20);
-		if (selectedPixelBuffer != a || selectedPixelBuffer == inv.selectedSlot * 20) lFDBuffer = 0;
+		var target = (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20;
+		selectedPixelBuffer = (int) Math.round((selectedPixelBuffer - target) * Math.pow(Config.cfg.hotbarSpeed, lFDBuffer) + target);
+		if (selectedPixelBuffer != a || selectedPixelBuffer == target) lFDBuffer = 0;
 		
 		if (selectedPixelBuffer < -10) {
 			selectedPixelBuffer += 9 * 20;
@@ -35,6 +58,21 @@ public class HotbarMixin {
 
 		x -= inv.selectedSlot * 20;
 		x += selectedPixelBuffer;
-		return (x);
+		masked = true;
+		args.set(1, x);
+		if (!SmoothSc.isImmediatelyFastLoaded) {
+			if (selectedPixelBuffer < 0) {
+				savedContext.drawGuiTexture(texture, x + 9 * 20, y, width, height);
+			} else if (selectedPixelBuffer > 20 * 8) {
+				savedContext.drawGuiTexture(texture, x - 9 * 20, y, width, height);
+			}
+		}
+	}
+
+	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1, shift = At.Shift.AFTER))
+	private void draw2(float tickDelta, DrawContext context, CallbackInfo ci) {
+		if (!masked) return;
+        if (Config.cfg.enableMaskDebug) SmoothSc.unmodifiedFill(savedContext, -100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
+		context.disableScissor();
 	}
 }
