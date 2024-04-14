@@ -1,8 +1,10 @@
 package smsk.smoothscroll;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.font.TextRenderer.TextLayerType;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeScreenHandler;
 import net.minecraft.client.render.RenderLayer;
@@ -10,6 +12,7 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.text.OrderedText;
 import net.minecraft.util.math.ColorHelper.Argb;
 
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,18 +22,23 @@ public class SmoothSc implements ModInitializer {
 	public static final MinecraftClient mc = MinecraftClient.getInstance();
 
 	public static Config cfg;
+    public static boolean isImmediatelyFastLoaded;
+
 	public static int creativeScreenScrollOffset = 0;
 	public static float creativeScreenTargetPos = 0;
 	public static float creativeScreenCurrentPos = 0;
 	public static int creativeScreenItemCount = 0;
 	public static CreativeScreenHandler creativeSH;
 	public static boolean creativeScreenScrollMixin = true;
-	public static int creativeScreenPredRow = 0;
+	public static int creativeScreenPrevRow = 0;
+
 	public static int hotbarRollover = 0;
+
 
 	@Override
 	public void onInitialize() {
 		updateConfig();
+        isImmediatelyFastLoaded = FabricLoader.getInstance().isModLoaded("immediatelyfast");
 	}
 
 	public static void print(Object s) {
@@ -50,6 +58,15 @@ public class SmoothSc implements ModInitializer {
         drawContext.draw();
         return (a);
     }
+    public static int unmodifiedShadowedText(DrawContext drawContext, TextRenderer textRenderer, @Nullable String text, int x, int y, int color) {
+        if (text == null) {
+            return 0;
+        } else {
+            int i = textRenderer.draw(text, (float)x, (float)y, color, true, drawContext.getMatrices().peek().getPositionMatrix(), drawContext.getVertexConsumers(), TextLayerType.NORMAL, 0, 15728880, textRenderer.isRightToLeft());
+            drawContext.draw();
+            return i;
+        }
+   }
 	public static void unmodifiedFill(DrawContext drawContext, int x1, int y1, int x2, int y2, int color) {
         // this is a workaround because immediately fast scissor doesn't work for fill
         int z = 0;
