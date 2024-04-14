@@ -1,6 +1,7 @@
 package smsk.smoothscroll;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -19,6 +20,8 @@ public class SmoothSc implements ModInitializer {
 	public static final MinecraftClient mc = MinecraftClient.getInstance();
 
 	public static Config cfg;
+    public static boolean isImmediatelyFastLoaded;
+
 	public static int creativeScreenScrollOffset = 0;
 	public static float creativeScreenTargetPos = 0;
 	public static float creativeScreenCurrentPos = 0;
@@ -26,11 +29,14 @@ public class SmoothSc implements ModInitializer {
 	public static CreativeScreenHandler creativeSH;
 	public static boolean creativeScreenScrollMixin = true;
 	public static int creativeScreenPrevRow = 0;
+
 	public static int hotbarRollover = 0;
+
 
 	@Override
 	public void onInitialize() {
 		updateConfig();
+        isImmediatelyFastLoaded = FabricLoader.getInstance().isModLoaded("immediatelyfast");
 	}
 
 	public static void print(Object s) {

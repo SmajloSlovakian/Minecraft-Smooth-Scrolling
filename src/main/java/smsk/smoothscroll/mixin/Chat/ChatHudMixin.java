@@ -97,7 +97,16 @@ public class ChatHudMixin {
         var masktop = m - maskHeightBuffer + (int) mtc.y;
         var maskbottom = m + (int) mtc.y;
 
-        //currentContext.fill(0, m-targetHeight, 2, maskbottom, ColorHelper.Argb.getArgb(50, 255, 255, 0));
+        // this makes underlined text and such correct again
+        if (scrollOffset == 0 && maskHeightBuffer != 0) {
+            if (maskHeightBuffer == targetHeight) {
+                maskbottom += 2;
+                masktop -= 2;
+            } else {
+                maskbottom += 2;
+            }
+        }
+
         savedContext.enableScissor(0, masktop, savedContext.getScaledWindowWidth(), maskbottom);
         return (m);
     }

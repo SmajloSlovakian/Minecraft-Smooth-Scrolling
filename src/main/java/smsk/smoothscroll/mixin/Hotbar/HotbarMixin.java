@@ -60,11 +60,12 @@ public class HotbarMixin {
 		x += selectedPixelBuffer;
 		masked = true;
 		args.set(1, x);
-
-		if (selectedPixelBuffer < 0){
-			savedContext.drawGuiTexture(texture, x + 9 * 20, y, width, height);
-		} else if (selectedPixelBuffer > 20 * 8) {
-			savedContext.drawGuiTexture(texture, x - 9 * 20, y, width, height);
+		if (!SmoothSc.isImmediatelyFastLoaded) {
+			if (selectedPixelBuffer < 0) {
+				savedContext.drawGuiTexture(texture, x + 9 * 20, y, width, height);
+			} else if (selectedPixelBuffer > 20 * 8) {
+				savedContext.drawGuiTexture(texture, x - 9 * 20, y, width, height);
+			}
 		}
 	}
 

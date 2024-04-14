@@ -8,14 +8,17 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.mojang.brigadier.suggestion.Suggestion;
 
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ChatInputSuggestor.SuggestionWindow;
 import net.minecraft.client.util.math.Rect2i;
+import net.minecraft.text.OrderedText;
 import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
@@ -82,5 +85,14 @@ public class SuggestionWindowMixin {
     private int addLineUnder(int i) {
         if (Config.cfg.chatSpeed == 0 || scrollPixelOffset >= 0 || inWindowIndex >= suggestions.size() - 10) return (i);
         return (i + 1);
+    }
+
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)I"))
+    private int unmodifiedShadowedText(DrawContext drawContext, TextRenderer textRenderer, OrderedText text, int x, int y, int color) {
+        return (SmoothSc.unmodifiedShadowedText(drawContext, textRenderer, text, x, y, color));
+    }
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;fill(IIIII)V"))
+    private void unmodifiedFill(DrawContext drawContext, int x1, int y1, int x2, int y2, int color) {
+        SmoothSc.unmodifiedFill(drawContext, x1, y1, x2, y2, color);
     }
 }
