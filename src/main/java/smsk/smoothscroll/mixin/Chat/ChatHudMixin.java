@@ -126,7 +126,7 @@ public class ChatHudMixin {
     @ModifyVariable(method = "render", at = @At("STORE"))
     private long demask(long a) { // after the cycle
         if (Config.cfg.chatSpeed == 0 || this.isChatHidden()) return (a);
-        if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
+        if (Config.cfg.enableMaskDebug) SmoothSc.unmodifiedFill(savedContext, -100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
         savedContext.disableScissor();
         return (a);
     }

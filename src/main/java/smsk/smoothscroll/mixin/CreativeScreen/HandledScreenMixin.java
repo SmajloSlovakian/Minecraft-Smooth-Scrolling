@@ -64,7 +64,7 @@ public class HandledScreenMixin {
     void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
         if (!cutEnabled) return;
         if (Config.cfg.enableMaskDebug)
-            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
+            SmoothSc.unmodifiedFill(context, -100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
         context.disableScissor();
         cutEnabled = false;
     }

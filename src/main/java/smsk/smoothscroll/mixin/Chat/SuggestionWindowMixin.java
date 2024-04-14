@@ -2,6 +2,7 @@ package smsk.smoothscroll.mixin.Chat;
 
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,7 +19,6 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ChatInputSuggestor.SuggestionWindow;
 import net.minecraft.client.util.math.Rect2i;
-import net.minecraft.text.OrderedText;
 import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
@@ -28,6 +28,7 @@ public class SuggestionWindowMixin {
     @Shadow int inWindowIndex;
     @Shadow List<Suggestion> suggestions;
     @Shadow Rect2i area;
+    DrawContext savedContext;
     int indexBefore;
     int scrollPixelOffset;
     int targetIndex;
@@ -35,21 +36,35 @@ public class SuggestionWindowMixin {
 
     @Inject(method = "render", at = @At("HEAD"))
     private void renderH(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
+        savedContext = context;
         lFDBuffer += SmoothSc.mc.getLastFrameDuration();
         var a = scrollPixelOffset;
         scrollPixelOffset = (int) Math.round(scrollPixelOffset * Math.pow(Config.cfg.chatSpeed, lFDBuffer));
         if (a != scrollPixelOffset || scrollPixelOffset == 0) lFDBuffer = 0;
-
         inWindowIndex = SmoothSc.clamp(targetIndex - scrollPixelOffset / 12, 0, suggestions.size() - 10); // the clamp is here as a workaround to a crash
-        context.enableScissor(area.getX() - 1, area.getY() - 1, area.getX() + area.getWidth() + 1, area.getY() + area.getHeight() + 1);
+    }
+    /*@ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 4) idk why this doesn't work
+    private boolean mask(boolean a) {
+        SmoothSc.print(a);
+        savedContext.enableScissor(area.getX() - 1, area.getY(), area.getX() + area.getWidth() + 1, area.getY() + area.getHeight());
+        return (a);
+    }/* */
+
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;fill(IIIII)V", ordinal = 4))
+    private void mask(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
+        savedContext.enableScissor(area.getX() - 1, area.getY(), area.getX() + area.getWidth() + 1, area.getY() + area.getHeight());
+    }
+
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)I", shift = At.Shift.AFTER))
+    private void demask(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
+        if (Config.cfg.enableMaskDebug)
+            SmoothSc.unmodifiedFill(context, -100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 255, 0));
+        context.disableScissor();
     }
 
     @Inject(method = "render", at = @At("TAIL"))
     private void renderT(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
         inWindowIndex = targetIndex;
-        if (Config.cfg.enableMaskDebug)
-            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 255, 0));
-        context.disableScissor();
     }
 
     @ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)I"), index = 3)
@@ -88,7 +103,7 @@ public class SuggestionWindowMixin {
     }
 
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)I"))
-    private int unmodifiedShadowedText(DrawContext drawContext, TextRenderer textRenderer, OrderedText text, int x, int y, int color) {
+    private int unmodifiedShadowedText(DrawContext drawContext, TextRenderer textRenderer, @Nullable String text, int x, int y, int color) {
         return (SmoothSc.unmodifiedShadowedText(drawContext, textRenderer, text, x, y, color));
     }
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;fill(IIIII)V"))

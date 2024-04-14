@@ -47,7 +47,7 @@ public class CreativeScreenMixin {
                 x2, y2, x1, y1);
 
         if (Config.cfg.enableMaskDebug)
-            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 255, 0));
+            SmoothSc.unmodifiedFill(context, -100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 255, 0));
         
         context.disableScissor();
     }
