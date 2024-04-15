@@ -39,6 +39,7 @@ public class HandledScreenMixin {
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V"))
     void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.creativeScreenScrollOffset == 0) return;
+        // if (SmoothSc.isImmediatelyFastLoaded) IFAPI.enableHUDBatching();
         context.enableScissor(0, context.getScaledWindowHeight() / 2 - 50, context.getScaledWindowWidth(), context.getScaledWindowHeight() / 2 + 38);
         cutEnabled = true;
 
@@ -64,8 +65,9 @@ public class HandledScreenMixin {
     void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
         if (!cutEnabled) return;
         if (Config.cfg.enableMaskDebug)
-            SmoothSc.unmodifiedFill(context, -100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
+            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
         context.disableScissor();
+        // if (SmoothSc.isImmediatelyFastLoaded) IFAPI.disableHUDBatching();
         cutEnabled = false;
     }
 }

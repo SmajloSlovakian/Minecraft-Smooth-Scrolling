@@ -6,11 +6,9 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import org.spongepowered.asm.mixin.injection.At;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.ChatHudLine;
@@ -18,6 +16,7 @@ import net.minecraft.text.OrderedText;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.Vec2f;
 import smsk.smoothscroll.Config;
+import smsk.smoothscroll.IFAPI;
 import smsk.smoothscroll.SmoothSc;
 
 @Mixin(value = ChatHud.class, priority = 1001) // i want mods to modify the chat position before, so i get to know where they put it
@@ -107,6 +106,7 @@ public class ChatHudMixin {
             }
         }
 
+        if (SmoothSc.isImmediatelyFastLoaded) IFAPI.disableHUDBatching();
         savedContext.enableScissor(0, masktop, savedContext.getScaledWindowWidth(), maskbottom);
         return (m);
     }
@@ -126,8 +126,9 @@ public class ChatHudMixin {
     @ModifyVariable(method = "render", at = @At("STORE"))
     private long demask(long a) { // after the cycle
         if (Config.cfg.chatSpeed == 0 || this.isChatHidden()) return (a);
-        if (Config.cfg.enableMaskDebug) SmoothSc.unmodifiedFill(savedContext, -100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
+        if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
         savedContext.disableScissor();
+        if (SmoothSc.isImmediatelyFastLoaded) IFAPI.enableHUDBatching();
         return (a);
     }
 
@@ -183,15 +184,6 @@ public class ChatHudMixin {
 
     @Inject(method = "refresh", at = @At("TAIL"))
     private void refreshT(CallbackInfo ci) {refreshing = false;}
-
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/OrderedText;III)I", ordinal = 0))
-    private int unmodifiedShadowedText(DrawContext drawContext, TextRenderer textRenderer, OrderedText text, int x, int y, int color) {
-        return (SmoothSc.unmodifiedShadowedText(drawContext, textRenderer, text, x, y, color));
-    }
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;fill(IIIII)V"))
-    private void unmodifiedFill(DrawContext drawContext, int x1, int y1, int x2, int y2, int color) {
-        SmoothSc.unmodifiedFill(drawContext, x1, y1, x2, y2, color);
-    }
 
     @Shadow
     private int getLineHeight() {return (0);}

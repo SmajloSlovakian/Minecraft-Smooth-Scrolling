@@ -13,6 +13,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.Config;
+import smsk.smoothscroll.IFAPI;
 import smsk.smoothscroll.SmoothSc;
 
 @Mixin(value = InGameHud.class, priority = 999) // if bedrockify applies its mixin before smoothsc, modifyarg crashes
@@ -28,6 +29,7 @@ public class HotbarMixin {
 		if (Config.cfg.hotbarSpeed == 0) return;
 		var x = context.getScaledWindowWidth() / 2 - 91;
 		var y = context.getScaledWindowHeight() - 22;
+		if (SmoothSc.isImmediatelyFastLoaded) IFAPI.disableHUDBatching();
 		context.enableScissor(x - 1, y - 1, x + 182 + 1, y + 22 + 1);
 		savedContext = context;
 	}
@@ -60,19 +62,18 @@ public class HotbarMixin {
 		x += selectedPixelBuffer;
 		masked = true;
 		args.set(1, x);
-		if (!SmoothSc.isImmediatelyFastLoaded) {
-			if (selectedPixelBuffer < 0) {
-				savedContext.drawGuiTexture(texture, x + 9 * 20, y, width, height);
-			} else if (selectedPixelBuffer > 20 * 8) {
-				savedContext.drawGuiTexture(texture, x - 9 * 20, y, width, height);
-			}
+		if (selectedPixelBuffer < 0) {
+			savedContext.drawGuiTexture(texture, x + 9 * 20, y, width, height);
+		} else if (selectedPixelBuffer > 20 * 8) {
+			savedContext.drawGuiTexture(texture, x - 9 * 20, y, width, height);
 		}
 	}
 
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1, shift = At.Shift.AFTER))
 	private void draw2(float tickDelta, DrawContext context, CallbackInfo ci) {
 		if (!masked) return;
-        if (Config.cfg.enableMaskDebug) SmoothSc.unmodifiedFill(savedContext, -100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
+        if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
 		context.disableScissor();
+		if (SmoothSc.isImmediatelyFastLoaded) IFAPI.enableHUDBatching();
 	}
 }
