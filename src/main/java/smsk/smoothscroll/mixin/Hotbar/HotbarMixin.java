@@ -24,7 +24,7 @@ public class HotbarMixin {
 	boolean masked = false;
 	DrawContext savedContext;
 
-	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
+	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1))
 	private void draw1(float tickDelta, DrawContext context, CallbackInfo ci) {
 		if (Config.cfg.hotbarSpeed == 0) return;
 		var x = context.getScaledWindowWidth() / 2 - 91;
@@ -34,7 +34,7 @@ public class HotbarMixin {
 		savedContext = context;
 	}
 
-	@ModifyArgs(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
+	@ModifyArgs(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1))
 	private void selectedSlotX(Args args) {
 		if (Config.cfg.hotbarSpeed == 0) return;
 		Identifier texture = args.get(0);
@@ -62,14 +62,14 @@ public class HotbarMixin {
 		x += selectedPixelBuffer;
 		masked = true;
 		args.set(1, x);
-		if (selectedPixelBuffer < 0) {
-			savedContext.drawGuiTexture(texture, x + 9 * 20, y, width, height);
-		} else if (selectedPixelBuffer > 20 * 8) {
-			savedContext.drawGuiTexture(texture, x - 9 * 20, y, width, height);
-		}
+    if (selectedPixelBuffer < 0) {
+      savedContext.drawTexture(texture, x + 9 * 20, y, 0, 22, width, height);
+    } else if (selectedPixelBuffer > 20 * 8) {
+      savedContext.drawTexture(texture, x - 9 * 20, y, 0, 22, width, height);
+    }
 	}
 
-	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1, shift = At.Shift.AFTER))
+	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1, shift = At.Shift.AFTER))
 	private void draw2(float tickDelta, DrawContext context, CallbackInfo ci) {
 		if (!masked) return;
         if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));

@@ -25,7 +25,7 @@ public class EntryListWidgetMixin {
         targetScroll = scrollAmount;
     }
 
-    @Inject(method = "renderWidget", at = @At("HEAD"), require = 0)
+    @Inject(method = "render", at = @At("HEAD"), require = 0)
     private void updateScroll(DrawContext dc, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         if (Config.cfg.entryListSpeed == 0) return;
         updateScActive = true;
@@ -36,15 +36,15 @@ public class EntryListWidgetMixin {
         if(a != scrollAmount || scrollAmount == targetScroll) lFDBuffer = 0;
     }
 
-    @Inject(method = "mouseScrolled", at = @At("HEAD"), require = 0)
-    private void mouseScrollH(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "method_25401", at = @At("HEAD"), require = 0)
+    private void mouseScrollH(double mouseX, double mouseY, double vA, CallbackInfoReturnable<Boolean> cir) {
         if (Config.cfg.entryListSpeed == 0 || !updateScActive) return;
         scrollValBefore = scrollAmount;
         scrollAmount = targetScroll;
     }
 
-    @Inject(method = "mouseScrolled", at = @At("TAIL"), require = 0)
-    private void mouseScrollT(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "method_25401", at = @At("TAIL"), require = 0)
+    private void mouseScrollT(double mouseX, double mouseY, double vA, CallbackInfoReturnable<Boolean> cir) {
         if (Config.cfg.entryListSpeed == 0 || !updateScActive) return;
         scrollAmount = scrollValBefore;
     }
