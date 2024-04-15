@@ -34,6 +34,7 @@ public class SuggestionWindowMixin {
 
     @Inject(method = "render", at = @At("HEAD"))
     private void renderH(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
+        if(Config.cfg.chatSpeed == 0) return;
         savedContext = context;
         lFDBuffer += SmoothSc.mc.getLastFrameDuration();
         var a = scrollPixelOffset;
@@ -50,12 +51,15 @@ public class SuggestionWindowMixin {
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;fill(IIIII)V", ordinal = 4))
     private void mask(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
+        if(Config.cfg.chatSpeed == 0) return;
         if (SmoothSc.isImmediatelyFastLoaded) IFAPI.disableHUDBatching();
-        savedContext.enableScissor(area.getX() - 1, area.getY(), area.getX() + area.getWidth() + 1, area.getY() + area.getHeight());
+        // savedContext.enableScissor(area.getX() - 1, area.getY(), area.getX() + area.getWidth(), area.getY() + area.getHeight());
+        savedContext.enableScissor(0, area.getY(), context.getScaledWindowWidth(), area.getY() + area.getHeight());
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)I", shift = At.Shift.AFTER))
     private void demask(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
+        if(Config.cfg.chatSpeed == 0) return;
         if (Config.cfg.enableMaskDebug)
             context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 255, 0));
         context.disableScissor();
@@ -64,11 +68,13 @@ public class SuggestionWindowMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
     private void renderT(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
+        if(Config.cfg.chatSpeed == 0) return;
         inWindowIndex = targetIndex;
     }
 
     @ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)I"), index = 3)
     private int textPosY(int s) {
+        if(Config.cfg.chatSpeed == 0) return (s);
         return (s + scrollPixelOffset - scrollPixelOffset / 12 * 12);
     }
 
@@ -82,9 +88,11 @@ public class SuggestionWindowMixin {
     private void scrollT(int off, CallbackInfo ci) {commonST();}
     
     private void commonSH(){
+        if(Config.cfg.chatSpeed == 0) return;
         indexBefore = inWindowIndex;
     }
     private void commonST(){
+        if(Config.cfg.chatSpeed == 0) return;
         scrollPixelOffset += (inWindowIndex - indexBefore) * 12;
         targetIndex = inWindowIndex;
         inWindowIndex = indexBefore;

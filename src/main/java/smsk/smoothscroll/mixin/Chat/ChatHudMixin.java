@@ -39,8 +39,8 @@ public class ChatHudMixin {
 
     @Inject(method = "render", at = @At("HEAD"))
     public void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, CallbackInfo ci) {
-        if (Config.cfg.chatSpeed == 0) return;
         savedContext = context;
+        if (Config.cfg.chatSpeed == 0) return;
         savedCurrentTick = currentTick;
 
         chatLFDBuffer += SmoothSc.mc.getLastFrameDuration();
@@ -125,7 +125,7 @@ public class ChatHudMixin {
 
     @ModifyVariable(method = "render", at = @At("STORE"))
     private long demask(long a) { // after the cycle
-        if (Config.cfg.chatSpeed == 0 || this.isChatHidden()) return (a);
+        if ((Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) || this.isChatHidden()) return (a);
         if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
         savedContext.disableScissor();
         if (SmoothSc.isImmediatelyFastLoaded) IFAPI.enableHUDBatching();
@@ -167,7 +167,7 @@ public class ChatHudMixin {
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 3)
     private int addLinesAbove(int i) {
-        if (Config.cfg.chatSpeed == 0) return (i);
+        if (Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) return (i);
         int a = 0;
         if (scrollOffset < 0) a = 1;
         return ((int) Math.ceil(maskHeightBuffer / (float) getLineHeight()) + a);
