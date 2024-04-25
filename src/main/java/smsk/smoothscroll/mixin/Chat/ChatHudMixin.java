@@ -9,6 +9,8 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import org.spongepowered.asm.mixin.injection.At;
+
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.ChatHudLine;
@@ -104,6 +106,10 @@ public class ChatHudMixin {
             } else {
                 maskbottom += 2;
             }
+        }
+        if (FabricLoader.getInstance().getObjectShare().get("raised:chat") instanceof Integer distance) {
+            masktop -= distance;
+            maskbottom -= distance;
         }
 
         if (SmoothSc.isImmediatelyFastLoaded) IFAPI.disableHUDBatching();
