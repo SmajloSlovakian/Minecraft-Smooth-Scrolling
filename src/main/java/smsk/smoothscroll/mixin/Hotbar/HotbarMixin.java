@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.entity.player.PlayerInventory;
@@ -30,6 +31,7 @@ public class HotbarMixin {
 		var x = context.getScaledWindowWidth() / 2 - 91;
 		var y = context.getScaledWindowHeight() - 22;
 		if (SmoothSc.isImmediatelyFastLoaded) IFAPI.disableHUDBatching();
+		if (FabricLoader.getInstance().getObjectShare().get("raised:hud") instanceof Integer distance) y -= distance;
 		context.enableScissor(x - 1, y - 1, x + 182 + 1, y + 22 + 1);
 		savedContext = context;
 	}
