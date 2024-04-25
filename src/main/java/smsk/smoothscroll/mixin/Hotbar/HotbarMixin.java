@@ -25,7 +25,7 @@ public class HotbarMixin {
 	DrawContext savedContext;
 
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
-	private void draw1(float tickDelta, DrawContext context, CallbackInfo ci) {
+	private void draw1(DrawContext context, float tickDelta, CallbackInfo ci) {
 		if (Config.cfg.hotbarSpeed == 0) return;
 		var x = context.getScaledWindowWidth() / 2 - 91;
 		var y = context.getScaledWindowHeight() - 22;
@@ -71,7 +71,7 @@ public class HotbarMixin {
 	}
 
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1, shift = At.Shift.AFTER))
-	private void draw2(float tickDelta, DrawContext context, CallbackInfo ci) {
+	private void draw2(DrawContext context, float tickDelta, CallbackInfo ci) {
 		if (!masked) return;
         if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
 		context.disableScissor();
