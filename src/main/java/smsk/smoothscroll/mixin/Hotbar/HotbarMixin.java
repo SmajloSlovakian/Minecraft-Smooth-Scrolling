@@ -64,11 +64,12 @@ public class HotbarMixin {
 		x += selectedPixelBuffer;
 		masked = true;
 		args.set(1, x);
-    if (selectedPixelBuffer < 0) {
-      savedContext.drawTexture(texture, x + 9 * 20, y, 0, 22, width, height);
-    } else if (selectedPixelBuffer > 20 * 8) {
-      savedContext.drawTexture(texture, x - 9 * 20, y, 0, 22, width, height);
-    }
+		SmoothSc.print(selectedPixelBuffer);
+		if (selectedPixelBuffer < 0) {
+			savedContext.drawTexture(texture, x + 9 * 20, y, 0, 22, width, height);
+		} else if (selectedPixelBuffer > 20 * 8) {
+			savedContext.drawTexture(texture, x - 9 * 20, y, 0, 22, width, height);
+		}
 	}
 
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1, shift = At.Shift.AFTER))
