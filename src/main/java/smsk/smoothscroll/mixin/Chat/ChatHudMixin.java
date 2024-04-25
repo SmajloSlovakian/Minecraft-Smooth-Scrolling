@@ -40,7 +40,7 @@ public class ChatHudMixin {
     int shownLineCount;
 
     @Inject(method = "render", at = @At("HEAD"))
-    public void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, CallbackInfo ci) {
+    public void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
         savedContext = context;
         if (Config.cfg.chatSpeed == 0) return;
         savedCurrentTick = currentTick;
@@ -139,12 +139,12 @@ public class ChatHudMixin {
     }
 
     @Inject(method = "render", at = @At("TAIL"))
-    public void renderT(DrawContext context, int currentTick, int mouseX, int mouseY, CallbackInfo ci) {
+    public void renderT(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
         if (Config.cfg.chatSpeed == 0) return;
         scrolledLines = scrollValBefore;
     }
 
-    @ModifyVariable(method = "addMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageSignatureData;ILnet/minecraft/client/gui/hud/MessageIndicator;Z)V", at = @At("STORE"), ordinal = 0)
+    @ModifyVariable(method = "addVisibleMessage", at = @At("STORE"), ordinal = 0)
     List<OrderedText> onNewMessage(List<OrderedText> ot) {
         if (refreshing) return (ot);
         scrollOffset -= ot.size() * getLineHeight();
@@ -207,5 +207,5 @@ public class ChatHudMixin {
     private boolean isChatHidden() {return (false);}
 
     @Shadow
-    private boolean isChatFocused() {return (false);}
+    public boolean isChatFocused() {return (false);}
 }
