@@ -1,0 +1,20 @@
+{
+	"required": true,
+	"package": "smsk.smoothscroll.mixin",
+	"compatibilityLevel": "JAVA_17",
+	"mixins": [
+		"Hotbar.HotbarMixin",
+		"Hotbar.PlayerInventoryMixin",
+		"Chat.ChatHudMixin",
+		"Chat.SuggestionWindowMixin",
+		"CreativeScreen.CreativeScreenHandlerMixin",
+		"CreativeScreen.CreativeScreenMixin",
+		"CreativeScreen.HandledScreenMixin",
+		"CreativeScreen.MinecraftClientMixin",
+		"CreativeScreen.CreativeScreenHandlerAccessor",
+		"EntryListWidgetMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

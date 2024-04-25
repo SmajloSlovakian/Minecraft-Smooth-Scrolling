@@ -1,0 +1,33 @@
+{
+	"schemaVersion": 1,
+	"id": "smoothscroll",
+	"version": "${version}",
+	"name": "Smooth Scroll",
+	"description": "Makes scrolling much more smooth",
+	"authors": [
+		"SlovakSmileSK"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/mod/smooth-scroll",
+		"sources": "https://github.com/SmajloSlovakian/Minecraft-Smooth-Scrolling"
+	},
+	"license": "gpl-3.0",
+	"icon": "assets/smoothscroll/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"smsk.smoothscroll.SmoothSc"
+		]
+	},
+	"mixins": [
+		"smoothscroll.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.14.21",
+		"minecraft": ">=1.20.5",
+		"java": ">=21"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}

@@ -1,7 +1,5 @@
 package smsk.smoothscroll.mixin.Chat;
 
-import F;
-import I;
 import java.util.List;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
