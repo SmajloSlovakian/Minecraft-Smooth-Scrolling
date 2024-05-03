@@ -13,12 +13,12 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.Config;
-import smsk.smoothscroll.IFAPI;
 import smsk.smoothscroll.SmoothSc;
 
 @Mixin(value = InGameHud.class, priority = 999) // if bedrockify applies its mixin before smoothsc, modifyarg crashes
 public class HotbarMixin {
 
+	int rolloverOffset = 4;
 	int selectedPixelBuffer = 0;
 	float lFDBuffer;
 	boolean masked = false;
@@ -29,7 +29,6 @@ public class HotbarMixin {
 		if (Config.cfg.hotbarSpeed == 0) return;
 		var x = context.getScaledWindowWidth() / 2 - 91;
 		var y = context.getScaledWindowHeight() - 22;
-		if (SmoothSc.isImmediatelyFastLoaded) IFAPI.disableHUDBatching();
 		if (FabricLoader.getInstance().getObjectShare().get("raised:hud") instanceof Integer distance) y -= distance;
 		context.enableScissor(x - 1, y - 1, x + 182 + 1, y + 22 + 1);
 		savedContext = context;
@@ -47,15 +46,15 @@ public class HotbarMixin {
 
 		lFDBuffer += SmoothSc.mc.getLastFrameDuration();
 		var a = selectedPixelBuffer;
-		var target = (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20;
+		var target = (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20 - SmoothSc.hotbarRollover * rolloverOffset;
 		selectedPixelBuffer = (int) Math.round((selectedPixelBuffer - target) * Math.pow(Config.cfg.hotbarSpeed, lFDBuffer) + target);
 		if (selectedPixelBuffer != a || selectedPixelBuffer == target) lFDBuffer = 0;
 		
-		if (selectedPixelBuffer < -10) {
-			selectedPixelBuffer += 9 * 20;
+		if (selectedPixelBuffer < -10 - rolloverOffset) {
+			selectedPixelBuffer += 9 * 20 + rolloverOffset;
 			SmoothSc.hotbarRollover -= 1;
-		} else if (selectedPixelBuffer > 20 * 9 - 10) {
-			selectedPixelBuffer -= 9 * 20;
+		} else if (selectedPixelBuffer > 20 * 9 - 10 + rolloverOffset) {
+			selectedPixelBuffer -= 9 * 20 + rolloverOffset;
 			SmoothSc.hotbarRollover += 1;
 		}
 
@@ -64,9 +63,9 @@ public class HotbarMixin {
 		masked = true;
 		args.set(1, x);
 		if (selectedPixelBuffer < 0) {
-			savedContext.drawGuiTexture(texture, x + 9 * 20, y, width, height);
+			savedContext.drawGuiTexture(texture, x + 9 * 20 + rolloverOffset, y, width, height);
 		} else if (selectedPixelBuffer > 20 * 8) {
-			savedContext.drawGuiTexture(texture, x - 9 * 20, y, width, height);
+			savedContext.drawGuiTexture(texture, x - 9 * 20 - rolloverOffset, y, width, height);
 		}
 	}
 
@@ -75,6 +74,5 @@ public class HotbarMixin {
 		if (!masked) return;
         if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
 		context.disableScissor();
-		if (SmoothSc.isImmediatelyFastLoaded) IFAPI.enableHUDBatching();
 	}
 }
