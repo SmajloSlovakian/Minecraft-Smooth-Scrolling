@@ -18,7 +18,6 @@ import net.minecraft.text.OrderedText;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.Vec2f;
 import smsk.smoothscroll.Config;
-import smsk.smoothscroll.IFAPI;
 import smsk.smoothscroll.SmoothSc;
 
 @Mixin(value = ChatHud.class, priority = 1001) // i want mods to modify the chat position before, so i get to know where they put it
@@ -112,7 +111,6 @@ public class ChatHudMixin {
             maskbottom -= distance;
         }
 
-        if (SmoothSc.isImmediatelyFastLoaded) IFAPI.disableHUDBatching();
         savedContext.enableScissor(0, masktop, savedContext.getScaledWindowWidth(), maskbottom);
         return (m);
     }
@@ -134,7 +132,6 @@ public class ChatHudMixin {
         if ((Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) || this.isChatHidden()) return (a);
         if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
         savedContext.disableScissor();
-        if (SmoothSc.isImmediatelyFastLoaded) IFAPI.enableHUDBatching();
         return (a);
     }
 

@@ -18,7 +18,6 @@ import net.minecraft.client.gui.screen.ChatInputSuggestor.SuggestionWindow;
 import net.minecraft.client.util.math.Rect2i;
 import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.Config;
-import smsk.smoothscroll.IFAPI;
 import smsk.smoothscroll.SmoothSc;
 
 @Mixin(SuggestionWindow.class)
@@ -52,7 +51,6 @@ public class SuggestionWindowMixin {
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;fill(IIIII)V", ordinal = 4))
     private void mask(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
         if(Config.cfg.chatSpeed == 0) return;
-        if (SmoothSc.isImmediatelyFastLoaded) IFAPI.disableHUDBatching();
         // savedContext.enableScissor(area.getX() - 1, area.getY(), area.getX() + area.getWidth(), area.getY() + area.getHeight());
         savedContext.enableScissor(0, area.getY(), context.getScaledWindowWidth(), area.getY() + area.getHeight());
     }
@@ -63,7 +61,6 @@ public class SuggestionWindowMixin {
         if (Config.cfg.enableMaskDebug)
             context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 255, 0));
         context.disableScissor();
-        if (SmoothSc.isImmediatelyFastLoaded) IFAPI.enableHUDBatching();
     }
 
     @Inject(method = "render", at = @At("TAIL"))

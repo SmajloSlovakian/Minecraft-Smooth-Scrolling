@@ -4,7 +4,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeScreenHandler;
-import net.raphimc.immediatelyfastapi.ApiAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +13,6 @@ public class SmoothSc implements ModInitializer {
 
 	public static Config cfg;
     public static boolean isImmediatelyFastLoaded;
-    public static ApiAccess iFAPI;
 
 	public static int creativeScreenScrollOffset = 0;
 	public static float creativeScreenTargetPos = 0;
@@ -30,7 +28,6 @@ public class SmoothSc implements ModInitializer {
 	public void onInitialize() {
 		updateConfig();
         isImmediatelyFastLoaded = FabricLoader.getInstance().isModLoaded("immediatelyfast");
-        if (isImmediatelyFastLoaded) IFAPI.loadAPI();
 	}
 
 	public static void print(Object s) {

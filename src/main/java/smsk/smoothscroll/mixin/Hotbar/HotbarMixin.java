@@ -14,7 +14,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.Config;
-import smsk.smoothscroll.IFAPI;
 import smsk.smoothscroll.SmoothSc;
 
 @Mixin(value = InGameHud.class, priority = 999) // if bedrockify applies its mixin before smoothsc, modifyarg crashes
@@ -30,7 +29,6 @@ public class HotbarMixin {
 		if (Config.cfg.hotbarSpeed == 0) return;
 		var x = context.getScaledWindowWidth() / 2 - 91;
 		var y = context.getScaledWindowHeight() - 22;
-		if (SmoothSc.isImmediatelyFastLoaded) IFAPI.disableHUDBatching();
 		if (FabricLoader.getInstance().getObjectShare().get("raised:hud") instanceof Integer distance) y -= distance;
 		context.enableScissor(x - 1, y - 1, x + 182 + 1, y + 22 + 1);
 		savedContext = context;
@@ -76,6 +74,5 @@ public class HotbarMixin {
 		if (!masked) return;
         if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
 		context.disableScissor();
-		if (SmoothSc.isImmediatelyFastLoaded) IFAPI.enableHUDBatching();
 	}
 }
