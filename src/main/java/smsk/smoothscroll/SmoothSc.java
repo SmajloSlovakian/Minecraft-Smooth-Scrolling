@@ -29,6 +29,7 @@ public class SmoothSc implements ModInitializer {
 		updateConfig();
         isImmediatelyFastLoaded = FabricLoader.getInstance().isModLoaded("immediatelyfast");
 		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/y_offset", 0);
+		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/item_count", 0);
 	}
 
 	public static void print(Object s) {
