@@ -168,12 +168,10 @@ public class ChatHudMixin {
         scrollOffset += (scrolledLines - scrollValBefore) * getLineHeight();
     }
 
-    @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 3)
+    @ModifyVariable(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;getLineHeight()I"), ordinal = 3)
     private int addLinesAbove(int i) {
         if (Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) return (i);
-        int a = 0;
-        if (scrollOffset < 0) a = 1;
-        return ((int) Math.ceil(maskHeightBuffer / (float) getLineHeight()) + a);
+        return ((int) Math.ceil(maskHeightBuffer / (float) getLineHeight()) + (scrollOffset < 0 ? 1 : 0));
     }
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 12)
