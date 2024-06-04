@@ -204,5 +204,5 @@ public class ChatHudMixin {
     private boolean isChatHidden() {return (false);}
 
     @Shadow
-    public boolean isChatFocused() {return (false);}
+    private boolean isChatFocused() {return (false);}
 }

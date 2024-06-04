@@ -18,6 +18,8 @@ import smsk.smoothscroll.SmoothSc;
 @Mixin(value = InGameHud.class, priority = 999) // if bedrockify applies its mixin before smoothsc, modifyarg crashes
 public class HotbarMixin {
 
+	int rolloverOffsetR = 4; // TODO
+	int rolloverOffsetL = 4;
 	int rolloverOffset = 4;
 	int selectedPixelBuffer = 0;
 	float lFDBuffer;
@@ -27,10 +29,6 @@ public class HotbarMixin {
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
 	private void draw1(DrawContext context, float tickDelta, CallbackInfo ci) {
 		if (Config.cfg.hotbarSpeed == 0) return;
-		var x = context.getScaledWindowWidth() / 2 - 91;
-		var y = context.getScaledWindowHeight() - 22;
-		if (FabricLoader.getInstance().getObjectShare().get("raised:hud") instanceof Integer distance) y -= distance;
-		context.enableScissor(x - 1, y - 1, x + 182 + 1, y + 22 + 1);
 		savedContext = context;
 	}
 
@@ -60,8 +58,17 @@ public class HotbarMixin {
 
 		x -= inv.selectedSlot * 20;
 		x += selectedPixelBuffer;
-		masked = true;
 		args.set(1, x);
+
+		masked = false;
+		if (selectedPixelBuffer < 0 || selectedPixelBuffer > 20 * 8) {
+			var x2 = savedContext.getScaledWindowWidth() / 2 - 91;
+			var y2 = savedContext.getScaledWindowHeight() - 22;
+			if (FabricLoader.getInstance().getObjectShare().get("raised:hud") instanceof Integer distance) y2 -= distance;
+			savedContext.enableScissor(x2 - 1, y2 - 1, x2 + 182 + 1, y2 + 22 + 1);
+			masked = true;
+		}
+
 		if (selectedPixelBuffer < 0) {
 			savedContext.drawGuiTexture(texture, x + 9 * 20 + rolloverOffset, y, width, height);
 		} else if (selectedPixelBuffer > 20 * 8) {
