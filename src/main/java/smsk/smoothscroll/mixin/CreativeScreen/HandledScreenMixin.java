@@ -14,7 +14,7 @@ import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
 
-@Mixin(HandledScreen.class)
+@Mixin(value = HandledScreen.class, priority = 999)
 public class HandledScreenMixin {
 
     Identifier backTex = new Identifier("textures/gui/container/creative_inventory/tab_items");
@@ -32,13 +32,13 @@ public class HandledScreenMixin {
         SmoothSc.creativeScreenScrollOffset = (int) Math.round(SmoothSc.creativeScreenScrollOffset * Math.pow(Config.cfg.creativeScreenSpeed, lFDBuffer));
         if (a != SmoothSc.creativeScreenScrollOffset || SmoothSc.creativeScreenScrollOffset == 0) lFDBuffer = 0;
         // this shares the y offset of the items in the creative inventory i want other mods to follow for better compatibility
-		FabricLoader.getInstance().getObjectShare().put("smoothsc:creative_screen/y_offset", SmoothSc.creativeScreenScrollOffset - SmoothSc.creativeScreenScrollOffset / 18 * 18);
-		FabricLoader.getInstance().getObjectShare().put("smoothsc:creative_screen/item_count", SmoothSc.creativeScreenItemCount);
+		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/y_offset", SmoothSc.creativeScreenScrollOffset - SmoothSc.creativeScreenScrollOffset / 18 * 18);
 
         SmoothSc.creativeScreenScrollMixin = false;
         SmoothSc.creativeSH.scrollItems(((CreativeScreenHandlerAccessor) SmoothSc.creativeSH)
                 .getPos(SmoothSc.creativeScreenPrevRow - SmoothSc.creativeScreenScrollOffset / 18));
         SmoothSc.creativeScreenScrollMixin = true;
+		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/item_count", SmoothSc.creativeScreenItemCount);
     }
 
     @Inject(method = "render", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
