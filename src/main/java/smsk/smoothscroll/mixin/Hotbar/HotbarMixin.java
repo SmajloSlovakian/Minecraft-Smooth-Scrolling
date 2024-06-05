@@ -6,7 +6,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
-
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
@@ -19,6 +18,9 @@ import smsk.smoothscroll.SmoothSc;
 @Mixin(value = InGameHud.class, priority = 999) // if bedrockify applies its mixin before smoothsc, modifyarg crashes
 public class HotbarMixin {
 
+	int rolloverOffsetR = 4; // TODO
+	int rolloverOffsetL = 4;
+	int rolloverOffset = 4;
 	int selectedPixelBuffer = 0;
 	float lFDBuffer;
 	boolean masked = false;
@@ -27,10 +29,6 @@ public class HotbarMixin {
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1))
 	private void draw1(float tickDelta, DrawContext context, CallbackInfo ci) {
 		if (Config.cfg.hotbarSpeed == 0) return;
-		var x = context.getScaledWindowWidth() / 2 - 91;
-		var y = context.getScaledWindowHeight() - 22;
-		if (FabricLoader.getInstance().getObjectShare().get("raised:hud") instanceof Integer distance) y -= distance;
-		context.enableScissor(x - 1, y - 1, x + 182 + 1, y + 22 + 1);
 		savedContext = context;
 	}
 
@@ -46,27 +44,37 @@ public class HotbarMixin {
 
 		lFDBuffer += SmoothSc.mc.getLastFrameDuration();
 		var a = selectedPixelBuffer;
-		var target = (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20;
+		var target = (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20 - SmoothSc.hotbarRollover * rolloverOffset;
 		selectedPixelBuffer = (int) Math.round((selectedPixelBuffer - target) * Math.pow(Config.cfg.hotbarSpeed, lFDBuffer) + target);
 		if (selectedPixelBuffer != a || selectedPixelBuffer == target) lFDBuffer = 0;
 		
-		if (selectedPixelBuffer < -10) {
-			selectedPixelBuffer += 9 * 20;
+		if (selectedPixelBuffer < -10 - rolloverOffset) {
+			selectedPixelBuffer += 9 * 20 + rolloverOffset;
 			SmoothSc.hotbarRollover -= 1;
-		} else if (selectedPixelBuffer > 20 * 9 - 10) {
-			selectedPixelBuffer -= 9 * 20;
+		} else if (selectedPixelBuffer > 20 * 9 - 10 + rolloverOffset) {
+			selectedPixelBuffer -= 9 * 20 + rolloverOffset;
 			SmoothSc.hotbarRollover += 1;
 		}
 
 		x -= inv.selectedSlot * 20;
 		x += selectedPixelBuffer;
-		masked = true;
 		args.set(1, x);
-		if (selectedPixelBuffer < 0) {
-			savedContext.drawTexture(texture, x + 9 * 20, y, 0, 22, width, height);
-		} else if (selectedPixelBuffer > 20 * 8) {
-			savedContext.drawTexture(texture, x - 9 * 20, y, 0, 22, width, height);
+
+		masked = false;
+		if (selectedPixelBuffer < 0 || selectedPixelBuffer > 20 * 8) {
+			var x2 = savedContext.getScaledWindowWidth() / 2 - 91;
+			var y2 = savedContext.getScaledWindowHeight() - 22;
+			if (FabricLoader.getInstance().getObjectShare().get("raised:hud") instanceof Integer distance) y2 -= distance;
+			savedContext.enableScissor(x2 - 1, y2 - 1, x2 + 182 + 1, y2 + 22 + 1);
+			masked = true;
 		}
+
+		// not going to bother fixing this
+		/*if (selectedPixelBuffer < 0) {
+			savedContext.drawGuiTexture(texture, x + 9 * 20, y, width, height);
+		} else if (selectedPixelBuffer > 20 * 8) {
+			savedContext.drawGuiTexture(texture, x - 9 * 20, y, width, height);
+		}/* */
 	}
 
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1, shift = At.Shift.AFTER))
