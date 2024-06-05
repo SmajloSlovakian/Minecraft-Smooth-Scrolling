@@ -69,10 +69,11 @@ public class HotbarMixin {
 			masked = true;
 		}
 
+
 		if (selectedPixelBuffer < 0) {
-			savedContext.drawGuiTexture(texture, x + 9 * 20 + rolloverOffset, y, width, height);
+			SmoothSc.drawHotbarRolloverMirror(savedContext, texture, x, 9 * 20, rolloverOffset, y, width, height);
 		} else if (selectedPixelBuffer > 20 * 8) {
-			savedContext.drawGuiTexture(texture, x - 9 * 20 - rolloverOffset, y, width, height);
+			SmoothSc.drawHotbarRolloverMirror(savedContext, texture, x, -9 * 20, -rolloverOffset, y, width, height);
 		}
 	}
 
