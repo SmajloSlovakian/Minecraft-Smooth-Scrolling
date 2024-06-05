@@ -40,6 +40,7 @@ dependencies {
 	
 	// modImplementation "maven.modrinth:chat-heads:${project.chat_heads_version}" DISABLED due to not being neccessary anymore
 	// modCompileOnly "maven.modrinth:immediatelyfast:${project.immediatelyfast_version}" DISABLED due to not being neccessary anymore
+	modCompileOnly "maven.modrinth:item-borders:${project.item_borders_version}"
 
 	// Uncomment the following line to enable the deprecated Fabric API modules. 
 	// These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
