@@ -42,7 +42,7 @@ public class HotbarMixin {
 		int height = args.get(4);
 		PlayerInventory inv = SmoothSc.mc.player.getInventory();
 
-		lFDBuffer += SmoothSc.mc.getLastFrameDuration();
+		lFDBuffer += SmoothSc.mc.getRenderTime();
 		var a = selectedPixelBuffer;
 		var target = (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20 - SmoothSc.hotbarRollover * rolloverOffset;
 		selectedPixelBuffer = (int) Math.round((selectedPixelBuffer - target) * Math.pow(Config.cfg.hotbarSpeed, lFDBuffer) + target);
