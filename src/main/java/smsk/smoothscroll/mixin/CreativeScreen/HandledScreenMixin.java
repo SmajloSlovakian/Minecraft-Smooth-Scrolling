@@ -17,7 +17,7 @@ import smsk.smoothscroll.SmoothSc;
 @Mixin(value = HandledScreen.class, priority = 999)
 public class HandledScreenMixin {
 
-    Identifier backTex = new Identifier("textures/gui/container/creative_inventory/tab_items");
+    Identifier backTex = Identifier.ofVanilla("textures/gui/container/creative_inventory/tab_items");
     boolean cutEnabled = false;
     float lFDBuffer;
     DrawContext savedContext;
@@ -27,7 +27,7 @@ public class HandledScreenMixin {
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null) return;
         savedContext = context;
 
-        lFDBuffer += SmoothSc.mc.getLastFrameDuration();
+        lFDBuffer += SmoothSc.getLastFrameDuration();
         var a = SmoothSc.creativeScreenScrollOffset;
         SmoothSc.creativeScreenScrollOffset = (int) Math.round(SmoothSc.creativeScreenScrollOffset * Math.pow(Config.cfg.creativeScreenSpeed, lFDBuffer));
         if (a != SmoothSc.creativeScreenScrollOffset || SmoothSc.creativeScreenScrollOffset == 0) lFDBuffer = 0;

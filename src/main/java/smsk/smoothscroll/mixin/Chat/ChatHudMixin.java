@@ -44,7 +44,7 @@ public class ChatHudMixin {
         if (Config.cfg.chatSpeed == 0) return;
         savedCurrentTick = currentTick;
 
-        chatLFDBuffer += SmoothSc.mc.getLastFrameDuration();
+        chatLFDBuffer += SmoothSc.getLastFrameDuration();
         var a = scrollOffset;
         scrollOffset = (int) Math.round(((double) scrollOffset) * Math.pow(Config.cfg.chatSpeed, chatLFDBuffer));
         if (scrollOffset != a || scrollOffset == 0) chatLFDBuffer = 0;
@@ -59,7 +59,7 @@ public class ChatHudMixin {
         int x = (int) (float) args.get(0) - 4;
         int y = (int) (float) args.get(1);
 
-        mTCLFDBuffer += SmoothSc.mc.getLastFrameDuration();
+        mTCLFDBuffer += SmoothSc.getLastFrameDuration();
         var a = mtc.y;
         var newY = (int) Math.round((mtc.y - y) * Math.pow(Config.cfg.chatOpeningSpeed, mTCLFDBuffer) + y);
         if (newY != a || y == newY) mTCLFDBuffer = 0;
@@ -89,7 +89,7 @@ public class ChatHudMixin {
         // not working great workaround:
         // if (shownLineCount == visibleMessages.size()) maskHeightBuffer = targetHeight;
         // else {
-        maskLFDBuffer += SmoothSc.mc.getLastFrameDuration();
+        maskLFDBuffer += SmoothSc.getLastFrameDuration();
         var a = maskHeightBuffer;
         maskHeightBuffer = (int) Math.round((maskHeightBuffer - targetHeight) * Math.pow(Config.cfg.chatOpeningSpeed, maskLFDBuffer) + targetHeight);
         if (a != maskHeightBuffer || maskHeightBuffer == targetHeight) maskLFDBuffer = 0;

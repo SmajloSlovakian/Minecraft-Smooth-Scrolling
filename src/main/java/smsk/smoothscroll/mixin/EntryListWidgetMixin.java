@@ -29,7 +29,7 @@ public class EntryListWidgetMixin {
         if (Config.cfg.entryListSpeed == 0) return;
         updateScActive = true;
 
-        lFDBuffer += SmoothSc.mc.getLastFrameDuration();
+        lFDBuffer += SmoothSc.getLastFrameDuration();
         var a = scrollAmount;
         scrollAmount = Math.round((scrollAmount - targetScroll) * Math.pow(Config.cfg.entryListSpeed, lFDBuffer) + targetScroll);
         if(a != scrollAmount || scrollAmount == targetScroll) lFDBuffer = 0;

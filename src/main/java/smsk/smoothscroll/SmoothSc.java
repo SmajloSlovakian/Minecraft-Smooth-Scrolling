@@ -42,9 +42,13 @@ public class SmoothSc implements ModInitializer {
 		cfg = new Config();
 	}
 	public static int clamp(int val, int min, int max) {
-		return (Math.max(min, Math.min(max, val)));
+		return Math.max(min, Math.min(max, val));
 	}
 	public static void drawHotbarRolloverMirror(DrawContext context, Identifier texture, int x, int hotbarWidth, int offset, int y, int width, int height) {
 		context.drawGuiTexture(texture, x + hotbarWidth + offset, y, width, height);
+	}
+	// gets number of gameticks that would have passed during the frame (previously MinecraftClient.getLastFrameDuration())
+	public static float getLastFrameDuration() {
+		return mc.getRenderTickCounter().getLastFrameDuration();
 	}
 }

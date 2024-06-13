@@ -12,7 +12,7 @@ import net.fabricmc.loader.api.FabricLoader;
 
 public class Config {
     public static Cdata cfg;
-    public static float cfgVersion = 2.04f;
+    public static float cfgVersion = 2.1f;
     public static boolean problemReading = false;
 
     public Config() {

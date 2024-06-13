@@ -30,7 +30,7 @@ public class ScrollableWidgetMixin { // DISABLED
 
     @Inject(method = "drawScrollbar", at = @At("HEAD"))
     private void drawScrollbarH(DrawContext context, CallbackInfo ci) {
-        scrollY = (scrollY - targetScrollY) / Math.pow(2, SmoothSc.mc.getLastFrameDuration()) + targetScrollY;
+        scrollY = (scrollY - targetScrollY) / Math.pow(2, SmoothSc.getLastFrameDuration()) + targetScrollY;
         if (scrollY < targetScrollY + 0.1 && scrollY > targetScrollY - 0.1)
             scrollY = targetScrollY;
     }

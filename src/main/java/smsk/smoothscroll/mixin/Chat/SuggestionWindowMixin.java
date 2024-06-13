@@ -34,7 +34,7 @@ public class SuggestionWindowMixin {
     private void renderH(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
         if(Config.cfg.chatSpeed == 0) return;
         savedContext = context;
-        lFDBuffer += SmoothSc.mc.getLastFrameDuration();
+        lFDBuffer += SmoothSc.getLastFrameDuration();
         var a = scrollPixelOffset;
         scrollPixelOffset = (int) Math.round(scrollPixelOffset * Math.pow(Config.cfg.chatSpeed, lFDBuffer));
         if (a != scrollPixelOffset || scrollPixelOffset == 0) lFDBuffer = 0;

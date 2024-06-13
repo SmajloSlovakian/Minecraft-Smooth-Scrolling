@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
@@ -27,7 +28,7 @@ public class HotbarMixin {
 	DrawContext savedContext;
 
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
-	private void draw1(DrawContext context, float tickDelta, CallbackInfo ci) {
+	private void draw1(DrawContext context, RenderTickCounter rtc, CallbackInfo ci) {
 		if (Config.cfg.hotbarSpeed == 0) return;
 		savedContext = context;
 	}
@@ -42,7 +43,7 @@ public class HotbarMixin {
 		int height = args.get(4);
 		PlayerInventory inv = SmoothSc.mc.player.getInventory();
 
-		lFDBuffer += SmoothSc.mc.getRenderTime();
+		lFDBuffer += SmoothSc.getLastFrameDuration();
 		var a = selectedPixelBuffer;
 		var target = (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20 - SmoothSc.hotbarRollover * rolloverOffset;
 		selectedPixelBuffer = (int) Math.round((selectedPixelBuffer - target) * Math.pow(Config.cfg.hotbarSpeed, lFDBuffer) + target);
@@ -78,7 +79,7 @@ public class HotbarMixin {
 	}
 
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1, shift = At.Shift.AFTER))
-	private void draw2(DrawContext context, float tickDelta, CallbackInfo ci) {
+	private void draw2(DrawContext context, RenderTickCounter rtc, CallbackInfo ci) {
 		if (!masked) return;
         if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
 		context.disableScissor();
