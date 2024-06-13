@@ -3,7 +3,10 @@ package smsk.smoothscroll;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeScreenHandler;
+import net.minecraft.util.Identifier;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +31,8 @@ public class SmoothSc implements ModInitializer {
 	public void onInitialize() {
 		updateConfig();
         isImmediatelyFastLoaded = FabricLoader.getInstance().isModLoaded("immediatelyfast");
+		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/y_offset", 0);
+		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/item_count", 0);
 	}
 
 	public static void print(Object s) {
@@ -38,5 +43,8 @@ public class SmoothSc implements ModInitializer {
 	}
 	public static int clamp(int val, int min, int max) {
 		return (Math.max(min, Math.min(max, val)));
+	}
+	public static void drawHotbarRolloverMirror(DrawContext context, Identifier texture, int x, int hotbarWidth, int offset, int y, int width, int height) {
+		context.drawGuiTexture(texture, x + hotbarWidth + offset, y, width, height);
 	}
 }

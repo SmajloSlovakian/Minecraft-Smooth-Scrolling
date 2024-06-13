@@ -8,7 +8,6 @@ import java.io.Serializable;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
-
 import net.fabricmc.loader.api.FabricLoader;
 
 public class Config {
@@ -20,6 +19,11 @@ public class Config {
         File cfgfile = FabricLoader.getInstance().getConfigDir().resolve("smoothscroll.json").toFile();
         if (cfgfile.exists()) {
             cfg = readFile(cfgfile);
+            /*try {
+                SmoothSc.print(NbtHelper.toFormattedString(NbtHelper.fromNbtProviderString("{lala:987,popo:{oink:220}}")));
+            } catch (CommandSyntaxException e) {
+                e.printStackTrace();
+            }/* */
             if (cfg == null) {
                 problemReading = true;
                 SmoothSc.print("There was a problem reading the config file, using the default values.");

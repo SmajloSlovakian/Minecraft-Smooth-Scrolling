@@ -12,7 +12,8 @@
 		"CreativeScreen.HandledScreenMixin",
 		"CreativeScreen.MinecraftClientMixin",
 		"CreativeScreen.CreativeScreenHandlerAccessor",
-		"EntryListWidgetMixin"
+		"EntryListWidgetMixin",
+		"CreativeScreen.ItemBordersMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
