@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
 import com.mojang.brigadier.suggestion.Suggestion;
 
 import net.minecraft.client.gui.DrawContext;
@@ -27,19 +26,15 @@ public class SuggestionWindowMixin {
     @Shadow Rect2i area;
     DrawContext savedContext;
     int indexBefore;
-    int scrollPixelOffset;
+    float scrollPixelOffset;
     int targetIndex;
-    float lFDBuffer;
 
     @Inject(method = "render", at = @At("HEAD"))
     private void renderH(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
         if(Config.cfg.chatSpeed == 0) return;
         savedContext = context;
-        lFDBuffer += SmoothSc.mc.getLastFrameDuration();
-        var a = scrollPixelOffset;
-        scrollPixelOffset = (int) Math.round(scrollPixelOffset * Math.pow(Config.cfg.chatSpeed, lFDBuffer));
-        if (a != scrollPixelOffset || scrollPixelOffset == 0) lFDBuffer = 0;
-        inWindowIndex = SmoothSc.clamp(targetIndex - scrollPixelOffset / 12, 0, suggestions.size() - 10); // the clamp is here as a workaround to a crash
+        scrollPixelOffset = (float) (scrollPixelOffset * Math.pow(Config.cfg.chatSpeed, SmoothSc.getLastFrameDuration()));
+        inWindowIndex = SmoothSc.clamp(targetIndex - getScrollOffset() / 12, 0, suggestions.size() - 10); // the clamp is here as a workaround to a crash
     }
     /*@ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 4) idk why this doesn't work
     private boolean mask(boolean a) {
@@ -72,7 +67,7 @@ public class SuggestionWindowMixin {
     @ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)I"), index = 3)
     private int textPosY(int s) {
         if(Config.cfg.chatSpeed == 0) return (s);
-        return (s + scrollPixelOffset - scrollPixelOffset / 12 * 12);
+        return (s + getDrawOffset());
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"))
@@ -97,13 +92,20 @@ public class SuggestionWindowMixin {
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 4)
     private int addLineAbove(int r) { // this function gets called three times for just one line for some reason
-        if (Config.cfg.chatSpeed == 0 || scrollPixelOffset <= 0 || inWindowIndex <= 0) return (r);
+        if (Config.cfg.chatSpeed == 0 || getScrollOffset() <= 0 || inWindowIndex <= 0) return (r);
         return (r - 1);
     }
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 2)
     private int addLineUnder(int i) {
-        if (Config.cfg.chatSpeed == 0 || scrollPixelOffset >= 0 || inWindowIndex >= suggestions.size() - 10) return (i);
+        if (Config.cfg.chatSpeed == 0 || getScrollOffset() >= 0 || inWindowIndex >= suggestions.size() - 10) return (i);
         return (i + 1);
+    }
+    
+    int getDrawOffset() {
+        return Math.round(scrollPixelOffset) - (Math.round(scrollPixelOffset) / 12 * 12);
+    }
+    int getScrollOffset() {
+        return Math.round(scrollPixelOffset);
     }
 }

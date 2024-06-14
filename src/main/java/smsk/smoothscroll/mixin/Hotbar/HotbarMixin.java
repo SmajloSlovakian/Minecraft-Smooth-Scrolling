@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
@@ -21,8 +22,7 @@ public class HotbarMixin {
 	int rolloverOffsetR = 4; // TODO
 	int rolloverOffsetL = 4;
 	int rolloverOffset = 4;
-	int selectedPixelBuffer = 0;
-	float lFDBuffer;
+	float selectedPixelBuffer = 0;
 	boolean masked = false;
 	DrawContext savedContext;
 
@@ -42,39 +42,29 @@ public class HotbarMixin {
 		int height = args.get(4);
 		PlayerInventory inv = SmoothSc.mc.player.getInventory();
 
-		lFDBuffer += SmoothSc.mc.getLastFrameDuration();
-		var a = selectedPixelBuffer;
 		var target = (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20 - SmoothSc.hotbarRollover * rolloverOffset;
-		selectedPixelBuffer = (int) Math.round((selectedPixelBuffer - target) * Math.pow(Config.cfg.hotbarSpeed, lFDBuffer) + target);
-		if (selectedPixelBuffer != a || selectedPixelBuffer == target) lFDBuffer = 0;
+		selectedPixelBuffer = (float) ((selectedPixelBuffer - target) * Math.pow(Config.cfg.hotbarSpeed, SmoothSc.getLastFrameDuration()) + target);
 		
-		if (selectedPixelBuffer < -10 - rolloverOffset) {
+		if (Math.round(selectedPixelBuffer) < -10 - rolloverOffset) {
 			selectedPixelBuffer += 9 * 20 + rolloverOffset;
 			SmoothSc.hotbarRollover -= 1;
-		} else if (selectedPixelBuffer > 20 * 9 - 10 + rolloverOffset) {
+		} else if (Math.round(selectedPixelBuffer) > 20 * 9 - 10 + rolloverOffset) {
 			selectedPixelBuffer -= 9 * 20 + rolloverOffset;
 			SmoothSc.hotbarRollover += 1;
 		}
 
 		x -= inv.selectedSlot * 20;
-		x += selectedPixelBuffer;
+		x += Math.round(selectedPixelBuffer);
 		args.set(1, x);
 
 		masked = false;
-		if (selectedPixelBuffer < 0 || selectedPixelBuffer > 20 * 8) {
-			var x2 = savedContext.getScaledWindowWidth() / 2 - 91;
-			var y2 = savedContext.getScaledWindowHeight() - 22;
-			if (FabricLoader.getInstance().getObjectShare().get("raised:hud") instanceof Integer distance) y2 -= distance;
-			savedContext.enableScissor(x2 - 1, y2 - 1, x2 + 182 + 1, y2 + 22 + 1);
-			masked = true;
+		if (Math.round(selectedPixelBuffer) < 0) {
+			enableMask();
+			SmoothSc.drawHotbarRolloverMirror(savedContext, texture, x, 9 * 20, rolloverOffset, y, width, height);
+		} else if (Math.round(selectedPixelBuffer) > 20 * 8) {
+			enableMask();
+			SmoothSc.drawHotbarRolloverMirror(savedContext, texture, x, -9 * 20, -rolloverOffset, y, width, height);
 		}
-
-		// not going to bother fixing this
-		/*if (selectedPixelBuffer < 0) {
-			savedContext.drawGuiTexture(texture, x + 9 * 20, y, width, height);
-		} else if (selectedPixelBuffer > 20 * 8) {
-			savedContext.drawGuiTexture(texture, x - 9 * 20, y, width, height);
-		}/* */
 	}
 
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1, shift = At.Shift.AFTER))
@@ -82,5 +72,12 @@ public class HotbarMixin {
 		if (!masked) return;
         if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
 		context.disableScissor();
+	}
+	void enableMask() {
+		var x2 = savedContext.getScaledWindowWidth() / 2 - 91;
+		var y2 = savedContext.getScaledWindowHeight() - 22;
+		if (FabricLoader.getInstance().getObjectShare().get("raised:hud") instanceof Integer distance) y2 -= distance;
+		savedContext.enableScissor(x2 - 1, y2 - 1, x2 + 182 + 1, y2 + 22 + 1);
+		masked = true;
 	}
 }
