@@ -13,6 +13,6 @@ public class ItemBordersMixin {
     @ModifyArg(method = "renderBorder", at = @At(value = "INVOKE", target = "Lcom/anthonyhilyard/itemborders/ItemBorders;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/item/ItemStack;II)V"),index = 3)
     private static int lala(int y) {
         if (SmoothSc.creativeScreenItemCount < 0) return (y);
-        return (y + SmoothSc.creativeScreenScrollOffset - SmoothSc.creativeScreenScrollOffset / 18 * 18);
+        return (y + SmoothSc.getCreativeDrawOffset());
     }
 }

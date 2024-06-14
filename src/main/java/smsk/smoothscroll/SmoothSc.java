@@ -6,6 +6,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeScreenHandler;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ColorHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,7 @@ public class SmoothSc implements ModInitializer {
 	public static Config cfg;
     public static boolean isImmediatelyFastLoaded;
 
-	public static int creativeScreenScrollOffset = 0;
+	public static float creativeScreenScrollOffset = 0;
 	public static float creativeScreenTargetPos = 0;
 	public static float creativeScreenCurrentPos = 0;
 	public static int creativeScreenItemCount = 0;
@@ -28,7 +29,7 @@ public class SmoothSc implements ModInitializer {
 	public static int hotbarRollover = 0;
 
 	@Override
-	public void onInitialize() {
+	public void onInitialize() { // TODO znovu prejsť na float pri offsetoch a tak... 
 		updateConfig();
         isImmediatelyFastLoaded = FabricLoader.getInstance().isModLoaded("immediatelyfast");
 		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/y_offset", 0);
@@ -47,8 +48,16 @@ public class SmoothSc implements ModInitializer {
 	public static void drawHotbarRolloverMirror(DrawContext context, Identifier texture, int x, int hotbarWidth, int offset, int y, int width, int height) {
 		context.drawGuiTexture(texture, x + hotbarWidth + offset, y, width, height);
 	}
-	// gets number of gameticks that would have passed during the frame (previously MinecraftClient.getLastFrameDuration())
 	public static float getLastFrameDuration() {
 		return mc.getRenderTickCounter().getLastFrameDuration();
 	}
+	public static void debugTextDraw(DrawContext context, Object s, int x, int y) {
+		context.drawText(mc.textRenderer, s + "", x, y, ColorHelper.Argb.getArgb(255, 0, 255, 255), true);
+	}
+    public static int getCreativeDrawOffset() {
+        return Math.round(SmoothSc.creativeScreenScrollOffset) - Math.round(SmoothSc.creativeScreenScrollOffset) / 18 * 18;
+    }
+    public static int getCreativeScrollOffset() {
+        return Math.round(SmoothSc.creativeScreenScrollOffset);
+    }
 }
