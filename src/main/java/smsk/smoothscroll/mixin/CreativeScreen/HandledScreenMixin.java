@@ -4,6 +4,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -12,6 +13,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
+import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
 
@@ -66,10 +68,12 @@ public class HandledScreenMixin {
         return (y + SmoothSc.getCreativeDrawOffset());
     }
 
-    @ModifyVariable(method = "render", at = @At(value = "STORE"),ordinal = 6)
-    int drawHighlightY(int y) {
-        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return (y);
-        return (y + SmoothSc.getCreativeDrawOffset());
+    @ModifyArgs(method = "drawSlotHighlight", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;fillGradient(Lnet/minecraft/client/render/RenderLayer;IIIIIII)V"))
+    private static void drawHighlightY(Args args) {
+        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return;
+
+        args.set(2, (int) args.get(2) + SmoothSc.getCreativeScrollOffset());
+        args.set(4, (int) args.get(4) + SmoothSc.getCreativeScrollOffset());
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(Lnet/minecraft/client/gui/DrawContext;II)V"))
