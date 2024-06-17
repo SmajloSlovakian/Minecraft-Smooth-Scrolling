@@ -47,11 +47,11 @@ public class HandledScreenMixin {
     }
 
     @Inject(method = "render", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
-    void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(name = "mouseY") LocalIntRef mouseY) {
+    void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1) LocalIntRef mouseY) {
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.getCreativeScrollOffset() == 0) return;
         context.enableScissor(0, context.getScaledWindowHeight() / 2 - 50, context.getScaledWindowWidth(), context.getScaledWindowHeight() / 2 + 38);
         cutEnabled = true;
-        if(originalCursorY >= savedContext.getScaledWindowHeight() / 2 - 51 || originalCursorY <= savedContext.getScaledWindowHeight() / 2 + 38)
+        if(originalCursorY >= savedContext.getScaledWindowHeight() / 2 - 51 && originalCursorY <= savedContext.getScaledWindowHeight() / 2 + 38)
             mouseY.set(my - SmoothSc.getCreativeDrawOffset());
 
         // the fix for instantly disappearing items on the opposite side of scrolling...
@@ -87,7 +87,7 @@ public class HandledScreenMixin {
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(Lnet/minecraft/client/gui/DrawContext;II)V"))
-    void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(name = "mouseY") int mouseY) {
+    void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1) int mouseY) {
         tryDisableMask(context);
         mouseY = originalCursorY;
     }
