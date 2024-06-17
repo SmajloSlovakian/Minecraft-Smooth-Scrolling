@@ -3,7 +3,6 @@ package smsk.smoothscroll.mixin.CreativeScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -14,6 +13,10 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
+
+import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
+
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
 
@@ -44,10 +47,12 @@ public class HandledScreenMixin {
     }
 
     @Inject(method = "render", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
-    void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+    void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(name = "mouseY") LocalIntRef mouseY) {
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.getCreativeScrollOffset() == 0) return;
         context.enableScissor(0, context.getScaledWindowHeight() / 2 - 50, context.getScaledWindowWidth(), context.getScaledWindowHeight() / 2 + 38);
         cutEnabled = true;
+        if(originalCursorY >= savedContext.getScaledWindowHeight() / 2 - 51 || originalCursorY <= savedContext.getScaledWindowHeight() / 2 + 38)
+            mouseY.set(my - SmoothSc.getCreativeDrawOffset());
 
         // the fix for instantly disappearing items on the opposite side of scrolling...
         // it gets the items that just left the slots and draws them in the correct
@@ -67,18 +72,24 @@ public class HandledScreenMixin {
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return (y);
         return (y + SmoothSc.getCreativeDrawOffset());
     }
+    @ModifyVariable(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V", shift = At.Shift.AFTER), argsOnly = true, ordinal = 1)
+    int revertMousePos(int mouseY) {
+        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return originalCursorY;
+        return mouseY;
+    }
 
     @ModifyArgs(method = "drawSlotHighlight", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;fillGradient(Lnet/minecraft/client/render/RenderLayer;IIIIIII)V"))
     private static void drawHighlightY(Args args) {
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return;
 
-        args.set(2, (int) args.get(2) + SmoothSc.getCreativeScrollOffset());
-        args.set(4, (int) args.get(4) + SmoothSc.getCreativeScrollOffset());
+        args.set(2, (int) args.get(2) + SmoothSc.getCreativeDrawOffset());
+        args.set(4, (int) args.get(4) + SmoothSc.getCreativeDrawOffset());
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(Lnet/minecraft/client/gui/DrawContext;II)V"))
-    void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+    void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(name = "mouseY") int mouseY) {
         tryDisableMask(context);
+        mouseY = originalCursorY;
     }
 
     void tryDisableMask(DrawContext context){
@@ -88,9 +99,9 @@ public class HandledScreenMixin {
         context.disableScissor();
         cutEnabled = false;
     }
-    @ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;isPointOverSlot(Lnet/minecraft/screen/slot/Slot;DD)Z"), index = 2)
-    double modifyCursorPosY(double my) {
-        if(!cutEnabled || originalCursorY < savedContext.getScaledWindowHeight() / 2 - 51 || originalCursorY > savedContext.getScaledWindowHeight() / 2 + 38) return my;
-        return originalCursorY - SmoothSc.getCreativeDrawOffset();
-    }
+    //@ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;isPointOverSlot(Lnet/minecraft/screen/slot/Slot;DD)Z"), index = 2)
+    //double modifyCursorPosY(double my) {
+    //    if(!cutEnabled || originalCursorY < savedContext.getScaledWindowHeight() / 2 - 51 || originalCursorY > savedContext.getScaledWindowHeight() / 2 + 38) return my;
+    //    return originalCursorY - SmoothSc.getCreativeDrawOffset();
+    //}
 }
