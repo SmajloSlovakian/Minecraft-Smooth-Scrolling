@@ -164,7 +164,7 @@ public class ChatHudMixin {
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 12)
     private int addLinesUnder(int r) {
-        if (Config.cfg.chatSpeed == 0 || getChatScrollOffset() <= 0) return (r);
+        if (scrolledLines == 0 || Config.cfg.chatSpeed == 0 || getChatScrollOffset() <= 0) return (r);
         return (r - 1);
     }
 
