@@ -30,9 +30,9 @@ public class HandledScreenMixin {
 
     @Inject(method = "render", at = @At("HEAD"))
     void render(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
-        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null) return;
         savedContext = context;
         originalCursorY = my;
+        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null) return;
 
         SmoothSc.creativeScreenScrollOffset = (float) (SmoothSc.creativeScreenScrollOffset * Math.pow(Config.cfg.creativeScreenSpeed, SmoothSc.getLastFrameDuration()));
 
