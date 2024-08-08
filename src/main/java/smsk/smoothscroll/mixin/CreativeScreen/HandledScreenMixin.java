@@ -3,22 +3,23 @@ package smsk.smoothscroll.mixin.CreativeScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
-import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 
+import io.wispforest.condensed_creative.util.CondensedInventory;
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
+import smsk.smoothscroll.compat.CondensedInventoryCompat;
 
 @Mixin(value = HandledScreen.class, priority = 999)
 public class HandledScreenMixin {
@@ -50,6 +51,8 @@ public class HandledScreenMixin {
     void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1) LocalIntRef mouseY) {
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.getCreativeScrollOffset() == 0) return;
         context.enableScissor(0, context.getScaledWindowHeight() / 2 - 50, context.getScaledWindowWidth(), context.getScaledWindowHeight() / 2 + 38);
+        context.getMatrices().push();
+        context.getMatrices().translate(0, SmoothSc.getCreativeDrawOffset(), 0);
         cutEnabled = true;
         if(originalCursorY >= savedContext.getScaledWindowHeight() / 2 - 51 && originalCursorY <= savedContext.getScaledWindowHeight() / 2 + 38)
             mouseY.set(my - SmoothSc.getCreativeDrawOffset());
@@ -61,7 +64,11 @@ public class HandledScreenMixin {
         var currRow = SmoothSc.creativeScreenPrevRow - SmoothSc.getCreativeScrollOffset() / 18;
         var fromIndex = currRow * 9 + overUnder;
         for(int i = fromIndex; i >= 0 && i < SmoothSc.creativeSH.itemList.size() && i < fromIndex + 9; i++) {
-            context.drawItem(SmoothSc.creativeSH.itemList.get(i), 9 + i % 9 * 18, SmoothSc.getCreativeDrawOffset() + (SmoothSc.getCreativeScrollOffset() > 0 ? 0 : 18 * 6));
+            // Can't figure out where to get the correct items from the mod condensed creative
+            //ItemStack item = SmoothSc.isCondensedInventoryLoaded ? CondensedInventoryCompat.getStack(i) : SmoothSc.creativeSH.itemList.get(i);
+            ItemStack item = SmoothSc.creativeSH.itemList.get(i);
+
+            context.drawItem(item, 9 + i % 9 * 18, SmoothSc.getCreativeScrollOffset() > 0 ? 0 : 18 * 6);
         }
     }
 
@@ -69,21 +76,13 @@ public class HandledScreenMixin {
     int drawItemY(int y) {
         SmoothSc.creativeScreenItemCount -= 1;
         if (SmoothSc.creativeScreenItemCount < 0) tryDisableMask(savedContext);
-        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return (y);
-        return (y + SmoothSc.getCreativeDrawOffset());
+        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return y;
+        return y ;//+ SmoothSc.getCreativeDrawOffset();
     }
     @ModifyVariable(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V", shift = At.Shift.AFTER), argsOnly = true, ordinal = 1)
     int revertMousePos(int mouseY) {
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return originalCursorY;
         return mouseY;
-    }
-
-    @ModifyArgs(method = "drawSlotHighlight", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;fillGradient(Lnet/minecraft/client/render/RenderLayer;IIIIIII)V"))
-    private static void drawHighlightY(Args args) {
-        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return;
-
-        args.set(2, (int) args.get(2) + SmoothSc.getCreativeDrawOffset());
-        args.set(4, (int) args.get(4) + SmoothSc.getCreativeDrawOffset());
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(Lnet/minecraft/client/gui/DrawContext;II)V"))
@@ -97,6 +96,7 @@ public class HandledScreenMixin {
         if (Config.cfg.enableMaskDebug)
             context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
         context.disableScissor();
+        context.getMatrices().pop();
         cutEnabled = false;
     }
     //@ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;isPointOverSlot(Lnet/minecraft/screen/slot/Slot;DD)Z"), index = 2)

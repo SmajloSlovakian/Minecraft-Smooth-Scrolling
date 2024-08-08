@@ -56,6 +56,11 @@ public class Config {
             cfg.note = "Safe values for settings are 0 - 1 (inclusive). 0 means animation off (infinite speed) and bigger values mean slower speed (up to 1). Press F3+T in a world to update config.";
             writeFile(cfgfile);
         }
+        // Other temporary changes to config
+        if (SmoothSc.isSmoothScrollingRefurbishedLoaded) {
+            cfg.entryListSpeed = 0;
+            SmoothSc.print("Smooth Scrolling Refurbished is loaded! Disabling Entry List Smooth Scrolling in favor of the other mod.");
+        }
         SmoothSc.print("Config values:\n" + printify());
     }
 
