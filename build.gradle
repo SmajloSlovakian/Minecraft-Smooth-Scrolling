@@ -39,8 +39,8 @@ dependencies {
 	// modImplementation "maven.modrinth:chat-heads:${project.chat_heads_version}" DISABLED due to not being neccessary anymore
 	// modCompileOnly "maven.modrinth:immediatelyfast:${project.immediatelyfast_version}" DISABLED due to not being neccessary anymore
 	modCompileOnly "maven.modrinth:item-borders:${project.item_borders_version}"
-	//modCompileOnly "maven.modrinth:condensed-creative:3.3.0+1.21"
 	modCompileOnly ("io.wispforest:condensed_creative-fabric:${project.cc_version}") { exclude(group: "me.shedaniel.cloth") }
+	//modLocalRuntime ("io.wispforest:condensed_creative-fabric:${project.cc_version}")
 }
 
 loom {
