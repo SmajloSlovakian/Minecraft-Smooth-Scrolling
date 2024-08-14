@@ -3,7 +3,8 @@
 	"plugin": "smsk.smoothscroll.mixin.SmoothScMixinPlugin",
 	"package": "smsk.smoothscroll.mixin",
 	"compatibilityLevel": "JAVA_17",
-	"mixins": [
+	"mixins": [],
+	"client": [
 		"Hotbar.HotbarMixin",
 		"Hotbar.PlayerInventoryMixin",
 		"Chat.ChatHudMixin",

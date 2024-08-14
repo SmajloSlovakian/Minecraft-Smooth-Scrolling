@@ -2,6 +2,7 @@ package smsk.smoothscroll.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -13,9 +14,9 @@ import smsk.smoothscroll.SmoothSc;
 @Mixin(ScrollableWidget.class)
 public class ScrollableWidgetMixin { // DISABLED
 
-    @Shadow double scrollY;
-    double predScrollY;
-    double targetScrollY;
+    @Shadow private double scrollY;
+    @Unique private double predScrollY;
+    @Unique private double targetScrollY;
 
     @Inject(method = "setScrollY(D)V", at = @At("HEAD"))
     private void SetScrollYH(double s, CallbackInfo ci) {

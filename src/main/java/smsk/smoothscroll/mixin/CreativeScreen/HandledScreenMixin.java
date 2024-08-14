@@ -39,9 +39,8 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     @Unique private boolean drawingOverdrawnSlot = false;
 
     @Inject(method = "render", at = @At("HEAD"))
-    void render(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
-        savedContext = context;
-        originalCursorY = my;
+    private void render(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+        this.originalCursorY = my;
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null) return;
 
         SmoothSc.creativeScreenScrollOffset = (float) (SmoothSc.creativeScreenScrollOffset * Math.pow(Config.cfg.creativeScreenSpeed, SmoothSc.getLastFrameDuration()));
@@ -57,13 +56,13 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     }
 
     @Inject(method = "render", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
-    void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1) LocalIntRef mouseY) {
+    private void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.getCreativeScrollOffset() == 0) return;
         context.enableScissor(0, context.getScaledWindowHeight() / 2 - 50, context.getScaledWindowWidth(), context.getScaledWindowHeight() / 2 + 38);
         context.getMatrices().push();
         context.getMatrices().translate(0, SmoothSc.getCreativeDrawOffset(), 0);
         cutEnabled = true;
-        if(originalCursorY >= savedContext.getScaledWindowHeight() / 2 - 51 && originalCursorY <= savedContext.getScaledWindowHeight() / 2 + 38)
+        if(originalCursorY >= context.getScaledWindowHeight() / 2 - 51 && originalCursorY <= context.getScaledWindowHeight() / 2 + 38)
             mouseY.set(my - SmoothSc.getCreativeDrawOffset());
 
         // the fix for instantly disappearing items on the opposite side of scrolling...
@@ -87,26 +86,28 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     }
 
     @ModifyVariable(method = "drawSlot", at = @At(value = "STORE"), ordinal = 1)
-    int drawItemY(int y) {
+    private int drawItemY(int y, @Local(argsOnly = true) DrawContext context) {
         if(drawingOverdrawnSlot) return y;
         SmoothSc.creativeScreenItemCount -= 1;
-        if (SmoothSc.creativeScreenItemCount < 0) tryDisableMask(savedContext);
+        if (SmoothSc.creativeScreenItemCount < 0) tryDisableMask(context);
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return y;
         return y ;//+ SmoothSc.getCreativeDrawOffset();
     }
+
     @ModifyVariable(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V", shift = At.Shift.AFTER), argsOnly = true, ordinal = 1)
-    int revertMousePos(int mouseY) {
+    private int revertMousePos(int mouseY) {
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return originalCursorY;
         return mouseY;
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(Lnet/minecraft/client/gui/DrawContext;II)V"))
-    void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1) int mouseY) {
+    private void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1) int mouseY) {
         tryDisableMask(context);
         mouseY = originalCursorY;
     }
 
-    void tryDisableMask(DrawContext context){
+    @Unique
+    private void tryDisableMask(DrawContext context){
         if (drawingOverdrawnSlot) return;
         if (!cutEnabled) return;
         if (Config.cfg.enableMaskDebug)

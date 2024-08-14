@@ -1,5 +1,6 @@
 package smsk.smoothscroll;
 
+import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
@@ -14,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smsk.smoothscroll.compat.CondensedInventoryCompat;
 
-public class SmoothSc implements ModInitializer {
+public class SmoothSc implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("Smooth Scrolling");
 	public static final MinecraftClient mc = MinecraftClient.getInstance();
 
@@ -33,7 +34,7 @@ public class SmoothSc implements ModInitializer {
 	public static int hotbarRollover = 0;
 
 	@Override
-	public void onInitialize() {
+	public void onInitializeClient() {
         isSmoothScrollingRefurbishedLoaded = FabricLoader.getInstance().isModLoaded("smoothscrollingrefurbished");
         isCondensedInventoryLoaded = FabricLoader.getInstance().isModLoaded("condensed_creative");
 		updateConfig();

@@ -7,5 +7,5 @@ import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeSc
 @Mixin(CreativeScreenHandler.class)
 public interface CreativeScreenHandlerAccessor {
     @Invoker("getScrollPosition")
-    public float getPos(int row);
+    float getPos(int row);
 }
