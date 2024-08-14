@@ -5,11 +5,14 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeScreenHandler;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import smsk.smoothscroll.compat.CondensedInventoryCompat;
 
 public class SmoothSc implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("Smooth Scrolling");
@@ -36,6 +39,12 @@ public class SmoothSc implements ModInitializer {
 		updateConfig();
 		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/y_offset", 0);
 		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/item_count", 0);
+	}
+
+	public static Inventory getDelegatingInventory(ScreenHandler handler) {
+		return isCondensedInventoryLoaded
+				? CondensedInventoryCompat.of(handler)
+				: DelegatingInventory.itemStackBased(creativeSH.itemList::get);
 	}
 
 	public static void print(Object s) {

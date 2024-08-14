@@ -1,6 +1,11 @@
 package smsk.smoothscroll.mixin.CreativeScreen;
 
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.slot.Slot;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -9,25 +14,29 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 
-import io.wispforest.condensed_creative.util.CondensedInventory;
 import smsk.smoothscroll.Config;
+import smsk.smoothscroll.DelegatingInventory;
 import smsk.smoothscroll.SmoothSc;
 import smsk.smoothscroll.compat.CondensedInventoryCompat;
 
 @Mixin(value = HandledScreen.class, priority = 999)
-public class HandledScreenMixin {
+public abstract class HandledScreenMixin<T extends ScreenHandler> {
 
-    Identifier backTex = Identifier.ofVanilla("textures/gui/container/creative_inventory/tab_items");
-    boolean cutEnabled = false;
-    DrawContext savedContext;
-    int originalCursorY;
+    @Shadow @Final protected T handler;
+
+    @Shadow protected abstract void drawSlot(DrawContext context, Slot slot);
+
+    @Unique private final Identifier backTex = Identifier.ofVanilla("textures/gui/container/creative_inventory/tab_items");
+    @Unique private boolean cutEnabled = false;
+    @Unique private int originalCursorY;
+
+    @Unique private boolean drawingOverdrawnSlot = false;
 
     @Inject(method = "render", at = @At("HEAD"))
     void render(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
@@ -64,16 +73,22 @@ public class HandledScreenMixin {
         var currRow = SmoothSc.creativeScreenPrevRow - SmoothSc.getCreativeScrollOffset() / 18;
         var fromIndex = currRow * 9 + overUnder;
         for(int i = fromIndex; i >= 0 && i < SmoothSc.creativeSH.itemList.size() && i < fromIndex + 9; i++) {
-            // Can't figure out where to get the correct items from the mod condensed creative
-            //ItemStack item = SmoothSc.isCondensedInventoryLoaded ? CondensedInventoryCompat.getStack(i) : SmoothSc.creativeSH.itemList.get(i);
-            ItemStack item = SmoothSc.creativeSH.itemList.get(i);
+            var tempSlot = new Slot(SmoothSc.getDelegatingInventory(this.handler), i, 9 + i % 9 * 18, SmoothSc.getCreativeScrollOffset() > 0 ? 0 : 18 * 6);
 
-            context.drawItem(item, 9 + i % 9 * 18, SmoothSc.getCreativeScrollOffset() > 0 ? 0 : 18 * 6);
+            this.drawSlotOverridden(context, tempSlot);
         }
+    }
+
+    @Unique
+    private void drawSlotOverridden(DrawContext context, Slot slot) {
+        this.drawingOverdrawnSlot = true;
+        this.drawSlot(context, slot);
+        this.drawingOverdrawnSlot = false;
     }
 
     @ModifyVariable(method = "drawSlot", at = @At(value = "STORE"), ordinal = 1)
     int drawItemY(int y) {
+        if(drawingOverdrawnSlot) return y;
         SmoothSc.creativeScreenItemCount -= 1;
         if (SmoothSc.creativeScreenItemCount < 0) tryDisableMask(savedContext);
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return y;
@@ -92,6 +107,7 @@ public class HandledScreenMixin {
     }
 
     void tryDisableMask(DrawContext context){
+        if (drawingOverdrawnSlot) return;
         if (!cutEnabled) return;
         if (Config.cfg.enableMaskDebug)
             context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
