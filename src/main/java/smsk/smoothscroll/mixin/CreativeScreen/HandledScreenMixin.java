@@ -21,9 +21,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 
 import smsk.smoothscroll.Config;
-import smsk.smoothscroll.DelegatingInventory;
 import smsk.smoothscroll.SmoothSc;
-import smsk.smoothscroll.compat.CondensedInventoryCompat;
 
 @Mixin(value = HandledScreen.class, priority = 999)
 public abstract class HandledScreenMixin<T extends ScreenHandler> {
