@@ -13,9 +13,9 @@
 	},
 	"license": "gpl-3.0",
 	"icon": "assets/smoothscroll/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
-		"main": [
+		"client": [
 			"smsk.smoothscroll.SmoothSc"
 		]
 	},

@@ -2,8 +2,11 @@ package smsk.smoothscroll.mixin.Chat;
 
 import java.util.List;
 
+import com.llamalad7.mixinextras.sugar.Local;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -21,18 +24,17 @@ import smsk.smoothscroll.SmoothSc;
 
 @Mixin(SuggestionWindow.class)
 public class SuggestionWindowMixin {
-    @Shadow int inWindowIndex;
-    @Shadow List<Suggestion> suggestions;
-    @Shadow Rect2i area;
-    DrawContext savedContext;
-    int indexBefore;
-    float scrollPixelOffset;
-    int targetIndex;
+    @Shadow private int inWindowIndex;
+    @Final @Shadow private List<Suggestion> suggestions;
+    @Final @Shadow private Rect2i area;
+
+    @Unique private int indexBefore;
+    @Unique private float scrollPixelOffset;
+    @Unique private int targetIndex;
 
     @Inject(method = "render", at = @At("HEAD"))
     private void renderH(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
         if(Config.cfg.chatSpeed == 0) return;
-        savedContext = context;
         scrollPixelOffset = (float) (scrollPixelOffset * Math.pow(Config.cfg.chatSpeed, SmoothSc.getLastFrameDuration()));
         inWindowIndex = SmoothSc.clamp(targetIndex - getScrollOffset() / 12, 0, suggestions.size() - 10); // the clamp is here as a workaround to a crash
     }
@@ -47,7 +49,7 @@ public class SuggestionWindowMixin {
     private void mask(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
         if(Config.cfg.chatSpeed == 0) return;
         // savedContext.enableScissor(area.getX() - 1, area.getY(), area.getX() + area.getWidth(), area.getY() + area.getHeight());
-        savedContext.enableScissor(0, area.getY(), context.getScaledWindowWidth(), area.getY() + area.getHeight());
+        context.enableScissor(0, area.getY(), context.getScaledWindowWidth(), area.getY() + area.getHeight());
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)I", shift = At.Shift.AFTER))
@@ -78,11 +80,14 @@ public class SuggestionWindowMixin {
     private void scrollH(int off, CallbackInfo ci) {commonSH();}
     @Inject(method = "scroll", at = @At("TAIL"))
     private void scrollT(int off, CallbackInfo ci) {commonST();}
-    
+
+    @Unique
     private void commonSH(){
         if(Config.cfg.chatSpeed == 0) return;
         indexBefore = inWindowIndex;
     }
+
+    @Unique
     private void commonST(){
         if(Config.cfg.chatSpeed == 0) return;
         scrollPixelOffset += (inWindowIndex - indexBefore) * 12;
@@ -101,11 +106,14 @@ public class SuggestionWindowMixin {
         if (Config.cfg.chatSpeed == 0 || getScrollOffset() >= 0 || inWindowIndex >= suggestions.size() - 10) return (i);
         return (i + 1);
     }
-    
-    int getDrawOffset() {
+
+    @Unique
+    private int getDrawOffset() {
         return Math.round(scrollPixelOffset) - (Math.round(scrollPixelOffset) / 12 * 12);
     }
-    int getScrollOffset() {
+
+    @Unique
+    private int getScrollOffset() {
         return Math.round(scrollPixelOffset);
     }
 }

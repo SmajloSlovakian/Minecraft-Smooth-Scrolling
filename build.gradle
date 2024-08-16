@@ -11,11 +11,6 @@ base {
 }
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
     exclusiveContent {
         forRepository {
             maven {
@@ -27,7 +22,9 @@ repositories {
             includeGroup "maven.modrinth"
         }
     }
-	maven { url 'https://maven.wispforest.io' }
+	maven { url "https://maven.shedaniel.me/" }
+	maven { url "https://maven.terraformersmc.com/releases/" }
+	maven { url 'https://maven.wispforest.io/releases' }
 }
 
 dependencies {
@@ -38,15 +35,42 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	// modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	
+
 	// modImplementation "maven.modrinth:chat-heads:${project.chat_heads_version}" DISABLED due to not being neccessary anymore
 	// modCompileOnly "maven.modrinth:immediatelyfast:${project.immediatelyfast_version}" DISABLED due to not being neccessary anymore
 	modCompileOnly "maven.modrinth:item-borders:${project.item_borders_version}"
-	//modCompileOnly "maven.modrinth:condensed-creative:3.3.0+1.21"
-	modCompileOnly ("io.wispforest:condensed_creative-fabric:3.3.0+1.21") {
-		exclude(group: "me.shedaniel.cloth")
-	}
+	modCompileOnly ("io.wispforest:condensed_creative-fabric:${project.cc_version}") { exclude(group: "me.shedaniel.cloth") }
+	//modLocalRuntime ("io.wispforest:condensed_creative-fabric:${project.cc_version}")
+}
 
+loom {
+	runs {
+		// Loom Run for using Mixin Debugging with export and HotSwapping capability
+		it.create("clientMixinDebug", {
+			client()
+			runDir "run"
+			name "Minecraft Client [Mixin Debug]"
+
+			vmArg "-Dfabric.dli.config=${file(".gradle/loom-cache/launch.cfg").toString()}"
+			vmArg "-Dfabric.dli.env=client"
+			vmArg "-Dfabric.dli.main=net.fabricmc.loader.impl.launch.knot.KnotClient"
+
+			Object runConfig = it
+
+			project.afterEvaluate {
+				project.configurations.compileClasspath
+						.getAllDependencies()
+						.findAll { Dependency test -> test.getName() == "sponge-mixin" }
+						.iterator().forEachRemaining {runConfig.vmArg "-javaagent:\"${(project.configurations.compileClasspath.files(it).iterator().next().getPath())}\"" }
+			}
+
+			vmArg "-Dlog4j.configurationFile=${file(".gradle/loom-cache/log4j.xml").toString()}"
+			vmArg "-Dfabric.log.disableAnsi=false"
+			vmArg "-Dmixin.debug.export=true"
+
+			ideConfigGenerated = true
+		})
+	}
 }
 
 processResources {

@@ -22,12 +22,12 @@ public class MinecraftClientMixin {
         try {
             var sh = ((CreativeScreenHandler) ((ScreenHandlerProvider<?>) s).getScreenHandler());
             if (sh != null) SmoothSc.creativeSH = sh;
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
         SmoothSc.creativeScreenScrollOffset = 0;
     }
 
     @Inject(method = "reloadResources", at = @At("HEAD"))
-    void onResReload(CallbackInfoReturnable<CompletableFuture<Void>> cir) {
+    private void onResReload(CallbackInfoReturnable<CompletableFuture<Void>> cir) {
         SmoothSc.updateConfig();
     }
 }
