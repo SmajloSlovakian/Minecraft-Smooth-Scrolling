@@ -21,6 +21,7 @@ public class SmoothSc implements ClientModInitializer {
 	public static Config cfg;
     public static boolean isSmoothScrollingRefurbishedLoaded;
     public static boolean isCondensedInventoryLoaded;
+	public static double scissorScaleFactor; // used for non-scaling-dependant masking mainly for chat with chat text size changed
 
 	public static float creativeScreenScrollOffset = 0;
 	public static float creativeScreenTargetPos = 0;

@@ -10,8 +10,8 @@ import smsk.smoothscroll.SmoothSc;
 // Specific mixin for targeting CondensedCreative call for setting Entry within Creative Screen
 @Mixin(value = CreativeInventoryScreen.CreativeScreenHandler.class, priority = 1001)
 public class CreativeScreenHandlerMixin_CC {
-    @Inject(method = "scrollItems", at = @At(value = "INVOKE", target = "Lio/wispforest/condensed_creative/util/CondensedInventory;setEntryStack(ILio/wispforest/condensed_creative/entry/Entry;)V"))
-    private void itemCount(CallbackInfo ci) {
+    @Inject(method = "scrollItems", at = @At(value = "INVOKE", target = "Lio/wispforest/condensed_creative/entry/EntryContainer;setEntryStack(ILio/wispforest/condensed_creative/entry/Entry;)V"))
+    private void itemCount(float pos, CallbackInfo ci) {
         SmoothSc.creativeScreenItemCount += 1;
     }
 }

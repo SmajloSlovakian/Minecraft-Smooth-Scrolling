@@ -62,7 +62,7 @@ public class ChatHudMixin {
     }
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 7)
-    private int mask(int m, @Local(argsOnly = true) DrawContext context) { // m - the y position of the chat
+    private int mask(int m, @Local(argsOnly = true) DrawContext context, @Local float f) { // m - the y position of the chat
         if ((Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) || isChatHidden()) return (m);
 
         var shownLineCount = 0;
@@ -101,7 +101,10 @@ public class ChatHudMixin {
             maskbottom -= distance;
         }
 
+        SmoothSc.scissorScaleFactor = SmoothSc.mc.getWindow().getScaleFactor() * f;
         context.enableScissor(0, masktop, context.getScaledWindowWidth(), maskbottom);
+        SmoothSc.scissorScaleFactor = 0;
+
         return (m);
     }
 
@@ -120,7 +123,7 @@ public class ChatHudMixin {
     @ModifyVariable(method = "render", at = @At("STORE"))
     private long demask(long a, @Local(argsOnly = true) DrawContext context) { // after the cycle
         if ((Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) || this.isChatHidden()) return (a);
-        if (Config.cfg.enableMaskDebug) context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
+        if (Config.cfg.enableMaskDebug) context.fill(-10000, -10000, 10000, 10000, ColorHelper.Argb.getArgb(50, 255, 0, 255));
         context.disableScissor();
         return (a);
     }
