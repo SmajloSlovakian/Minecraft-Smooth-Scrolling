@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.DrawContext;
@@ -18,6 +19,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.ref.LocalDoubleRef;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 
 import smsk.smoothscroll.Config;
@@ -33,7 +35,6 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     @Unique private final Identifier backTex = Identifier.ofVanilla("textures/gui/container/creative_inventory/tab_items");
     @Unique private boolean cutEnabled = false;
     @Unique private int originalCursorY;
-
     @Unique private boolean drawingOverdrawnSlot = false;
 
     @Inject(method = "render", at = @At("HEAD"))
@@ -99,10 +100,17 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(Lnet/minecraft/client/gui/DrawContext;II)V"))
-    private void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1) int mouseY) {
+    private void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
         tryDisableMask(context);
-        mouseY = originalCursorY;
+        mouseY.set(originalCursorY);
     }
+
+    @Inject(method = "mouseClicked", at = @At(value = "HEAD"))
+    private void mouseClickedMid1(double mouseX, double my, int button, CallbackInfoReturnable<Boolean> ci, @Local(ordinal = 1, argsOnly = true) LocalDoubleRef mouseY) {
+        if (isInBounds((int) mouseX, (int) mouseY.get()) && isInBounds((int) mouseX, (int) mouseY.get() - SmoothSc.getCreativeDrawOffset()))
+            mouseY.set(my - SmoothSc.getCreativeDrawOffset());
+    }
+
 
     @Unique
     private void tryDisableMask(DrawContext context){
@@ -113,6 +121,10 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         context.disableScissor();
         context.getMatrices().pop();
         cutEnabled = false;
+    }
+    @Unique
+    private boolean isInBounds(int x, int y) {
+        return y >= SmoothSc.mc.getWindow().getScaledHeight() / 2 - 51 && y <= SmoothSc.mc.getWindow().getScaledHeight() / 2 + 38;
     }
     //@ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;isPointOverSlot(Lnet/minecraft/screen/slot/Slot;DD)Z"), index = 2)
     //double modifyCursorPosY(double my) {
