@@ -24,7 +24,6 @@ public class CreativeScreenHandlerMixin {
         return (row);
     }
 
-    //@Inject(method = "scrollItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/inventory/SimpleInventory;setStack(ILnet/minecraft/item/ItemStack;)V"))
     @Inject(method = "scrollItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/inventory/SimpleInventory;setStack(ILnet/minecraft/item/ItemStack;)V"))
     private void itemCount(CallbackInfo ci) {
         SmoothSc.creativeScreenItemCount += 1;
