@@ -42,7 +42,7 @@ dependencies {
 	//modCompileOnly ("io.wispforest:condensed_creative-fabric:${project.cc_version}") { exclude(group: "me.shedaniel.cloth") }
 	modImplementation ("io.wispforest:condensed_creative-fabric:${project.cc_version}") { exclude(group: "me.shedaniel.cloth") }
 }
-/*
+
 loom {
 	runs {
 		// Loom Run for using Mixin Debugging with export and HotSwapping capability
@@ -71,7 +71,7 @@ loom {
 			ideConfigGenerated = true
 		})
 	}
-}*/
+}
 
 processResources {
 	inputs.property "version", project.version
