@@ -1,6 +1,8 @@
 package smsk.smoothscroll.mixin.Hotbar;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
@@ -18,27 +20,27 @@ import smsk.smoothscroll.SmoothSc;
 @Mixin(value = InGameHud.class, priority = 999) // if bedrockify applies its mixin before smoothsc, modifyarg crashes
 public class HotbarMixin {
 
-	int rolloverOffsetR = 4; // TODO
-	int rolloverOffsetL = 4;
-	int rolloverOffset = 4;
-	float selectedPixelBuffer = 0;
-	boolean masked = false;
-	DrawContext savedContext;
+	@Unique private int rolloverOffsetR = 4; // TODO
+	@Unique private int rolloverOffsetL = 4;
+	@Unique private int rolloverOffset = 4;
+	@Unique private float selectedPixelBuffer = 0;
+	@Unique private boolean masked = false;
 
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1))
 	private void draw1(float tickDelta, DrawContext context, CallbackInfo ci) {
 		if (Config.cfg.hotbarSpeed == 0) return;
-		savedContext = context;
 	}
 
 	@ModifyArgs(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1))
-	private void selectedSlotX(Args args) {
+	private void selectedSlotX(Args args, @Local(argsOnly = true) DrawContext context) {
 		if (Config.cfg.hotbarSpeed == 0) return;
 		Identifier texture = args.get(0);
 		int x = args.get(1);
 		int y = args.get(2);
-		int width = args.get(3);
-		int height = args.get(4);
+		int u = args.get(3);
+		int v = args.get(4);
+		int width = args.get(5);
+		int height = args.get(6);
 		PlayerInventory inv = SmoothSc.mc.player.getInventory();
 
 		var target = (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20 - SmoothSc.hotbarRollover * rolloverOffset;
@@ -56,27 +58,30 @@ public class HotbarMixin {
 		x += Math.round(selectedPixelBuffer);
 		args.set(1, x);
 
+
 		masked = false;
 		if (Math.round(selectedPixelBuffer) < 0) {
-			enableMask();
-			SmoothSc.drawHotbarRolloverMirror(savedContext, texture, x, 9 * 20, rolloverOffset, y, width, height);
+			enableMask(context);
+			SmoothSc.drawHotbarRolloverMirror(context, texture, x, 9 * 20, rolloverOffset, y, u, v, width, height);
 		} else if (Math.round(selectedPixelBuffer) > 20 * 8) {
-			enableMask();
-			SmoothSc.drawHotbarRolloverMirror(savedContext, texture, x, -9 * 20, -rolloverOffset, y, width, height);
+			enableMask(context);
+			SmoothSc.drawHotbarRolloverMirror(context, texture, x, -9 * 20, -rolloverOffset, y, u, v, width, height);
 		}
 	}
 
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V", ordinal = 1, shift = At.Shift.AFTER))
 	private void draw2(float tickDelta, DrawContext context, CallbackInfo ci) {
 		if (!masked) return;
-        if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
+        if (Config.cfg.enableMaskDebug) context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
 		context.disableScissor();
 	}
-	void enableMask() {
-		var x2 = savedContext.getScaledWindowWidth() / 2 - 91;
-		var y2 = savedContext.getScaledWindowHeight() - 22;
+
+	@Unique
+	private void enableMask(DrawContext context) {
+		var x2 = context.getScaledWindowWidth() / 2 - 91;
+		var y2 = context.getScaledWindowHeight() - 22;
 		if (FabricLoader.getInstance().getObjectShare().get("raised:hud") instanceof Integer distance) y2 -= distance;
-		savedContext.enableScissor(x2 - 1, y2 - 1, x2 + 182 + 1, y2 + 22 + 1);
+		context.enableScissor(x2 - 1, y2 - 1, x2 + 182 + 1, y2 + 22 + 1);
 		masked = true;
 	}
 }

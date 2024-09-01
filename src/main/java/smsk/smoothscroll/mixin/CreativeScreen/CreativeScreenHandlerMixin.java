@@ -10,7 +10,7 @@ import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeSc
 import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
 
-@Mixin(CreativeScreenHandler.class)
+@Mixin(value = CreativeScreenHandler.class, priority = 1001)
 public class CreativeScreenHandlerMixin {
 
     @ModifyVariable(method = "scrollItems", at = @At("STORE"), ordinal = 0)
@@ -25,7 +25,7 @@ public class CreativeScreenHandlerMixin {
     }
 
     @Inject(method = "scrollItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/inventory/SimpleInventory;setStack(ILnet/minecraft/item/ItemStack;)V"))
-    private void ItemCount(CallbackInfo ci) {
+    private void itemCount(CallbackInfo ci) {
         SmoothSc.creativeScreenItemCount += 1;
     }
 }

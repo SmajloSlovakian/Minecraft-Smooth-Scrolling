@@ -13,9 +13,9 @@
 	},
 	"license": "gpl-3.0",
 	"icon": "assets/smoothscroll/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
-		"main": [
+		"client": [
 			"smsk.smoothscroll.SmoothSc"
 		]
 	},
@@ -24,7 +24,7 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.14.21",
-		"minecraft": ">=1.20",
+		"minecraft": "=1.20.1",
 		"java": ">=17"
 	},
 	"suggests": {

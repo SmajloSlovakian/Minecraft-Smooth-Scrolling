@@ -1,8 +1,12 @@
 package smsk.smoothscroll.mixin.Chat;
 
 import java.util.List;
+
+import com.llamalad7.mixinextras.sugar.Local;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -23,21 +27,19 @@ import smsk.smoothscroll.SmoothSc;
 @Mixin(value = ChatHud.class, priority = 1001) // i want mods to modify the chat position before, so i get to know where they put it
 public class ChatHudMixin {
 
-    @Shadow int scrolledLines;
-    @Shadow List<ChatHudLine.Visible> visibleMessages;
+    @Shadow private int scrolledLines;
+    @Final @Shadow private List<ChatHudLine.Visible> visibleMessages;
 
-    float scrollOffset;
-    float maskHeightBuffer;
-    boolean refreshing = false;
-    int scrollValBefore;
-    DrawContext savedContext;
-    int savedCurrentTick;
-    Vec2f mtc = new Vec2f(0, 0); // matrix translate
-    int shownLineCount;
+    @Unique private float scrollOffset;
+    @Unique private float maskHeightBuffer;
+    @Unique private boolean refreshing = false;
+    @Unique private int scrollValBefore;
+    @Unique private int savedCurrentTick;
+    @Unique private Vec2f mtc = new Vec2f(0, 0); // matrix translate
+    @Unique private int shownLineCount;
 
     @Inject(method = "render", at = @At("HEAD"))
-    public void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, CallbackInfo ci) {
-        savedContext = context;
+    private void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, CallbackInfo ci) {
         if (Config.cfg.chatSpeed == 0) return;
         savedCurrentTick = currentTick;
 
@@ -60,7 +62,7 @@ public class ChatHudMixin {
     }
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 7)
-    private int mask(int m) { // m - the y position of the chat
+    private int mask(int m, @Local(argsOnly = true) DrawContext context, @Local float f) { // m - the y position of the chat
         if ((Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) || isChatHidden()) return (m);
 
         var shownLineCount = 0;
@@ -99,7 +101,10 @@ public class ChatHudMixin {
             maskbottom -= distance;
         }
 
-        savedContext.enableScissor(0, masktop, savedContext.getScaledWindowWidth(), maskbottom);
+        SmoothSc.scissorScaleFactor = SmoothSc.mc.getWindow().getScaleFactor() * f;
+        context.enableScissor(0, masktop, context.getScaledWindowWidth(), maskbottom);
+        SmoothSc.scissorScaleFactor = 0;
+
         return (m);
     }
 
@@ -116,43 +121,43 @@ public class ChatHudMixin {
     }
 
     @ModifyVariable(method = "render", at = @At("STORE"))
-    private long demask(long a) { // after the cycle
+    private long demask(long a, @Local(argsOnly = true) DrawContext context) { // after the cycle
         if ((Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) || this.isChatHidden()) return (a);
-        if (Config.cfg.enableMaskDebug) savedContext.fill(-100, -100, savedContext.getScaledWindowWidth(), savedContext.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 0, 255));
-        savedContext.disableScissor();
+        if (Config.cfg.enableMaskDebug) context.fill(-10000, -10000, 10000, 10000, ColorHelper.Argb.getArgb(50, 255, 0, 255));
+        context.disableScissor();
         return (a);
     }
 
     @Inject(method = "render", at = @At("TAIL"))
-    public void renderT(DrawContext context, int currentTick, int mouseX, int mouseY, CallbackInfo ci) {
+    private void renderT(DrawContext context, int currentTick, int mouseX, int mouseY, CallbackInfo ci) {
         if (Config.cfg.chatSpeed == 0) return;
         scrolledLines = scrollValBefore;
     }
 
     @ModifyVariable(method = "addMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageSignatureData;ILnet/minecraft/client/gui/hud/MessageIndicator;Z)V", at = @At("STORE"), ordinal = 0)
-    List<OrderedText> onNewMessage(List<OrderedText> ot) {
+    private List<OrderedText> onNewMessage(List<OrderedText> ot) {
         if (refreshing) return (ot);
         scrollOffset -= ot.size() * getLineHeight();
         return (ot);
     }
 
     @Inject(method = "scroll", at = @At("HEAD"))
-    public void scrollH(int scroll, CallbackInfo ci) {
+    private void scrollH(int scroll, CallbackInfo ci) {
         scrollValBefore = scrolledLines;
     }
 
     @Inject(method = "scroll", at = @At("TAIL"))
-    public void scrollT(int scroll, CallbackInfo ci) {
+    private void scrollT(int scroll, CallbackInfo ci) {
         scrollOffset += (scrolledLines - scrollValBefore) * getLineHeight();
     }
 
     @Inject(method = "resetScroll", at = @At("HEAD"))
-    public void scrollResetH(CallbackInfo ci) {
+    private void scrollResetH(CallbackInfo ci) {
         scrollValBefore = scrolledLines;
     }
 
     @Inject(method = "resetScroll", at = @At("TAIL"))
-    public void scrollResetT(CallbackInfo ci) {
+    private void scrollResetT(CallbackInfo ci) {
         scrollOffset += (scrolledLines - scrollValBefore) * getLineHeight();
     }
 
@@ -192,10 +197,13 @@ public class ChatHudMixin {
     @Shadow
     private boolean isChatFocused() {return (false);}
 
-    int getChatDrawOffset() {
+    @Unique
+    private int getChatDrawOffset() {
         return Math.round(scrollOffset) - (Math.round(scrollOffset) / getLineHeight() * getLineHeight());
     }
-    int getChatScrollOffset() {
+
+    @Unique
+    private int getChatScrollOffset() {
         return Math.round(scrollOffset);
     }
 }
