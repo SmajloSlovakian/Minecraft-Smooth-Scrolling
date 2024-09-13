@@ -11,8 +11,8 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.math.ColorHelper;
-import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
+import smsk.smoothscroll.cfg.SmScCfg;
 
 @Mixin(CreativeInventoryScreen.class)
 public class CreativeScreenMixin {
@@ -27,7 +27,7 @@ public class CreativeScreenMixin {
 
     @Inject(method = "drawBackground", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V"))
     private void drawBackground(DrawContext context, float delta, int mouseX, int mouseY, CallbackInfo ci) {
-        if (SmoothSc.getCreativeScrollOffset() == 0 || Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null) return;
+        if (SmoothSc.getCreativeScrollOffset() == 0 || SmScCfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null) return;
 
         int x0 = Math.round(context.getScaledWindowWidth() / 2f) - 90;
         int y0 = context.getScaledWindowHeight() / 2 - 51;
@@ -46,7 +46,7 @@ public class CreativeScreenMixin {
             (int) (y0 + SmoothSc.getCreativeDrawOffset() - y1 * Math.signum(SmoothSc.getCreativeScrollOffset())),
                 x2, y2, x1, y1);
 
-        if (Config.cfg.enableMaskDebug)
+        if (SmScCfg.enableMaskDebug)
             context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 255, 0));
         
         context.disableScissor();

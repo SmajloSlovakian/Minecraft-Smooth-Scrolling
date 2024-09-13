@@ -9,8 +9,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.EntryListWidget;
-import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
+import smsk.smoothscroll.cfg.SmScCfg;
 
 @Mixin(EntryListWidget.class)
 public class EntryListWidgetMixin {
@@ -32,16 +32,16 @@ public class EntryListWidgetMixin {
 
     @Inject(method = "renderWidget", at = @At("HEAD"), require = 0)
     private void updateScroll(DrawContext dc, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        if (Config.cfg.entryListSpeed == 0) return;
+        if (SmScCfg.entryListSpeed == 0) return;
         updateScActive = true;
 
-        scrollAmountBuffer = (scrollAmountBuffer - targetScroll) * Math.pow(Config.cfg.entryListSpeed, SmoothSc.getLastFrameDuration()) + targetScroll;
+        scrollAmountBuffer = (scrollAmountBuffer - targetScroll) * Math.pow(SmScCfg.entryListSpeed, SmoothSc.getLastFrameDuration()) + targetScroll;
         scrollAmount = Math.round(scrollAmountBuffer);
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), require = 0)
     private void mouseScrollH(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir) {
-        if (Config.cfg.entryListSpeed == 0 || !updateScActive) return;
+        if (SmScCfg.entryListSpeed == 0 || !updateScActive) return;
         scrollValBefore = scrollAmount;
         scrollAmount = targetScroll;
         mousescrolling = true;
@@ -49,7 +49,7 @@ public class EntryListWidgetMixin {
 
     @Inject(method = "mouseScrolled", at = @At("TAIL"), require = 0)
     private void mouseScrollT(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir) {
-        if (Config.cfg.entryListSpeed == 0 || !updateScActive) return;
+        if (SmScCfg.entryListSpeed == 0 || !updateScActive) return;
         targetScroll = scrollAmount;
         scrollAmount = scrollValBefore;
         mousescrolling = false;

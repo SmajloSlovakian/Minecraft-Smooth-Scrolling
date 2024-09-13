@@ -7,15 +7,15 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeScreenHandler;
-import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
+import smsk.smoothscroll.cfg.SmScCfg;
 
 @Mixin(value = CreativeScreenHandler.class, priority = 1001)
 public class CreativeScreenHandlerMixin {
 
     @ModifyVariable(method = "scrollItems", at = @At("STORE"), ordinal = 0)
     private int scrollItems(int row) {
-        if (Config.cfg.creativeScreenSpeed == 0) return (row);
+        if (SmScCfg.creativeScreenSpeed == 0) return (row);
         SmoothSc.creativeScreenItemCount = 0;
         if (!SmoothSc.creativeScreenScrollMixin) return (row);
         

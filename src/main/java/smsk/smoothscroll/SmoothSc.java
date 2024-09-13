@@ -8,17 +8,25 @@ import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeSc
 import net.minecraft.inventory.Inventory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.JsonHelper;
 import net.minecraft.util.math.ColorHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializer;
+
+import smsk.smoothscroll.cfg.NewConfig;
+import smsk.smoothscroll.cfg.SmScCfg;
 import smsk.smoothscroll.compat.CondensedInventoryCompat;
 
 public class SmoothSc implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("Smooth Scrolling");
 	public static final MinecraftClient mc = MinecraftClient.getInstance();
 
-	public static Config cfg;
+	public static NewConfig cfg;
     public static boolean isSmoothScrollingRefurbishedLoaded;
     public static boolean isCondensedInventoryLoaded;
 	public static double scissorScaleFactor; // used for non-scaling-dependant masking mainly for chat with chat text size changed
@@ -35,16 +43,18 @@ public class SmoothSc implements ClientModInitializer {
 	public void onInitializeClient() {
         isSmoothScrollingRefurbishedLoaded = FabricLoader.getInstance().isModLoaded("smoothscrollingrefurbished");
         isCondensedInventoryLoaded = FabricLoader.getInstance().isModLoaded("condensed_creative");
-		updateConfig();
 		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/y_offset", 0);
 		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/item_count", 0);
+
+		cfg = new SmScCfg();
+
 	}
 
 	public static void print(Object s) {
 		LOGGER.info(s + "");
 	}
-	public static void updateConfig() {
-		cfg = new Config();
+	public static void readConfig() {
+		cfg.loadAndSave();
 	}
 	public static int clamp(int val, int min, int max) {
 		return Math.max(min, Math.min(max, val));

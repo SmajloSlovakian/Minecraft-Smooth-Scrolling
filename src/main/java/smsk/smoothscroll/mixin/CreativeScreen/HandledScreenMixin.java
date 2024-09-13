@@ -21,9 +21,8 @@ import net.minecraft.util.math.ColorHelper;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalDoubleRef;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
-
-import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
+import smsk.smoothscroll.cfg.SmScCfg;
 
 @Mixin(value = HandledScreen.class, priority = 999)
 public abstract class HandledScreenMixin<T extends ScreenHandler> {
@@ -40,9 +39,9 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     @Inject(method = "render", at = @At("HEAD"))
     private void render(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
         this.originalCursorY = my;
-        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null || SmoothSc.getCreativeScrollOffset() == 0) return;
+        if (SmScCfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null || SmoothSc.getCreativeScrollOffset() == 0) return;
 
-        SmoothSc.creativeScreenScrollOffset = (float) (SmoothSc.creativeScreenScrollOffset * Math.pow(Config.cfg.creativeScreenSpeed, SmoothSc.getLastFrameDuration()));
+        SmoothSc.creativeScreenScrollOffset = (float) (SmoothSc.creativeScreenScrollOffset * Math.pow(SmScCfg.creativeScreenSpeed, SmoothSc.getLastFrameDuration()));
 
         SmoothSc.creativeScreenScrollMixin = false;
         SmoothSc.creativeSH.scrollItems(((CreativeScreenHandlerAccessor) SmoothSc.creativeSH)
@@ -56,7 +55,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
 
     @Inject(method = "render", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
     private void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
-        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.getCreativeScrollOffset() == 0) return;
+        if (SmScCfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.getCreativeScrollOffset() == 0) return;
         context.enableScissor(0, context.getScaledWindowHeight() / 2 - 50, context.getScaledWindowWidth(), context.getScaledWindowHeight() / 2 + 38);
         context.getMatrices().push();
         context.getMatrices().translate(0, SmoothSc.getCreativeDrawOffset(), 0);
@@ -89,13 +88,13 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         if(drawingOverdrawnSlot) return y;
         SmoothSc.creativeScreenItemCount -= 1;
         if (SmoothSc.creativeScreenItemCount < 0) tryDisableMask(context);
-        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return y;
+        if (SmScCfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return y;
         return y ;//+ SmoothSc.getCreativeDrawOffset();
     }
 
     @ModifyVariable(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V", shift = At.Shift.AFTER), argsOnly = true, ordinal = 1)
     private int revertMousePos(int mouseY) {
-        if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return originalCursorY;
+        if (SmScCfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return originalCursorY;
         return mouseY;
     }
 
@@ -116,7 +115,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     private void tryDisableMask(DrawContext context){
         if (drawingOverdrawnSlot) return;
         if (!cutEnabled) return;
-        if (Config.cfg.enableMaskDebug)
+        if (SmScCfg.enableMaskDebug)
             context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
         context.disableScissor();
         context.getMatrices().pop();

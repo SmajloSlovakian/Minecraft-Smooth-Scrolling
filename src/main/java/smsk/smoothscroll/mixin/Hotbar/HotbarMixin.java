@@ -15,8 +15,8 @@ import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
-import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
+import smsk.smoothscroll.cfg.SmScCfg;
 
 @Mixin(value = InGameHud.class, priority = 999) // if bedrockify applies its mixin before smoothsc, modifyarg crashes
 public class HotbarMixin {
@@ -29,12 +29,12 @@ public class HotbarMixin {
 
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
 	private void draw1(DrawContext context, RenderTickCounter rtc, CallbackInfo ci) {
-		if (Config.cfg.hotbarSpeed == 0) return;
+		if (SmScCfg.hotbarSpeed == 0) return;
 	}
 
 	@ModifyArgs(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
 	private void selectedSlotX(Args args, @Local(argsOnly = true) DrawContext context) {
-		if (Config.cfg.hotbarSpeed == 0) return;
+		if (SmScCfg.hotbarSpeed == 0) return;
 		Identifier texture = args.get(0);
 		int x = args.get(1);
 		int y = args.get(2);
@@ -43,7 +43,7 @@ public class HotbarMixin {
 		PlayerInventory inv = SmoothSc.mc.player.getInventory();
 
 		var target = (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20 - SmoothSc.hotbarRollover * rolloverOffset;
-		selectedPixelBuffer = (float) ((selectedPixelBuffer - target) * Math.pow(Config.cfg.hotbarSpeed, SmoothSc.getLastFrameDuration()) + target);
+		selectedPixelBuffer = (float) ((selectedPixelBuffer - target) * Math.pow(SmScCfg.hotbarSpeed, SmoothSc.getLastFrameDuration()) + target);
 		
 		if (Math.round(selectedPixelBuffer) < -10 - rolloverOffset) {
 			selectedPixelBuffer += 9 * 20 + rolloverOffset;
@@ -70,7 +70,7 @@ public class HotbarMixin {
 	@Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1, shift = At.Shift.AFTER))
 	private void draw2(DrawContext context, RenderTickCounter rtc, CallbackInfo ci) {
 		if (!masked) return;
-        if (Config.cfg.enableMaskDebug) context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
+        if (SmScCfg.enableMaskDebug) context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
 		context.disableScissor();
 	}
 

@@ -18,8 +18,8 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ChatInputSuggestor.SuggestionWindow;
 import net.minecraft.client.util.math.Rect2i;
 import net.minecraft.util.math.ColorHelper;
-import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
+import smsk.smoothscroll.cfg.SmScCfg;
 
 @Mixin(SuggestionWindow.class)
 public class SuggestionWindowMixin {
@@ -33,8 +33,8 @@ public class SuggestionWindowMixin {
 
     @Inject(method = "render", at = @At("HEAD"))
     private void renderH(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
-        if(Config.cfg.chatSpeed == 0) return;
-        scrollPixelOffset = (float) (scrollPixelOffset * Math.pow(Config.cfg.chatSpeed, SmoothSc.getLastFrameDuration()));
+        if(SmScCfg.chatSpeed == 0) return;
+        scrollPixelOffset = (float) (scrollPixelOffset * Math.pow(SmScCfg.chatSpeed, SmoothSc.getLastFrameDuration()));
         inWindowIndex = SmoothSc.clamp(targetIndex - getScrollOffset() / 12, 0, suggestions.size() - 10); // the clamp is here as a workaround to a crash
     }
     /*@ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 4) idk why this doesn't work
@@ -46,28 +46,28 @@ public class SuggestionWindowMixin {
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;fill(IIIII)V", ordinal = 4))
     private void mask(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
-        if(Config.cfg.chatSpeed == 0) return;
+        if(SmScCfg.chatSpeed == 0) return;
         // savedContext.enableScissor(area.getX() - 1, area.getY(), area.getX() + area.getWidth(), area.getY() + area.getHeight());
         context.enableScissor(0, area.getY(), context.getScaledWindowWidth(), area.getY() + area.getHeight());
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)I", shift = At.Shift.AFTER))
     private void demask(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
-        if(Config.cfg.chatSpeed == 0) return;
-        if (Config.cfg.enableMaskDebug)
+        if(SmScCfg.chatSpeed == 0) return;
+        if (SmScCfg.enableMaskDebug)
             context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 255, 0));
         context.disableScissor();
     }
 
     @Inject(method = "render", at = @At("TAIL"))
     private void renderT(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
-        if(Config.cfg.chatSpeed == 0) return;
+        if(SmScCfg.chatSpeed == 0) return;
         inWindowIndex = targetIndex;
     }
 
     @ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)I"), index = 3)
     private int textPosY(int s) {
-        if(Config.cfg.chatSpeed == 0) return (s);
+        if(SmScCfg.chatSpeed == 0) return (s);
         return (s + getDrawOffset());
     }
 
@@ -82,13 +82,13 @@ public class SuggestionWindowMixin {
 
     @Unique
     private void commonSH(){
-        if(Config.cfg.chatSpeed == 0) return;
+        if(SmScCfg.chatSpeed == 0) return;
         indexBefore = inWindowIndex;
     }
 
     @Unique
     private void commonST(){
-        if(Config.cfg.chatSpeed == 0) return;
+        if(SmScCfg.chatSpeed == 0) return;
         scrollPixelOffset += (inWindowIndex - indexBefore) * 12;
         targetIndex = inWindowIndex;
         inWindowIndex = indexBefore;
@@ -96,13 +96,13 @@ public class SuggestionWindowMixin {
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 4)
     private int addLineAbove(int r) { // this function gets called three times for just one line for some reason
-        if (Config.cfg.chatSpeed == 0 || getScrollOffset() <= 0 || inWindowIndex <= 0) return (r);
+        if (SmScCfg.chatSpeed == 0 || getScrollOffset() <= 0 || inWindowIndex <= 0) return (r);
         return (r - 1);
     }
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 2)
     private int addLineUnder(int i) {
-        if (Config.cfg.chatSpeed == 0 || getScrollOffset() >= 0 || inWindowIndex >= suggestions.size() - 10) return (i);
+        if (SmScCfg.chatSpeed == 0 || getScrollOffset() >= 0 || inWindowIndex >= suggestions.size() - 10) return (i);
         return (i + 1);
     }
 

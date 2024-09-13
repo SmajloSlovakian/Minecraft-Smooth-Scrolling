@@ -21,8 +21,8 @@ import net.minecraft.client.gui.hud.ChatHudLine;
 import net.minecraft.text.OrderedText;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.Vec2f;
-import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
+import smsk.smoothscroll.cfg.SmScCfg;
 
 @Mixin(value = ChatHud.class, priority = 1001) // i want mods to modify the chat position before, so i get to know where they put it
 public class ChatHudMixin {
@@ -40,10 +40,10 @@ public class ChatHudMixin {
 
     @Inject(method = "render", at = @At("HEAD"))
     private void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
-        if (Config.cfg.chatSpeed == 0) return;
+        if (SmScCfg.chatSpeed == 0) return;
         savedCurrentTick = currentTick;
 
-        scrollOffset = (float) (scrollOffset * Math.pow(Config.cfg.chatSpeed, SmoothSc.getLastFrameDuration()));
+        scrollOffset = (float) (scrollOffset * Math.pow(SmScCfg.chatSpeed, SmoothSc.getLastFrameDuration()));
 
         scrollValBefore = scrolledLines;
         scrolledLines -= getChatScrollOffset() / getLineHeight();
@@ -55,7 +55,7 @@ public class ChatHudMixin {
         int x = (int) (float) args.get(0) - 4;
         int y = (int) (float) args.get(1);
 
-        var newY = (float) ((mtc.y - y) * Math.pow(Config.cfg.chatOpeningSpeed, SmoothSc.getLastFrameDuration()) + y);
+        var newY = (float) ((mtc.y - y) * Math.pow(SmScCfg.chatOpeningSpeed, SmoothSc.getLastFrameDuration()) + y);
 
         args.set(1, (float) Math.round(newY));
         mtc = new Vec2f(x, newY);
@@ -63,7 +63,7 @@ public class ChatHudMixin {
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 7)
     private int mask(int m, @Local(argsOnly = true) DrawContext context, @Local float f) { // m - the y position of the chat
-        if ((Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) || isChatHidden()) return (m);
+        if ((SmScCfg.chatSpeed == 0 && SmScCfg.chatOpeningSpeed == 0) || isChatHidden()) return (m);
 
         var shownLineCount = 0;
         //SmoothSc.print("1: "+visibleMessages.size());
@@ -82,7 +82,7 @@ public class ChatHudMixin {
         // not working great workaround:
         // if (shownLineCount == visibleMessages.size()) maskHeightBuffer = targetHeight;
         // else {
-        maskHeightBuffer = (float) ((maskHeightBuffer - targetHeight) * Math.pow(Config.cfg.chatOpeningSpeed, SmoothSc.getLastFrameDuration()) + targetHeight);
+        maskHeightBuffer = (float) ((maskHeightBuffer - targetHeight) * Math.pow(SmScCfg.chatOpeningSpeed, SmoothSc.getLastFrameDuration()) + targetHeight);
 
         var masktop = m - Math.round(maskHeightBuffer) + (int) mtc.y;
         var maskbottom = m + (int) mtc.y;
@@ -110,27 +110,27 @@ public class ChatHudMixin {
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 14)
     private int opacity(int t) {
-        if (Config.cfg.chatOpeningSpeed == 0) return (t);
+        if (SmScCfg.chatOpeningSpeed == 0) return (t);
         return (0);
     }
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 18)
     private int changePosY(int y) {
-        if (Config.cfg.chatSpeed == 0) return (y);
+        if (SmScCfg.chatSpeed == 0) return (y);
         return (y - getChatDrawOffset());
     }
 
     @ModifyVariable(method = "render", at = @At("STORE"))
     private long demask(long a, @Local(argsOnly = true) DrawContext context) { // after the cycle
-        if ((Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) || this.isChatHidden()) return (a);
-        if (Config.cfg.enableMaskDebug) context.fill(-10000, -10000, 10000, 10000, ColorHelper.Argb.getArgb(50, 255, 0, 255));
+        if ((SmScCfg.chatSpeed == 0 && SmScCfg.chatOpeningSpeed == 0) || this.isChatHidden()) return (a);
+        if (SmScCfg.enableMaskDebug) context.fill(-10000, -10000, 10000, 10000, ColorHelper.Argb.getArgb(50, 255, 0, 255));
         context.disableScissor();
         return (a);
     }
 
     @Inject(method = "render", at = @At("TAIL"))
     private void renderT(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
-        if (Config.cfg.chatSpeed == 0) return;
+        if (SmScCfg.chatSpeed == 0) return;
         scrolledLines = scrollValBefore;
     }
 
@@ -163,13 +163,13 @@ public class ChatHudMixin {
 
     @ModifyVariable(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;getLineHeight()I"), ordinal = 3)
     private int addLinesAbove(int i) {
-        if (Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) return (i);
+        if (SmScCfg.chatSpeed == 0 && SmScCfg.chatOpeningSpeed == 0) return (i);
         return ((int) Math.ceil(Math.round(maskHeightBuffer) / (float) getLineHeight()) + (getChatScrollOffset() < 0 ? 1 : 0));
     }
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 12)
     private int addLinesUnder(int r) {
-        if (scrolledLines == 0 || Config.cfg.chatSpeed == 0 || getChatScrollOffset() <= 0) return (r);
+        if (scrolledLines == 0 || SmScCfg.chatSpeed == 0 || getChatScrollOffset() <= 0) return (r);
         return (r - 1);
     }
 
