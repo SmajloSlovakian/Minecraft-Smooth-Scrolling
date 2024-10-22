@@ -8,25 +8,19 @@ import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeSc
 import net.minecraft.inventory.Inventory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
 import net.minecraft.util.math.ColorHelper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializer;
-
 import smsk.smoothscroll.cfg.NewConfig;
 import smsk.smoothscroll.cfg.SmScCfg;
 import smsk.smoothscroll.compat.CondensedInventoryCompat;
+import smsk.smoothscroll.menu.SmoothScrollConfigScreen;
 
 public class SmoothSc implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("Smooth Scrolling");
 	public static final MinecraftClient mc = MinecraftClient.getInstance();
 
-	public static NewConfig cfg;
+	public static SmScCfg cfg;
     public static boolean isSmoothScrollingRefurbishedLoaded;
     public static boolean isCondensedInventoryLoaded;
 	public static double scissorScaleFactor; // used for non-scaling-dependant masking mainly for chat with chat text size changed

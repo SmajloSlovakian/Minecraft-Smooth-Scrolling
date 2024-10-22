@@ -42,6 +42,8 @@ dependencies {
 	//modCompileOnly "maven.modrinth:item-borders:${project.item_borders_version}"
 	//modCompileOnly ("io.wispforest:condensed_creative-fabric:${project.cc_version}") { exclude(group: "me.shedaniel.cloth") }
 	modCompileOnly ("io.wispforest:condensed_creative-fabric:${project.cc_version}") { exclude(group: "me.shedaniel.cloth") }
+	modCompileOnly ("com.terraformersmc:modmenu:${project.modmenu_version}")
+	modCompileOnly "maven.modrinth:raised:${project.raised_version}"
 }
 
 loom {

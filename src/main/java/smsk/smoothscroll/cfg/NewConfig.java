@@ -9,7 +9,6 @@ import java.util.Scanner;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
 
 import net.fabricmc.loader.api.FabricLoader;
 import smsk.smoothscroll.SmoothSc;
@@ -70,7 +69,7 @@ public class NewConfig {
             } catch (FileNotFoundException e) {
                 fileNotFound();
                 e.printStackTrace();
-            } catch (JsonSyntaxException e) {
+            } catch (Exception e) {
                 problemReading();
                 e.printStackTrace();
                 dontSave = true;
@@ -113,22 +112,22 @@ public class NewConfig {
     }
 
     /**
-     * Override this, so you can data correct (update config values from previous format etc.)
-     * Variables aren't initiated yet. Modify jsonConfig.
+     * Data corrects config values (updates config values from previous format, etc.)
+     * Called before intoVariables()
      */
     void dataCorrectPermanent() {
     }
 
     /**
-     * Override this, so you can modify the config temporarily (values changed don't get saved to the file)
-     * Only change the variables.
+     * Inserts config values into variables
      */
-    void dataCorrectTemporary() {
+    void intoVariables() {
     }
 
     /**
-     * Override this so you can have your own variables and don't have to interact with JsonObject.
+     * Modifies the config temporarily (values changed don't get saved to the file)
+     * Called after intoVariables()
      */
-    void intoVariables() {
+    void dataCorrectTemporary() {
     }
 }
