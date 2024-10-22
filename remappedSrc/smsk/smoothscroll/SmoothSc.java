@@ -5,7 +5,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeScreenHandler;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
@@ -54,7 +53,7 @@ public class SmoothSc implements ClientModInitializer {
 		return mc.getRenderTickCounter().getLastFrameDuration();
 	}
 	public static void debugTextDraw(DrawContext context, Object s, int x, int y) {
-		context.drawText(mc.textRenderer, s + "", x, y, ColorHelper.getArgb(255, 0, 255, 255), true);
+		context.drawText(mc.textRenderer, s + "", x, y, ColorHelper.Argb.getArgb(255, 0, 255, 255), true);
 	}
 
 	public static Inventory getDelegatingInventory(ScreenHandler handler) {
@@ -70,6 +69,6 @@ public class SmoothSc implements ClientModInitializer {
     }
 	
 	public static void drawHotbarRolloverMirror(DrawContext context, Identifier texture, int x, int hotbarWidth, int offset, int y, int width, int height) {
-		context.drawGuiTexture(RenderLayer::getGuiTextured, texture, x + hotbarWidth + offset, y, width, height);
+		context.drawGuiTexture(texture, x + hotbarWidth + offset, y, width, height);
 	}
 }

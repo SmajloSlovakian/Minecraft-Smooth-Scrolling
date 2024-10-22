@@ -17,7 +17,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
-
+import I;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalDoubleRef;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
@@ -117,7 +117,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         if (drawingOverdrawnSlot) return;
         if (!cutEnabled) return;
         if (Config.cfg.enableMaskDebug)
-            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 0, 255, 255));
+            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
         context.disableScissor();
         context.getMatrices().pop();
         cutEnabled = false;

@@ -1,7 +1,8 @@
 package smsk.smoothscroll.mixin.Chat;
 
 import java.util.List;
-
+import F;
+import I;
 import com.llamalad7.mixinextras.sugar.Local;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -123,7 +124,7 @@ public class ChatHudMixin {
     @ModifyVariable(method = "render", at = @At("STORE"))
     private long demask(long a, @Local(argsOnly = true) DrawContext context) { // after the cycle
         if ((Config.cfg.chatSpeed == 0 && Config.cfg.chatOpeningSpeed == 0) || this.isChatHidden()) return (a);
-        if (Config.cfg.enableMaskDebug) context.fill(-10000, -10000, 10000, 10000, ColorHelper.getArgb(50, 255, 0, 255));
+        if (Config.cfg.enableMaskDebug) context.fill(-10000, -10000, 10000, 10000, ColorHelper.Argb.getArgb(50, 255, 0, 255));
         context.disableScissor();
         return (a);
     }
