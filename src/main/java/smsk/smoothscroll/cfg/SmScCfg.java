@@ -1,8 +1,9 @@
 package smsk.smoothscroll.cfg;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import org.spongepowered.asm.mixin.Overwrite;
 
 import smsk.smoothscroll.SmoothSc;
 
@@ -15,107 +16,98 @@ public class SmScCfg extends NewConfig {
     public static float creativeScreenSpeed;
     public static float entryListSpeed;
     public static boolean enableMaskDebug;
+    public static boolean hotbarRollover;
 
-	static final String defaultCfg = """
-{
-    "Notes": [
-        "Safe values for settings are 0 - 1 (inclusive).",
-        "0 means animation off (no smoothness) and bigger values mean slower animation speed (high smoothness).",
-        "Press F3+T in a world to update the config.",
-        "To access config ingame, use the mod modmenu."
-    ],
-    "ScrollSmoothness": {
-        "hotbar": 0.2,
-        "chat": 0.5,
-        "creativeScreen": 0.5,
-        "entryList": 0.5
-    },
-    "Misc": {
-        "enableMaskDebug": false,
-        "chatOpeningSpeed": 0.5
-    },
-    "Format": 2.2
-}
-        """;
-
-    public static JsonObject jsonDefaultCfg;
-
-    static {
-        try {
-            var gs = new Gson();
-            jsonDefaultCfg = gs.fromJson(defaultCfg, JsonObject.class);
-        } catch (JsonSyntaxException e) {}
-    }
+    static CfgValue template = new CfgValue("root", new ArrayList<CfgValue>(Arrays.asList(
+        new CfgValue("Notes", new ArrayList<String>(Arrays.asList(
+            "Safe values for settings are 0 - 1 (inclusive).",
+            "0 means animation off (no smoothness) and bigger values mean slower animation speed (high smoothness).",
+            "Press F3+T in a world to update the config.",
+            "To access config ingame, use the mod modmenu."
+        ))),
+        new CfgValue("Hotbar", new ArrayList<CfgValue>(Arrays.asList(
+            new CfgValue("Smoothness", 0.2f, 0, 1),
+            new CfgValue("Rollover", true)
+        ))),
+        new CfgValue("Chat", new ArrayList<CfgValue>(Arrays.asList(
+            new CfgValue("Smoothness", 0.5f, 0, 1),
+            new CfgValue("Opening Speed", 0.5f, 0, 1)
+        ))),
+        new CfgValue("Creative Screen", new ArrayList<CfgValue>(Arrays.asList(
+            new CfgValue("Smoothness", 0.5f, 0, 1)
+        ))),
+        new CfgValue("Entry List", new ArrayList<CfgValue>(Arrays.asList(
+            new CfgValue("Smoothness", 0.5f, 0, 1)
+        ))),
+        new CfgValue("Misc", new ArrayList<CfgValue>(Arrays.asList(
+            new CfgValue("Enable mask debug", false)
+        ))),
+        new CfgValue("Format", format)
+    )));
 
     public SmScCfg() {
-        super("smoothscroll.json", jsonDefaultCfg);
-        SmoothSc.print("USING:\n"+jsonConfig);
+        super("smoothscroll.json", template);
+        SmoothSc.print("USING:\n");
     }
 
     @Override
     void dataCorrectPermanent() {
-        // Old file format corrections
-        if (jsonConfig.get("cfgVersion") != null) {
-            // getting the old values
-            float oldcfgver = jsonConfig.get("hotbarSpeed").getAsFloat();
-            float oldhotbarspeed = jsonConfig.get("hotbarSpeed") == null ? 0.2f : jsonConfig.get("hotbarSpeed").getAsFloat();
-            float oldchatspeed = jsonConfig.get("chatSpeed") == null ? 0.5f : jsonConfig.get("chatSpeed").getAsFloat();
-            float oldchatopeningspeed = jsonConfig.get("chatOpeningSpeed") == null ? 0.5f : jsonConfig.get("chatOpeningSpeed").getAsFloat();
-            float oldcreativescreenspeed = jsonConfig.get("creativeScreenSpeed") == null ? 0.5f : jsonConfig.get("creativeScreenSpeed").getAsFloat();
-            float oldentrylistspeed = jsonConfig.get("entryListSpeed") == null ? 0.5f : jsonConfig.get("entryListSpeed").getAsFloat();
-            boolean oldmaskdebug = jsonConfig.get("enableMaskDebug") == null ? false : jsonConfig.get("enableMaskDebug").getAsBoolean();
-
-            // correcting the old values just like previous code
-            if (oldcfgver < 1.6f) { // speeds before this version were divisors and not multipliers
-                if (oldhotbarspeed != 0.2f) {
-                    if (oldhotbarspeed != 0) oldhotbarspeed = 1 / oldhotbarspeed;
-                    if (oldchatspeed != 0) oldchatspeed = 1 / oldchatspeed;
-                    if (oldcreativescreenspeed != 0) oldcreativescreenspeed = 1 / oldcreativescreenspeed;
-                    if (oldentrylistspeed != 0) oldentrylistspeed = 1 / oldentrylistspeed;
-                }
-            }
-            if (oldcfgver < 1.9f) {
-                if (oldentrylistspeed == 0.334f) oldentrylistspeed = 0.5f;
-            }
-            if (oldcfgver < 1.91f) {
-                oldchatopeningspeed = oldchatspeed;
-            }
-            // save old values to the new format
-            var a = jsonConfig.get("ScrollSmoothness").getAsJsonObject();
-            a.addProperty("hotbar", oldhotbarspeed);
-            a.addProperty("chat", oldchatspeed);
-            a.addProperty("creativeScreen", oldcreativescreenspeed);
-            a.addProperty("entryList", oldentrylistspeed);
-
-            a = jsonConfig.get("Misc").getAsJsonObject();
-            a.addProperty("enableMaskDebug", oldmaskdebug);
-            a.addProperty("chatOpeningSpeed", oldchatopeningspeed);
+        if (rawRoot.get("cfgVersion").exists() && rawRoot.get("cfgVersion").currentValue instanceof Float) {
+            SmoothSc.print("Found old format entries in the config file, attempting to update them.");
+            var cfgver = (float) rawRoot.get("cfgVersion").currentValue;
             
-            // delete old format values in favor of new format
-            jsonConfig.remove("note");
-            jsonConfig.remove("hotbarSpeed");
-            jsonConfig.remove("chatOpeningSpeed");
-            jsonConfig.remove("entryListSpeed");
-            jsonConfig.remove("enableMaskDebug");
-            jsonConfig.remove("cfgVersion");
+            var a = rawRoot.get("hotbarSpeed");
+            if (a.exists() && a.currentValue instanceof Float) {
+                SmoothSc.print(a.currentValue);
+                if (cfgver < 1.6f && (float) a.currentValue >= 1) a.currentValue = 1 / (float) a.currentValue;
+                root.get("Hotbar").get("Smoothness").setValue(a.currentValue);
+            }
+            a = rawRoot.get("chatSpeed");
+            if (a.exists() && a.currentValue instanceof Float) {
+                if (cfgver < 1.6f && (float) a.currentValue >= 1) a.currentValue = 1 / (float) a.currentValue;
+                root.get("Chat").get("Smoothness").setValue(a.currentValue);
+            }
+            a = rawRoot.get("chatOpeningSpeed");
+            if (a.exists() && a.currentValue instanceof Float) {
+                root.get("Chat").get("Opening Speed").setValue(a.currentValue);
+            }
+            a = rawRoot.get("creativeScreenSpeed");
+            if (a.exists() && a.currentValue instanceof Float) {
+                if (cfgver < 1.6f && (float) a.currentValue >= 1) a.currentValue = 1 / (float) a.currentValue;
+                root.get("Creative Screen").get("Smoothness").setValue(a.currentValue);
+            }
+            a = rawRoot.get("entryListSpeed");
+            if (a.exists() && a.currentValue instanceof Float) {
+                if (cfgver < 1.6f && (float) a.currentValue >= 1) a.currentValue = 1 / (float) a.currentValue;
+                if (cfgver < 1.9f && (float) a.currentValue == 0.334f) a.currentValue = 0.5f;
+                root.get("Entry List").get("Smoothness").setValue(a.currentValue);
+            }
+            a = rawRoot.get("enableMaskDebug");
+            if (a.exists() && a.currentValue instanceof Float) {
+                root.get("Chat").get("Smoothness").setValue(a.currentValue);
+            }
         }
         // New file format corrections go here
 
         // Notes and Format should always be up to date and not modified
-        jsonConfig.add("Notes", jsonDefaultCfg.get("Notes"));
-        jsonConfig.add("Format", jsonDefaultCfg.get("Format"));
+        root.get("Notes").resetValue();
+        root.get("Format").resetValue();
+        
     }
+
     @Override
     void intoVariables() {
-        var a = jsonConfig.getAsJsonObject("ScrollSmoothness");
-        hotbarSpeed = a.get("hotbar").getAsFloat();
-        chatSpeed = a.get("chat").getAsFloat();
-        creativeScreenSpeed = a.get("creativeScreen").getAsFloat();
-        entryListSpeed = a.get("entryList").getAsFloat();
+        hotbarSpeed = (float) root.get("Hotbar").get("Smoothness").getValue();
+        hotbarRollover = (boolean) root.get("Hotbar").get("Rollover").getValue();
 
-        a = jsonConfig.getAsJsonObject("Misc");
-        enableMaskDebug = a.get("enableMaskDebug").getAsBoolean();
-        chatOpeningSpeed = a.get("chatOpeningSpeed").getAsFloat();
+        chatSpeed = (float) root.get("Chat").get("Smoothness").getValue();
+        chatOpeningSpeed = (float) root.get("Chat").get("Opening Speed").getValue();
+
+        creativeScreenSpeed = (float) root.get("Creative Screen").get("Smoothness").getValue();
+
+        entryListSpeed = (float) root.get("Entry List").get("Smoothness").getValue();
+
+        enableMaskDebug = (boolean) root.get("Misc").get("Enable mask debug").getValue();
     }
     @Override
     void dataCorrectTemporary() {

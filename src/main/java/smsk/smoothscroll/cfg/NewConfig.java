@@ -14,15 +14,15 @@ import net.fabricmc.loader.api.FabricLoader;
 import smsk.smoothscroll.SmoothSc;
 
 public class NewConfig {
-    private Gson gs = new GsonBuilder().setPrettyPrinting().create();
-    private JsonObject defaultCfg;
+    private final Gson gs = new GsonBuilder().setPrettyPrinting().create();
 
     String fileName;
-    JsonObject jsonConfig;
+    CfgValue root;
+    CfgValue rawRoot;
 
-    public NewConfig(String file, JsonObject defaultConfig) {
+    public NewConfig(String file, CfgValue template) {
         fileName = file;
-        defaultCfg = defaultConfig;
+        root = template;
         loadAndSave();
     }
 
@@ -39,21 +39,7 @@ public class NewConfig {
         }
     }
 
-    public void modify(JsonObject modifier) {
-        fromFile();
-        dataCorrectPermanent();
-        mergeJson(jsonConfig, modifier);
-        toFile();
-        intoVariables();
-        dataCorrectTemporary();
-    }
-
-    public JsonObject getCopy() {
-        return jsonConfig.deepCopy();
-    }
-
     boolean fromFile() {
-        jsonConfig = defaultCfg;
         File cfgfile = FabricLoader.getInstance().getConfigDir().resolve(fileName).toFile();
         Scanner scnr = null;
         boolean dontSave = false;
@@ -64,7 +50,10 @@ public class NewConfig {
                 String data = scnr.next();
 
                 var jsonData = gs.fromJson(data, JsonObject.class);
-                mergeJson(jsonConfig, jsonData);
+                rawRoot = CfgValue.parseJson("root",jsonData);
+                SmoothSc.print(rawRoot);
+                root.matchValues(rawRoot);
+                SmoothSc.print(root);
                 
             } catch (FileNotFoundException e) {
                 fileNotFound();
@@ -84,10 +73,11 @@ public class NewConfig {
     void toFile() {
         File cfgfile = FabricLoader.getInstance().getConfigDir().resolve(fileName).toFile();
         FileWriter fw = null;
+        
         try {
             fw = new FileWriter(cfgfile);
-            fw.write(gs.toJson(jsonConfig));
-            SmoothSc.print("WRITING:\n"+gs.toJson(jsonConfig));
+            fw.write(gs.toJson(CfgValue.exportJson(root)));
+            SmoothSc.print("WRITING:\n"+gs.toJson(CfgValue.exportJson(root)));
         } catch (Exception e) {
             problemWriting();
             e.printStackTrace();
@@ -96,12 +86,7 @@ public class NewConfig {
             if (fw != null) fw.close();
         } catch (IOException e) {}
     }
-    void mergeJson(JsonObject to, JsonObject from) {
-        for (String key : from.keySet()) {
-            to.add(key, from.get(key));
-        }
-    }
-    
+
     void problemWriting() {
     }
 

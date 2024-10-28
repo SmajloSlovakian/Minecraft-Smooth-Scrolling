@@ -9,12 +9,16 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import smsk.smoothscroll.cfg.NewConfig;
+
+import smsk.smoothscroll.cfg.CfgValue;
 import smsk.smoothscroll.cfg.SmScCfg;
 import smsk.smoothscroll.compat.CondensedInventoryCompat;
-import smsk.smoothscroll.menu.SmoothScrollConfigScreen;
 
 public class SmoothSc implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("Smooth Scrolling");
@@ -41,7 +45,6 @@ public class SmoothSc implements ClientModInitializer {
 		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/item_count", 0);
 
 		cfg = new SmScCfg();
-
 	}
 
 	public static void print(Object s) {
