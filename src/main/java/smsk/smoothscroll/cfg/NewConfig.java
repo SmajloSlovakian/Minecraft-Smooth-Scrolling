@@ -38,6 +38,11 @@ public class NewConfig {
             e.printStackTrace();
         }
     }
+    public void save() {
+        toFile();
+        intoVariables();
+        dataCorrectTemporary();
+    }
 
     boolean fromFile() {
         File cfgfile = FabricLoader.getInstance().getConfigDir().resolve(fileName).toFile();
@@ -85,6 +90,10 @@ public class NewConfig {
         try {
             if (fw != null) fw.close();
         } catch (IOException e) {}
+    }
+
+    public CfgValue getConfigForModifying() {
+        return root;
     }
 
     void problemWriting() {

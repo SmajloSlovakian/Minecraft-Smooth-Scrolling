@@ -18,17 +18,17 @@ public class SmoothScrollConfigScreen extends Screen {
     public ButtonWidget button2 = ButtonWidget.builder(Text.literal("popopop2"), button -> {
         System.out.println("You clicked button2!");
     }).build();
-    public CustomSlider slider1 = new CustomSlider("Smoothness: %s", 0, 0.01);
+    //public CustomSlider slider1 = new CustomSlider("Smoothness: %s", 0, 0.01);
    
     @Override
     protected void init() {
         SmoothSc.cfg.loadAndSave();
         button1.setPosition(width / 2, height / 2);
         button2.setPosition(width / 2, height / 2 + 20);
-        slider1.setPosition(width / 2, height / 2 + 40);
+        //slider1.setPosition(width / 2, height / 2 + 40);
         addDrawableChild(button1);
         addDrawableChild(button2);
-        addDrawableChild(slider1);
+        //addDrawableChild(slider1);
     }
     @Override
     public void close() {

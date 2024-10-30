@@ -17,9 +17,10 @@ public class CfgValue {
     // GUI menu options
     float minVal;
     float maxVal;
-    float step = 0.001f;
+    double step = 0.01;
+    Object temporaryValue;
 
-    public CfgValue(String name, float defaultVal, float min, float max, float round) {
+    public CfgValue(String name, float defaultVal, float min, float max, double round) {
         this(name, defaultVal, min, max);
         step = round;
     }
@@ -34,6 +35,7 @@ public class CfgValue {
         valueName = name;
         defaultValue = defaultVal;
         currentValue = defaultVal;
+        temporaryValue = currentValue;
     }
 
     /**
@@ -64,10 +66,10 @@ public class CfgValue {
      */
     @SuppressWarnings("unchecked")
     public List<CfgValue> getList() {
-        if (currentValue instanceof List){
-            List<?> list = (List<?>) currentValue;
+        if (getValue() instanceof List){
+            List<?> list = (List<?>) getValue();
             if (!list.isEmpty() && list.get(0) instanceof CfgValue) {
-                List<CfgValue> cfgValueList = (List<CfgValue>) currentValue;
+                List<CfgValue> cfgValueList = (List<CfgValue>) getValue();
                 return cfgValueList;
             }
         }
@@ -92,12 +94,35 @@ public class CfgValue {
         return ret;
     }
 
-    public void resetValue() {
-        currentValue = defaultValue;
-    }
-
     public void setValue(Object value) {
         currentValue = value;
+        temporaryValue = currentValue;
+    }
+    public void setTempValue(Object value) {
+        temporaryValue = value;
+    }
+    public Object getTempValue() {
+        return temporaryValue;
+    }
+    public void saveTempValue() {
+        //SmoothSc.print(this + " is saving: " + temporaryValue);
+        currentValue = temporaryValue;
+    }
+    public void resetTempValue() {
+        temporaryValue = currentValue;
+    }
+    public void defaultToTemp() {
+        temporaryValue = defaultValue;
+    }
+    public void recursiveSaveTempValue() {
+        var a = getList();
+        if (a != null) {
+            for (CfgValue cfgValue2 : a) {
+                cfgValue2.recursiveSaveTempValue();
+            }
+            return;
+        }
+        saveTempValue();
     }
 
     public static CfgValue parseJson(String name, JsonElement jsonData) {
@@ -130,12 +155,12 @@ public class CfgValue {
         matchValues(source, this);
     }
     public void matchValues(CfgValue source, CfgValue destination) {
-        if (source.currentValue == null) return;
-        if (destination != null && !destination.currentValue.getClass().equals(source.currentValue.getClass())) return;
+        if (source.getValue() == null) return;
+        if (destination != null && !destination.getValue().getClass().equals(source.getValue().getClass())) return;
         var a = source.getList();
         var b = destination.getList();
         if (a == null && b == null) {
-            destination.currentValue = source.currentValue;
+            destination.setValue(source.getValue());
         }
 
         if (a == null || b == null) return;
@@ -154,11 +179,15 @@ public class CfgValue {
             }
             return b;
         }
-        return new Gson().toJsonTree(toExport.currentValue);
+        return new Gson().toJsonTree(toExport.getValue());
     }
 
     @Override
     public String toString() {
         return "(" + valueName + ":" + currentValue + ")";
+    }
+
+    public double getStep() {
+        return step;
     }
 }

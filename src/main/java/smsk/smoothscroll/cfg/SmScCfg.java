@@ -2,9 +2,6 @@ package smsk.smoothscroll.cfg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import org.spongepowered.asm.mixin.Overwrite;
-
 import smsk.smoothscroll.SmoothSc;
 
 public class SmScCfg extends NewConfig {
@@ -52,46 +49,46 @@ public class SmScCfg extends NewConfig {
 
     @Override
     void dataCorrectPermanent() {
-        if (rawRoot.get("cfgVersion").exists() && rawRoot.get("cfgVersion").currentValue instanceof Float) {
+        if (rawRoot.get("cfgVersion").exists() && rawRoot.get("cfgVersion").getValue() instanceof Float) {
             SmoothSc.print("Found old format entries in the config file, attempting to update them.");
-            var cfgver = (float) rawRoot.get("cfgVersion").currentValue;
+            var cfgver = (float) rawRoot.get("cfgVersion").getValue();
             
             var a = rawRoot.get("hotbarSpeed");
-            if (a.exists() && a.currentValue instanceof Float) {
-                SmoothSc.print(a.currentValue);
-                if (cfgver < 1.6f && (float) a.currentValue >= 1) a.currentValue = 1 / (float) a.currentValue;
-                root.get("Hotbar").get("Smoothness").setValue(a.currentValue);
+            if (a.exists() && a.getValue() instanceof Float) {
+                SmoothSc.print(a.getValue());
+                if (cfgver < 1.6f && (float) a.getValue() >= 1) a.setValue(1 / (float) a.getValue());
+                root.get("Hotbar").get("Smoothness").setValue(a.getValue());
             }
             a = rawRoot.get("chatSpeed");
-            if (a.exists() && a.currentValue instanceof Float) {
-                if (cfgver < 1.6f && (float) a.currentValue >= 1) a.currentValue = 1 / (float) a.currentValue;
-                root.get("Chat").get("Smoothness").setValue(a.currentValue);
+            if (a.exists() && a.getValue() instanceof Float) {
+                if (cfgver < 1.6f && (float) a.getValue() >= 1) a.setValue(1 / (float) a.getValue());
+                root.get("Chat").get("Smoothness").setValue(a.getValue());
             }
             a = rawRoot.get("chatOpeningSpeed");
-            if (a.exists() && a.currentValue instanceof Float) {
-                root.get("Chat").get("Opening Speed").setValue(a.currentValue);
+            if (a.exists() && a.getValue() instanceof Float) {
+                root.get("Chat").get("Opening Speed").setValue(a.getValue());
             }
             a = rawRoot.get("creativeScreenSpeed");
-            if (a.exists() && a.currentValue instanceof Float) {
-                if (cfgver < 1.6f && (float) a.currentValue >= 1) a.currentValue = 1 / (float) a.currentValue;
-                root.get("Creative Screen").get("Smoothness").setValue(a.currentValue);
+            if (a.exists() && a.getValue() instanceof Float) {
+                if (cfgver < 1.6f && (float) a.getValue() >= 1) a.setValue(1 / (float) a.getValue());
+                root.get("Creative Screen").get("Smoothness").setValue(a.getValue());
             }
             a = rawRoot.get("entryListSpeed");
-            if (a.exists() && a.currentValue instanceof Float) {
-                if (cfgver < 1.6f && (float) a.currentValue >= 1) a.currentValue = 1 / (float) a.currentValue;
-                if (cfgver < 1.9f && (float) a.currentValue == 0.334f) a.currentValue = 0.5f;
-                root.get("Entry List").get("Smoothness").setValue(a.currentValue);
+            if (a.exists() && a.getValue() instanceof Float) {
+                if (cfgver < 1.6f && (float) a.getValue() >= 1) a.setValue(1 / (float) a.getValue());
+                if (cfgver < 1.9f && (float) a.getValue() == 0.334f) a.setValue(0.5f);
+                root.get("Entry List").get("Smoothness").setValue(a.getValue());
             }
             a = rawRoot.get("enableMaskDebug");
-            if (a.exists() && a.currentValue instanceof Float) {
-                root.get("Chat").get("Smoothness").setValue(a.currentValue);
+            if (a.exists() && a.getValue() instanceof Float) {
+                root.get("Chat").get("Smoothness").setValue(a.getValue());
             }
         }
         // New file format corrections go here
 
         // Notes and Format should always be up to date and not modified
-        root.get("Notes").resetValue();
-        root.get("Format").resetValue();
+        root.get("Notes").defaultToTemp();
+        root.get("Format").defaultToTemp();
         
     }
 

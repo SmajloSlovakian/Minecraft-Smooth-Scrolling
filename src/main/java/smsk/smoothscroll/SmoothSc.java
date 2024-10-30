@@ -10,13 +10,9 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import smsk.smoothscroll.cfg.CfgValue;
 import smsk.smoothscroll.cfg.SmScCfg;
 import smsk.smoothscroll.compat.CondensedInventoryCompat;
 
