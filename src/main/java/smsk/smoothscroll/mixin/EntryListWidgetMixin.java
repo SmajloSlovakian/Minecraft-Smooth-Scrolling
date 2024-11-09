@@ -7,10 +7,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.EntryListWidget;
-import smsk.smoothscroll.Config;
 import smsk.smoothscroll.SmoothSc;
+import smsk.smoothscroll.cfg.SmScCfg;
 
 @Mixin(EntryListWidget.class)
 public class EntryListWidgetMixin {
@@ -20,7 +21,7 @@ public class EntryListWidgetMixin {
     @Unique private double targetScroll;
     @Unique private boolean mousescrolling = false;
 
-    @Unique private double scrollValBefore;
+    @Unique private double prevScrollVal;
     @Unique private boolean updateScActive = false; // this makes the mod know, when things aren't working as expected and lets the user scroll non-smoothly
 
     @Inject(method = "setScrollAmount", at = @At("TAIL"))
@@ -32,26 +33,35 @@ public class EntryListWidgetMixin {
 
     @Inject(method = "renderWidget", at = @At("HEAD"), require = 0)
     private void updateScroll(DrawContext dc, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        if (Config.cfg.entryListSpeed == 0) return;
+        if (SmScCfg.entryListSmoothness == 0) return;
         updateScActive = true;
 
-        scrollAmountBuffer = (scrollAmountBuffer - targetScroll) * Math.pow(Config.cfg.entryListSpeed, SmoothSc.getLastFrameDuration()) + targetScroll;
+        scrollAmountBuffer = (scrollAmountBuffer - targetScroll) * Math.pow(SmScCfg.entryListSmoothness, SmoothSc.getLastFrameDuration()) + targetScroll;
         scrollAmount = Math.round(scrollAmountBuffer);
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), require = 0)
     private void mouseScrollH(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir) {
-        if (Config.cfg.entryListSpeed == 0 || !updateScActive) return;
-        scrollValBefore = scrollAmount;
-        scrollAmount = targetScroll;
+        if (SmScCfg.entryListSmoothness == 0 || !updateScActive) return;
         mousescrolling = true;
+        prevScrollVal = scrollAmount;
+        setScrollAmount(targetScroll);
     }
 
     @Inject(method = "mouseScrolled", at = @At("TAIL"), require = 0)
     private void mouseScrollT(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir) {
-        if (Config.cfg.entryListSpeed == 0 || !updateScActive) return;
+        var diff = scrollAmount - targetScroll;
+        if (SmScCfg.entryListAmount != 0)
+            diff = - SmScCfg.entryListAmount * vA;
+        setScrollAmount(targetScroll + diff);
+        
+        if (SmScCfg.entryListSmoothness == 0 || !updateScActive) return;
+
         targetScroll = scrollAmount;
-        scrollAmount = scrollValBefore;
+        setScrollAmount(prevScrollVal);
         mousescrolling = false;
     }
+
+    @Shadow
+    public void setScrollAmount(double sc) {}
 }

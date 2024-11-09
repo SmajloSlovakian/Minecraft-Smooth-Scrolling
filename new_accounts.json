@@ -1,0 +1,84 @@
+{
+    "accounts": [
+        {
+            "entitlement": {
+                "canPlayMinecraft": true,
+                "ownsMinecraft": true
+            },
+            "msa": {
+                "exp": 9999999999,
+                "extra": {
+                    "ext_expires_in": 9999999
+                },
+                "iat": 9999999999,
+                "refresh_token": "M.C558_SN1.0.U.-lkasdfjlJLKJoiuIOJHKuiu!poipoiroiuzoIUZOIUZOIUTIUTfjhgfjfztrutrzdfbcvc!fadg*trewIOUIO*ertwrerwergsgfsgthstwrgwhieruthoiuwerlgwejhrgluwtlhliurwtz!s05dfgsdfgrtertWZUZTOWEURTWERTWERTREGssthrth*sdfghtr6h4e98t9herth5",
+                "token": "uwopiueruipwoeiurpoiwueproitpwoeiurptuwpiuoiUZOIUZIOUZOU="
+            },
+            "msa-client-id": "poipo99898-987wert-twert2-sdfgsdf-fgsdfg4s65d",
+            "type": "MSA",
+            "utoken": {
+                "exp": 9999999999,
+                "extra": {
+                    "uhs": "9879879879798797"
+                },
+                "iat": 9999999999,
+                "token": "fsdfguhlUHIUHOIuzoiuzoiuzoiuZOIUZOIUZOizoizoiuzouzOUIZOZOIUzozuoiuzozoiuzouizoiuozoiuzOIUZOIZUZOIZOIU"
+            },
+            "xrp-main": {
+                "exp": 9999999999,
+                "extra": {
+                    "agg": "Adult",
+                    "gtg": "NotEvenThisIsUsable",
+                    "prv": "184 185 186 187 188 191 193 195 196 198 199 200 201 203 204 205 206 208 211 217 220 224 227 228 235 238 245 247 249 252 254 255",
+                    "uhs": "9879879879798798789",
+                    "usr": "234",
+                    "utr": "190",
+                    "xid": "46546546546546546"
+                },
+                "iat": 9999999999,
+                "token": "fsdfguhlUHIUHOIuzoiuzoiuzoiuZOIUZOIUZOizoizoiuzouzOUIZOZOIUzozuoiuzozoiuzouizoiuozoiuzOIUZOIZUZOIZOIU"
+            },
+            "xrp-mc": {
+                "exp": 9999999999,
+                "extra": {
+                    "uhs": "546545464564654654"
+                },
+                "iat": 9999999999,
+                "token": "fsdfguhlUHIUHOIuzoiuzoiuzoiuZOIUZOIUZOizoizoiuzouzOUIZOZOIUzozuoiuzozoiuzouizoiuozoiuzOIUZOIZUZOIZOIU"
+            },
+            "ygg": {
+                "exp": 9999999999,
+                "iat": 9999999999,
+                "token": "fsdfguhlUHIUHOIuzoiuzoiuzoiuZOIUZOIUZOizoizoiuzouzOUIZOZOIUzozuoiuzozoiuzouizoiuozoiuzOIUZOIZUZOIZOIU"
+            }
+        },
+        {
+            "active": true,
+            "entitlement": {
+                "canPlayMinecraft": true,
+                "ownsMinecraft": true
+            },
+            "profile": {
+                "capes": [
+                ],
+                "id": "fefe2858b073399d94eae3ab26e2f197",
+                "name": "DoNotUseThisPls",
+                "skin": {
+                    "id": "",
+                    "url": "",
+                    "variant": ""
+                }
+            },
+            "type": "Offline",
+            "ygg": {
+                "extra": {
+                    "clientToken": "9dc2daeed254422c89448581bc6cf4da",
+                    "userName": "DoNotUseThisPls"
+                },
+                "iat": 1729936115,
+                "token": "0"
+            }
+        }
+    ],
+    "formatVersion": 3
+}

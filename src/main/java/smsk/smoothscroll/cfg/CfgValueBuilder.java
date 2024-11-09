@@ -1,0 +1,41 @@
+package smsk.smoothscroll.cfg;
+
+import net.minecraft.text.Text;
+
+public class CfgValueBuilder {
+
+    private CfgValue cfgVal;
+
+    public CfgValueBuilder(String name, Object defaultVal) {
+        cfgVal = new CfgValue(name, defaultVal);
+    }
+
+    public CfgValueBuilder step(double step) {
+        cfgVal.step = step;
+        return this;
+    }
+    public CfgValueBuilder minMax(float min, float max) {
+        cfgVal.minVal = min;
+        cfgVal.maxVal = max;
+        return this;
+    }
+    public CfgValueBuilder tooltip(String t) {
+        return tooltip(Text.literal(t));
+    }
+    public CfgValueBuilder tooltip(Text t) {
+        cfgVal.tooltiptxt = t;
+        return this;
+    }
+    public CfgValueBuilder map(Object from, String to) {
+        cfgVal.translationMap.put(from, to);
+        return this;
+    }
+    public CfgValueBuilder format(String s) {
+        cfgVal.unformatted = s;
+        return this;
+    }
+
+    public CfgValue build() {
+        return cfgVal;
+    }
+}
