@@ -10,6 +10,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 
+import org.joml.Vector3f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,8 +44,16 @@ public class SmoothSc implements ClientModInitializer {
 		cfg = new SmScCfg();
 	}
 
-	public static void print(Object s) {
-		LOGGER.info(s + "");
+	public static void print(Object... s) {
+		joinPrint(", ", s);
+	}
+
+	public static void joinPrint(String join, Object... s) {
+		String a = "";
+		for (Object object : s) {
+			a += object + join;
+		}
+		LOGGER.info(a);
 	}
 	public static void readConfig() {
 		cfg.loadAndSave();
@@ -73,5 +82,8 @@ public class SmoothSc implements ClientModInitializer {
 	
 	public static void drawHotbarRolloverMirror(DrawContext context, Identifier texture, int x, int hotbarWidth, int offset, int y, int width, int height) {
 		context.drawGuiTexture(texture, x + hotbarWidth + offset, y, width, height);
+	}
+	public static Vector3f getMatrixTranslate(DrawContext context) {
+		return context.getMatrices().peek().getPositionMatrix().getTranslation(new Vector3f(0,0,0));
 	}
 }

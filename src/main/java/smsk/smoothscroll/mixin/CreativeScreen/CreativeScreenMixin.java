@@ -27,7 +27,7 @@ public class CreativeScreenMixin {
 
     @Inject(method = "drawBackground", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V"))
     private void drawBackground(DrawContext context, float delta, int mouseX, int mouseY, CallbackInfo ci) {
-        if (SmoothSc.getCreativeScrollOffset() == 0 || SmScCfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null) return;
+        if (SmoothSc.getCreativeScrollOffset() == 0 || SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeSH == null) return;
 
         int x0 = Math.round(context.getScaledWindowWidth() / 2f) - 90;
         int y0 = context.getScaledWindowHeight() / 2 - 51;

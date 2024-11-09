@@ -15,7 +15,7 @@ public class CreativeScreenHandlerMixin {
 
     @ModifyVariable(method = "scrollItems", at = @At("STORE"), ordinal = 0)
     private int scrollItems(int row) {
-        if (SmScCfg.creativeScreenSpeed == 0) return (row);
+        if (SmScCfg.creativeScreenSmoothness == 0) return (row);
         SmoothSc.creativeScreenItemCount = 0;
         if (!SmoothSc.creativeScreenScrollMixin) return (row);
         

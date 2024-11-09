@@ -7,40 +7,49 @@ import smsk.smoothscroll.cfg.CfgValue;
 public class CustomSlider extends SliderWidget {
 
     String txt;
-    double step;
     CfgValue entry;
 
     public CustomSlider(CfgValue cfgValue) {
-        super(0, 0, 150, 20, Text.literal(""), (float) cfgValue.getValue());
+        super(0, 0, 150, 20, Text.literal(""), 0);
         entry = cfgValue;
         cfgValue.resetTempValue();
+        value = deMinMax((float) cfgValue.getValue());
         txt = cfgValue.getName();
-        this.step = cfgValue.getStep();
         updateMessage();
     }
 
-    private static Text makeText(String str, double val, double step) {
-        var a = String.format(str, "" + enstepValue(val, step));
-        if (a.equals(str))
-            a = String.format(str + ": %s", "" + enstepValue(val, step));
+    public void refreshValue() {
+        value = (float) entry.getTempValue();
+        updateMessage();
+    }
+
+    private Text makeText() {
+        var a = String.format(entry.getUnformatted(), entry.getName(), "" + entry.tryTranslate(enStep(enMinMax(value))));
         return Text.literal(a);
     }
 
-    private static long enstepValue(double val, double step) {
-        return Math.round(val / step);
+    private long enHelfStep(double val) {
+        return Math.round(val / entry.getStep());
     }
-    // TODO min max implementácia
+    private double enStep(double val) {
+        return enHelfStep(val) * entry.getStep();
+    }
+    private double enMinMax(double val) {
+        return val * (entry.getMax() - entry.getMin()) + entry.getMin();
+    }
+    private double deMinMax(double val) {
+        return (val - entry.getMin()) / entry.getMax();
+    }
 
     @Override
     protected void applyValue() {
-        float a = (float) (enstepValue(value, step) * step);
-        entry.setTempValue(a);
-        value = a;
+        entry.setTempValue((float) enStep(enMinMax(value)));
+        value = deMinMax(enStep(enMinMax(value)));
     }
 
     @Override
     protected void updateMessage() {
-        this.setMessage(makeText(txt, value, step));
+        this.setMessage(makeText());
     }
 
 }

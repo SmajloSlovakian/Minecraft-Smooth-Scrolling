@@ -1,12 +1,20 @@
 package smsk.smoothscroll.cfg;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+
+import net.minecraft.client.gui.tooltip.Tooltip;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.text.Text;
+import smsk.smoothscroll.menu.CustomSlider;
 
 public class CfgValue {
     final Object defaultValue;
@@ -19,23 +27,20 @@ public class CfgValue {
     float maxVal;
     double step = 0.01;
     Object temporaryValue;
-
-    public CfgValue(String name, float defaultVal, float min, float max, double round) {
-        this(name, defaultVal, min, max);
-        step = round;
-    }
-
-    public CfgValue(String name, float defaultVal, float min, float max) {
-        this(name, defaultVal);
-        minVal = min;
-        maxVal = max;
-    }
+    ClickableWidget myWidget;
+    ButtonWidget myResetButton;
+    Text tooltiptxt;
+    Map<Object, String> translationMap = new HashMap<>();
+    String unformatted = "%s: %s";
 
     public CfgValue(String name, Object defaultVal) {
         valueName = name;
         defaultValue = defaultVal;
         currentValue = defaultVal;
         temporaryValue = currentValue;
+    }
+    public static CfgValueBuilder builder(String name, Object defaultVal) {
+        return new CfgValueBuilder(name, defaultVal);
     }
 
     /**
@@ -113,6 +118,14 @@ public class CfgValue {
     }
     public void defaultToTemp() {
         temporaryValue = defaultValue;
+        if (myWidget != null) {
+            if (myWidget instanceof CustomSlider cs) {
+                cs.refreshValue();
+            }
+            if (myWidget instanceof ButtonWidget bw) {
+                bw.setMessage(Text.literal(makeButtonText()));
+            }
+        }
     }
     public void recursiveSaveTempValue() {
         var a = getList();
@@ -123,6 +136,39 @@ public class CfgValue {
             return;
         }
         saveTempValue();
+    }
+
+    public ClickableWidget[] generateWidget() {
+        myResetButton = ButtonWidget.builder(Text.literal("🗑"), button -> {this.defaultToTemp();}).build();
+
+        //widgets.add(ButtonWidget.builder(Text.literal("🗑"), button -> {this.defaultToTemp();}).build()); // TODO reset button
+
+        if (this.getValue() instanceof Number) {
+            myWidget = new CustomSlider(this);
+            this.assignWidget(myWidget);
+            if(tooltiptxt != null)
+                myWidget.setTooltip(Tooltip.of(tooltiptxt));
+            return new ClickableWidget[] {myWidget, myResetButton};
+        }
+        else if (this.getValue() instanceof Boolean) {
+            myWidget = ButtonWidget.builder(
+                Text.literal(makeButtonText()),
+                button -> {
+                    this.setTempValue(!(boolean) this.getTempValue());
+                    button.setMessage(Text.literal(makeButtonText()));
+                }
+            ).build();
+            if(tooltiptxt != null)
+                myWidget.setTooltip(Tooltip.of(tooltiptxt));
+            this.assignWidget(myWidget);
+            return new ClickableWidget[] {myWidget, myResetButton};
+        }
+        myWidget = ButtonWidget.builder(Text.literal(makeButtonText()), button -> {}).build();
+        return new ClickableWidget[] {myWidget, myResetButton};
+    }
+
+    private String makeButtonText() {
+        return this.getName() + ": " + this.getTempValue();
     }
 
     public static CfgValue parseJson(String name, JsonElement jsonData) {
@@ -189,5 +235,22 @@ public class CfgValue {
 
     public double getStep() {
         return step;
+    }
+    public void assignWidget(ClickableWidget cw) {
+        myWidget = cw;
+    }
+
+    public double getMax() {
+        return maxVal;
+    }
+
+    public double getMin() {
+        return minVal;
+    }
+    public String getUnformatted() {
+        return unformatted;
+    }
+    public String tryTranslate(Object value) {
+        return translationMap.getOrDefault(value, "" + value);
     }
 }

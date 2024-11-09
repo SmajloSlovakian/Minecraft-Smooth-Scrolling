@@ -38,10 +38,11 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
 
     @Inject(method = "render", at = @At("HEAD"))
     private void render(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         this.originalCursorY = my;
-        if (SmScCfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null || SmoothSc.getCreativeScrollOffset() == 0) return;
+        if (SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeSH == null || SmoothSc.getCreativeScrollOffset() == 0) return;
 
-        SmoothSc.creativeScreenScrollOffset = (float) (SmoothSc.creativeScreenScrollOffset * Math.pow(SmScCfg.creativeScreenSpeed, SmoothSc.getLastFrameDuration()));
+        SmoothSc.creativeScreenScrollOffset = (float) ((SmoothSc.creativeScreenScrollOffset) * Math.pow(SmScCfg.creativeScreenSmoothness, SmoothSc.getLastFrameDuration()));
 
         SmoothSc.creativeScreenScrollMixin = false;
         SmoothSc.creativeSH.scrollItems(((CreativeScreenHandlerAccessor) SmoothSc.creativeSH)
@@ -55,8 +56,9 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
 
     @Inject(method = "render", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
     private void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         //SmoothSc.print("lallalala");
-        if (SmScCfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.getCreativeScrollOffset() == 0) return;
+        if (SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.getCreativeScrollOffset() == 0) return;
         //SmoothSc.print("popopopo");
         context.enableScissor(0, context.getScaledWindowHeight() / 2 - 50, context.getScaledWindowWidth(), context.getScaledWindowHeight() / 2 + 38);
         context.getMatrices().push();
@@ -87,27 +89,31 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
 
     @ModifyVariable(method = "drawSlot", at = @At(value = "STORE"), ordinal = 1)
     private int drawItemY(int y, @Local(argsOnly = true) DrawContext context) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return y;
         if(drawingOverdrawnSlot) return y;
         SmoothSc.creativeScreenItemCount -= 1;
         if (SmoothSc.creativeScreenItemCount < 0) tryDisableMask(context);
-        if (SmScCfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return y;
+        if (SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeScreenItemCount < 0) return y;
         return y ;//+ SmoothSc.getCreativeDrawOffset();
     }
 
     @ModifyVariable(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V", shift = At.Shift.AFTER), argsOnly = true, ordinal = 1)
     private int revertMousePos(int mouseY) {
-        if (SmScCfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return originalCursorY;
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return mouseY;
+        if (SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeScreenItemCount < 0) return originalCursorY;
         return mouseY;
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(Lnet/minecraft/client/gui/DrawContext;II)V"))
     private void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         tryDisableMask(context);
         mouseY.set(originalCursorY);
     }
 
     @Inject(method = "mouseClicked", at = @At(value = "HEAD"))
     private void mouseClickedMid1(double mouseX, double my, int button, CallbackInfoReturnable<Boolean> ci, @Local(ordinal = 1, argsOnly = true) LocalDoubleRef mouseY) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         if (isInBounds((int) mouseX, (int) mouseY.get()) && isInBounds((int) mouseX, (int) mouseY.get() - SmoothSc.getCreativeDrawOffset()))
             mouseY.set(my - SmoothSc.getCreativeDrawOffset());
     }

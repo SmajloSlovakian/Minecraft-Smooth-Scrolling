@@ -40,20 +40,11 @@ public class Inspiration extends Screen {
             if (cfglist != null) {
                 var widgets = new ArrayList<ClickableWidget>();
                 for (CfgValue innerCfgValue : cfglist) {
-                    if (innerCfgValue.getValue() instanceof Number) {
-                        widgets.add(new CustomSlider(innerCfgValue));
+                    var a = innerCfgValue.generateWidget();
+                    if (a[0] != null) {
+                        widgets.add(a[0]);
+                        widgets.add(a[1]);
                     }
-                    else if (innerCfgValue.getValue() instanceof Boolean) {
-                        widgets.add(ButtonWidget.builder(
-                            Text.literal(innerCfgValue.getName() + ": " + innerCfgValue.getTempValue()),
-                            button -> {
-                                innerCfgValue.setTempValue(!(boolean) innerCfgValue.getTempValue());
-                                button.setMessage(Text.literal(innerCfgValue.getName() + ": " + innerCfgValue.getTempValue()));
-                            }
-                        ).build());
-                    }
-                    widgets.add(ButtonWidget.builder(Text.literal("↩"), button -> {innerCfgValue.defaultToTemp();}).build());
-
                 }
                 // var entryList = new EntryListWidget<Entry<ClickableWidget>>(SmoothSc.mc, 200, 200, 10, 10);
                 var newTab = new CustomTab(Text.literal(cfgValue.getName()), widgets.toArray(new ClickableWidget[0]));
@@ -82,16 +73,17 @@ public class Inspiration extends Screen {
     }
 
     void reposition() {
-        SmoothSc.print(SmoothSc.mc.getWindow().getScaledWidth() + " x " + SmoothSc.mc.getWindow().getScaledHeight());
+        //SmoothSc.print(SmoothSc.mc.getWindow().getScaledWidth() + " x " + SmoothSc.mc.getWindow().getScaledHeight());
         for (CustomTab tab : tabs) {
             int a = -1;
             for (ClickableWidget widget : tab.children) {
                 a++;
+                var x = SmoothSc.mc.getWindow().getScaledWidth() / 6;
                 if (a % 2 == 0) {
-                    widget.setPosition(0, 50 + a * 22 / 2);
+                    widget.setPosition(x, 50 + a * 22 / 2);
                 }
                 else {
-                    widget.setDimensionsAndPosition(20, 20, 152, 50 + (a - 1) * 22 / 2);
+                    widget.setDimensionsAndPosition(20, 20, x + 152, 50 + (a - 1) * 22 / 2);
                 }
             }
         }
