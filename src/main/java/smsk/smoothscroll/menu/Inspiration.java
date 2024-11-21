@@ -68,7 +68,8 @@ public class Inspiration extends Screen {
         this.addDrawableChild(button1);
         this.addDrawableChild(button2);
         this.tabNav.selectTab(0, false);
-        this.initTabNavigation();
+        this.tabNav.setWidth(this.width);
+        this.tabNav.init();
         reposition();
     }
 
@@ -95,14 +96,6 @@ public class Inspiration extends Screen {
     public void resize(MinecraftClient client, int width, int height) {
         super.resize(client, width, height);
         reposition();
-    }
-
-    @Override
-    protected void initTabNavigation() {
-        if (this.tabNav == null) return;
-
-        this.tabNav.setWidth(this.width);
-        this.tabNav.init();
     }
 
     @Override

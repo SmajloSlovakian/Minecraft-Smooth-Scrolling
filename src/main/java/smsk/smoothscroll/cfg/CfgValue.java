@@ -173,6 +173,7 @@ public class CfgValue {
 
     public static CfgValue parseJson(String name, JsonElement jsonData) {
         var a = new CfgValue(name, null);
+        if (jsonData == null) return a;
         if (jsonData.isJsonObject()) {
             var objMap = jsonData.getAsJsonObject().asMap();
             List<CfgValue> b = new ArrayList<CfgValue>();
@@ -253,4 +254,18 @@ public class CfgValue {
     public String tryTranslate(Object value) {
         return translationMap.getOrDefault(value, "" + value);
     }
+
+    public long enHelfStep(double val) {
+        return Math.round(val / getStep());
+    }
+    public double enStep(double val) {
+        return enHelfStep(val) * getStep();
+    }
+    public double enMinMax(double val) {
+        return val * (getMax() - getMin()) + getMin();
+    }
+    public double deMinMax(double val) {
+        return (val - getMin()) / getMax();
+    }
+
 }

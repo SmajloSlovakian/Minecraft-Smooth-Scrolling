@@ -13,38 +13,26 @@ public class CustomSlider extends SliderWidget {
         super(0, 0, 150, 20, Text.literal(""), 0);
         entry = cfgValue;
         cfgValue.resetTempValue();
-        value = deMinMax((float) cfgValue.getValue());
+        value = entry.deMinMax((float) cfgValue.getValue());
         txt = cfgValue.getName();
         updateMessage();
     }
 
     public void refreshValue() {
-        value = (float) entry.getTempValue();
+        value = entry.deMinMax((float) entry.getTempValue());
         updateMessage();
     }
 
     private Text makeText() {
-        var a = String.format(entry.getUnformatted(), entry.getName(), "" + entry.tryTranslate(enStep(enMinMax(value))));
+        var a = String.format(entry.getUnformatted(), entry.getName(), "" + entry.tryTranslate(entry.enStep(entry.enMinMax(value))));
         return Text.literal(a);
     }
 
-    private long enHelfStep(double val) {
-        return Math.round(val / entry.getStep());
-    }
-    private double enStep(double val) {
-        return enHelfStep(val) * entry.getStep();
-    }
-    private double enMinMax(double val) {
-        return val * (entry.getMax() - entry.getMin()) + entry.getMin();
-    }
-    private double deMinMax(double val) {
-        return (val - entry.getMin()) / entry.getMax();
-    }
 
     @Override
     protected void applyValue() {
-        entry.setTempValue((float) enStep(enMinMax(value)));
-        value = deMinMax(enStep(enMinMax(value)));
+        entry.setTempValue((float) entry.enStep(entry.enMinMax(value)));
+        value = entry.deMinMax(entry.enStep(entry.enMinMax(value)));
     }
 
     @Override

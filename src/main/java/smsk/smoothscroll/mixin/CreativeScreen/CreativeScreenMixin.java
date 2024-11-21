@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.SmoothSc;
@@ -25,29 +26,30 @@ public class CreativeScreenMixin {
         SmoothSc.creativeScreenScrollOffset = 0;
     }
 
-    @Inject(method = "drawBackground", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V"))
+    @Inject(method = "drawBackground", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Ljava/util/function/Function;Lnet/minecraft/util/Identifier;IIFFIIII)V"))
     private void drawBackground(DrawContext context, float delta, int mouseX, int mouseY, CallbackInfo ci) {
         if (SmoothSc.getCreativeScrollOffset() == 0 || SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeSH == null) return;
 
-        int x0 = Math.round(context.getScaledWindowWidth() / 2f) - 90;
-        int y0 = context.getScaledWindowHeight() / 2 - 51;
-        int x1 = 162;
-        int y1 = 90;
-        int x2 = 8;
-        int y2 = 17;
+        int posx = Math.round(context.getScaledWindowWidth() / 2f) - 90;
+        int posy = context.getScaledWindowHeight() / 2 - 51;
+        int width = 162;
+        int height = 90;
+        int u = 8;
+        int v = 17;
 
-        //context.drawText(SmoothSc.mc.textRenderer, mouseX + " - " + mouseY, 10, 10, ColorHelper.Argb.getArgb(255, 0, 255, 255), true);
-        //context.fill(0, 0, 1920, 1080, ColorHelper.Argb.getArgb(50, 255, 128, 0));
-        context.enableScissor(x0, y0 + 1, x0 + x1, y0 + y1 - 1);
-        context.drawTexture(selectedTab.getTexture(), x0, 
-            y0 + SmoothSc.getCreativeDrawOffset(),
-                x2, y2, x1, y1);
-        context.drawTexture(selectedTab.getTexture(), x0,
-            (int) (y0 + SmoothSc.getCreativeDrawOffset() - y1 * Math.signum(SmoothSc.getCreativeScrollOffset())),
-                x2, y2, x1, y1);
+
+        //context.drawText(SmoothSc.mc.textRenderer, mouseX + " - " + mouseY, 10, 10, ColorHelper.getArgb(255, 0, 255, 255), true);
+        //context.fill(0, 0, 1920, 1080, ColorHelper.getArgb(50, 255, 128, 0));
+        context.enableScissor(posx, posy + 1, posx + width, posy + height - 1);
+        context.drawTexture(RenderLayer::getGuiTextured, selectedTab.getTexture(), posx, 
+            posy + SmoothSc.getCreativeDrawOffset(),
+                u, v, width, height, 256, 256);
+        context.drawTexture(RenderLayer::getGuiTextured, selectedTab.getTexture(), posx,
+            (int) (posy + SmoothSc.getCreativeDrawOffset() - height * Math.signum(SmoothSc.getCreativeScrollOffset())),
+                u, v, width, height, 256, 256);
 
         if (SmScCfg.enableMaskDebug)
-            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 255, 0));
+            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 255, 255, 0));
         
         context.disableScissor();
     }

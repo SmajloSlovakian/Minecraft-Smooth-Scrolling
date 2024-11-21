@@ -55,7 +55,7 @@ public class SuggestionWindowMixin {
     private void demask(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
         if(SmScCfg.chatSmoothness == 0) return;
         if (SmScCfg.enableMaskDebug)
-            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 255, 0));
+            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 255, 255, 0));
         context.disableScissor();
     }
 

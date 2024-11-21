@@ -18,7 +18,7 @@ public class NewConfig {
 
     String fileName;
     CfgValue root;
-    CfgValue rawRoot;
+    CfgValue rawRoot = CfgValue.parseJson("root",null);
 
     public NewConfig(String file, CfgValue template) {
         fileName = file;
@@ -56,9 +56,7 @@ public class NewConfig {
 
                 var jsonData = gs.fromJson(data, JsonObject.class);
                 rawRoot = CfgValue.parseJson("root",jsonData);
-                SmoothSc.print(rawRoot);
                 root.matchValues(rawRoot);
-                SmoothSc.print(root);
                 
             } catch (FileNotFoundException e) {
                 fileNotFound();
@@ -82,7 +80,6 @@ public class NewConfig {
         try {
             fw = new FileWriter(cfgfile);
             fw.write(gs.toJson(CfgValue.exportJson(root)));
-            SmoothSc.print("WRITING:\n"+gs.toJson(CfgValue.exportJson(root)));
         } catch (Exception e) {
             problemWriting();
             e.printStackTrace();
@@ -103,6 +100,7 @@ public class NewConfig {
     }
 
     void fileNotFound() {
+        toFile();
     }
 
     /**

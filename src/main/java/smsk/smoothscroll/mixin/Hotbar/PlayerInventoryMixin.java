@@ -11,12 +11,11 @@ import smsk.smoothscroll.cfg.SmScCfg;
 @Mixin(PlayerInventory.class)
 public class PlayerInventoryMixin {
 
-    @Inject(method = "scrollInHotbar", at = @At("HEAD"))
-    private void scrollH(double d, CallbackInfo ci) {
+    @Inject(method = "setSelectedSlot", at = @At("HEAD"))
+    private void setselect(int slot, CallbackInfo ci) {
         if (!SmScCfg.hotbarRollover) return;
-        var s = Math.signum(d);
         PlayerInventory inv = SmoothSc.mc.player.getInventory();
-        if (inv.selectedSlot - s < 0) SmoothSc.hotbarRollover += 1;
-        if (inv.selectedSlot - s > 8) SmoothSc.hotbarRollover += -1;
+        if (inv.selectedSlot == 8 && slot == 0) SmoothSc.hotbarRollover += -1;
+        if (inv.selectedSlot == 0 && slot == 8) SmoothSc.hotbarRollover += 1;
     }
 }

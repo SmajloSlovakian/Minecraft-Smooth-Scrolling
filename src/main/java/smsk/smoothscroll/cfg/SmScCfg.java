@@ -47,7 +47,6 @@ public class SmScCfg extends NewConfig {
 
     public SmScCfg() {
         super("smoothscroll.json", template);
-        SmoothSc.print("USING:\n");
     }
 
 
@@ -122,14 +121,17 @@ public class SmScCfg extends NewConfig {
 
     @Override
     void problemReading() {
+        super.problemReading();
         SmoothSc.print("There was a problem reading the config file. Using default values.");
     }
     @Override
     void problemWriting() {
+        super.problemWriting();
         SmoothSc.print("There was a problem writing to the config file.");
     }
     @Override
     void fileNotFound() {
+        super.fileNotFound();
         SmoothSc.print("There is no config file, creating a new one.");
     }
 }

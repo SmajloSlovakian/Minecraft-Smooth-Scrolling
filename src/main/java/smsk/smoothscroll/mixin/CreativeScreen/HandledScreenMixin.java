@@ -97,7 +97,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         return y ;//+ SmoothSc.getCreativeDrawOffset();
     }
 
-    @ModifyVariable(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V", shift = At.Shift.AFTER), argsOnly = true, ordinal = 1)
+    @ModifyVariable(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlotHighlightFront(Lnet/minecraft/client/gui/DrawContext;)V", shift = At.Shift.AFTER), argsOnly = true, ordinal = 1)
     private int revertMousePos(int mouseY) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return mouseY;
         if (SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeScreenItemCount < 0) return originalCursorY;
@@ -124,7 +124,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         if (drawingOverdrawnSlot) return;
         if (!cutEnabled) return;
         if (SmScCfg.enableMaskDebug)
-            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 0, 255, 255));
+            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 0, 255, 255));
         context.disableScissor();
         context.getMatrices().pop();
         cutEnabled = false;
