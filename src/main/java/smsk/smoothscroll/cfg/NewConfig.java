@@ -11,7 +11,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import net.fabricmc.loader.api.FabricLoader;
-import smsk.smoothscroll.SmoothSc;
 
 public class NewConfig {
     private final Gson gs = new GsonBuilder().setPrettyPrinting().create();

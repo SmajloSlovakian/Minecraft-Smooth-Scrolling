@@ -57,10 +57,8 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     @Inject(method = "render", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
     private void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
-        //SmoothSc.print("lallalala");
         if (SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.getCreativeScrollOffset() == 0) return;
-        //SmoothSc.print("popopopo");
-        context.enableScissor(0, context.getScaledWindowHeight() / 2 - 50, context.getScaledWindowWidth(), context.getScaledWindowHeight() / 2 + 38);
+        context.enableScissor(8,18,170,106);
         context.getMatrices().push();
         context.getMatrices().translate(0, SmoothSc.getCreativeDrawOffset(), 0);
         cutEnabled = true;

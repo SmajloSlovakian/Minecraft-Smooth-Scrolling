@@ -73,9 +73,7 @@ public class HotbarMixin {
 	private void enableMask(DrawContext context) {
 		var x2 = context.getScaledWindowWidth() / 2 - 91;
 		var y2 = context.getScaledWindowHeight() - 22;
-		//if (FabricLoader.getInstance().getObjectShare().get("raised:hud") instanceof Integer distance) y2 -= distance;
-		var mtpos = SmoothSc.getMatrixTranslate(context);
-		context.enableScissor((int) mtpos.x + x2 - 1, (int) mtpos.y + y2 - 1, (int) mtpos.x + x2 + 182 + 1, (int) mtpos.y + y2 + 22 + 1);
+		context.enableScissor((int) x2 - 1, (int) y2 - 1, (int) x2 + 182 + 1, (int) y2 + 22 + 1);
 		masked = true;
 	}
 }

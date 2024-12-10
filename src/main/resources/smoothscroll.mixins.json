@@ -15,7 +15,7 @@
 		"CreativeScreen.HandledScreenMixin",
 		"CreativeScreen.MinecraftClientMixin",
 		"CreativeScreen.CreativeScreenHandlerAccessor",
-		"EntryListWidgetMixin",
+		"ScrollableWidgetMixin",
 		"DrawContextMixin"
 	],
 	"injectors": {
