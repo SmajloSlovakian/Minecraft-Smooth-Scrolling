@@ -86,7 +86,7 @@ public class ChatHudMixin {
         var maskbottom = m;
 
         // this makes underlined text and such correct again
-        if (getChatScrollOffset() == 0 && Math.round(maskHeightBuffer) != 0 && false) {
+        if (getChatScrollOffset() == 0 && Math.round(maskHeightBuffer) != 0) {
             if (Math.round(maskHeightBuffer) == targetHeight) {
                 maskbottom += 2;
                 masktop -= 2;
