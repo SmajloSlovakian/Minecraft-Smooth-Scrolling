@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import org.spongepowered.asm.mixin.injection.At;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.ChatHudLine;
@@ -36,7 +35,7 @@ public class ChatHudMixin {
     @Unique private boolean refreshing = false;
     @Unique private int scrollValBefore;
     @Unique private int savedCurrentTick;
-    @Unique private Vec2f mtc = new Vec2f(0, 0); // account for matrix translate at the beginning of render
+    @Unique private Vec2f mtc = new Vec2f(0, 0); // smoothly moves matrix translation from beginning of render()
     @Unique private int shownLineCount;
 
     @Inject(method = "render", at = @At("HEAD"))
@@ -63,13 +62,11 @@ public class ChatHudMixin {
     }
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 7)
-    private int mask(int m, @Local(argsOnly = true) DrawContext context, @Local float f) { // m - the y position of the chat
+    private int mask(int m, @Local(argsOnly = true) DrawContext context) { // m - the y position of the chat
         if ((SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) || isChatHidden()) return (m);
 
         var shownLineCount = 0;
-        //SmoothSc.print("1: "+visibleMessages.size());
         for(int r = 0; r + scrolledLines < visibleMessages.size() && r < getVisibleLineCount(); r++) {
-            //SmoothSc.print("2: "+(savedCurrentTick - visibleMessages.get(r).addedTime()));
             if (savedCurrentTick - visibleMessages.get(r).addedTime() < 200 || isChatFocused()) shownLineCount++;
         }
         // var targetHeight = getVisibleLineCount() * getLineHeight();
@@ -89,7 +86,7 @@ public class ChatHudMixin {
         var maskbottom = m;
 
         // this makes underlined text and such correct again
-        if (getChatScrollOffset() == 0 && Math.round(maskHeightBuffer) != 0) {
+        if (getChatScrollOffset() == 0 && Math.round(maskHeightBuffer) != 0 && false) {
             if (Math.round(maskHeightBuffer) == targetHeight) {
                 maskbottom += 2;
                 masktop -= 2;
@@ -97,16 +94,9 @@ public class ChatHudMixin {
                 maskbottom += 2;
             }
         }
-        if (FabricLoader.getInstance().getObjectShare().get("raised:chat") instanceof Integer distance) {
-            masktop -= distance;
-            maskbottom -= distance;
-        }
-		var mtpos = SmoothSc.getMatrixTranslate(context);
-        //mtpos = new Vector3f(0,0,0);
+        SmoothSc.printt(m,maskbottom);
 
-        SmoothSc.scissorScaleFactor = SmoothSc.mc.getWindow().getScaleFactor() * f;
-        context.enableScissor((int) mtpos.x - 20, (int) mtpos.y + masktop, (int) mtpos.x + context.getScaledWindowWidth(), (int) mtpos.y + maskbottom);
-        SmoothSc.scissorScaleFactor = 0;
+        context.enableScissor(-20, masktop, getWidth(), maskbottom);
 
         return (m);
     }
