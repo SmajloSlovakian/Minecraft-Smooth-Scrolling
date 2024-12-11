@@ -8,7 +8,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -18,9 +17,12 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalDoubleRef;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
+
 import smsk.smoothscroll.SmoothSc;
 import smsk.smoothscroll.cfg.SmScCfg;
 
@@ -58,16 +60,13 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     private void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         if (SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.getCreativeScrollOffset() == 0) return;
-        context.enableScissor(8,18,170,106);
-        context.getMatrices().push();
-        context.getMatrices().translate(0, SmoothSc.getCreativeDrawOffset(), 0);
-        cutEnabled = true;
-        if(originalCursorY >= context.getScaledWindowHeight() / 2 - 51 && originalCursorY <= context.getScaledWindowHeight() / 2 + 38)
+        if(isInBounds(mx, originalCursorY))
             mouseY.set(my - SmoothSc.getCreativeDrawOffset());
 
         // the fix for instantly disappearing items on the opposite side of scrolling...
         // it gets the items that just left the slots and draws them in the correct
         // position
+        tryEnableMask(context);
         var overUnder = SmoothSc.getCreativeScrollOffset() < 0 ? 9 * 5 : -9;
         var currRow = SmoothSc.creativeScreenPrevRow - SmoothSc.getCreativeScrollOffset() / 18;
         var fromIndex = currRow * 9 + overUnder;
@@ -76,6 +75,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
 
             this.drawSlotOverridden(context, tempSlot);
         }
+        tryDisableMask(context);
     }
 
     @Unique
@@ -85,41 +85,67 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         this.drawingOverdrawnSlot = false;
     }
 
-    @ModifyVariable(method = "drawSlot", at = @At(value = "STORE"), ordinal = 1)
-    private int drawItemY(int y, @Local(argsOnly = true) DrawContext context) {
-        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return y;
-        if(drawingOverdrawnSlot) return y;
+    @Inject(method = "drawSlot", at = @At(value = "HEAD"))
+    private void drawItemY(DrawContext context, Slot slot, CallbackInfo ci) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
+        if (drawingOverdrawnSlot) return;
         SmoothSc.creativeScreenItemCount -= 1;
         if (SmoothSc.creativeScreenItemCount < 0) tryDisableMask(context);
-        if (SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeScreenItemCount < 0) return y;
-        return y ;//+ SmoothSc.getCreativeDrawOffset();
     }
 
-    @ModifyVariable(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlotHighlightFront(Lnet/minecraft/client/gui/DrawContext;)V", shift = At.Shift.AFTER), argsOnly = true, ordinal = 1)
-    private int revertMousePos(int mouseY) {
-        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return mouseY;
-        if (SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeScreenItemCount < 0) return originalCursorY;
-        return mouseY;
+    @SuppressWarnings("rawtypes")
+    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlotHighlightBack(Lnet/minecraft/client/gui/DrawContext;)V"))
+    private void highlightBack(HandledScreen hs, DrawContext context, Operation<Void> original, @Local(argsOnly = true, ordinal = 0) LocalIntRef mouseX) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) {original.call(hs, context); return;}
+        if (SmoothSc.getCreativeScrollOffset() == 0 || !isInBounds(mouseX.get(), originalCursorY)) {original.call(hs, context); return;}
+        tryEnableMask(context);
+        original.call(hs, context);
+        tryDisableMask(context);
+    }
+
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlots(Lnet/minecraft/client/gui/DrawContext;)V"))
+    private void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
+        if (SmoothSc.getCreativeScrollOffset() == 0) return;
+        tryEnableMask(context);
+    }
+
+    @SuppressWarnings("rawtypes")
+    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlotHighlightFront(Lnet/minecraft/client/gui/DrawContext;)V"))
+    private void highlightFront(HandledScreen hs, DrawContext context, Operation<Void> original, @Local(argsOnly = true, ordinal = 0) LocalIntRef mouseX, @Local(argsOnly = true, ordinal = 1) LocalIntRef mouseY) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) {original.call(hs, context); return;}
+        if (SmoothSc.getCreativeScrollOffset() == 0 || !isInBounds(mouseX.get(), originalCursorY)) {original.call(hs, context); return;}
+        tryEnableMask(context);
+        original.call(hs, context);
+        tryDisableMask(context);
+        mouseY.set(originalCursorY);
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(Lnet/minecraft/client/gui/DrawContext;II)V"))
-    private void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
+    private void renderMid2(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         tryDisableMask(context);
         mouseY.set(originalCursorY);
     }
 
     @Inject(method = "mouseClicked", at = @At(value = "HEAD"))
-    private void mouseClickedMid1(double mouseX, double my, int button, CallbackInfoReturnable<Boolean> ci, @Local(ordinal = 1, argsOnly = true) LocalDoubleRef mouseY) {
+    private void mouseClickedH(double mouseX, double my, int button, CallbackInfoReturnable<Boolean> ci, @Local(ordinal = 1, argsOnly = true) LocalDoubleRef mouseY) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         if (isInBounds((int) mouseX, (int) mouseY.get()) && isInBounds((int) mouseX, (int) mouseY.get() - SmoothSc.getCreativeDrawOffset()))
             mouseY.set(my - SmoothSc.getCreativeDrawOffset());
     }
 
+    @Unique
+    private void tryEnableMask(DrawContext context) {
+        if (cutEnabled) return;
+        context.enableScissor(8,18,170,106);
+        context.getMatrices().push();
+        context.getMatrices().translate(0, SmoothSc.getCreativeDrawOffset(), 0);
+        cutEnabled = true;
+    }
 
     @Unique
-    private void tryDisableMask(DrawContext context){
-        if (drawingOverdrawnSlot) return;
+    private void tryDisableMask(DrawContext context) {
         if (!cutEnabled) return;
         if (SmScCfg.enableMaskDebug)
             context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 0, 255, 255));
@@ -131,9 +157,4 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     private boolean isInBounds(int x, int y) {
         return y >= SmoothSc.mc.getWindow().getScaledHeight() / 2 - 51 && y <= SmoothSc.mc.getWindow().getScaledHeight() / 2 + 38;
     }
-    //@ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;isPointOverSlot(Lnet/minecraft/screen/slot/Slot;DD)Z"), index = 2)
-    //double modifyCursorPosY(double my) {
-    //    if(!cutEnabled || originalCursorY < savedContext.getScaledWindowHeight() / 2 - 51 || originalCursorY > savedContext.getScaledWindowHeight() / 2 + 38) return my;
-    //    return originalCursorY - SmoothSc.getCreativeDrawOffset();
-    //}
 }
