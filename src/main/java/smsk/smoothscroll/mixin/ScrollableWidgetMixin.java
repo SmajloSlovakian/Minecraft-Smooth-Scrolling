@@ -83,7 +83,7 @@ public class ScrollableWidgetMixin extends ClickableWidget{
     }
 
     @Override
-    protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'renderWidget'");
     }

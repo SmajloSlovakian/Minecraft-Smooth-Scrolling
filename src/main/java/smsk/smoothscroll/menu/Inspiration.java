@@ -32,7 +32,7 @@ public class Inspiration extends Screen {
     protected void init() {
         SmoothSc.cfg.loadAndSave();
 
-        SmoothSc.print(SmoothSc.mc.getWindow().getScaledWidth() + " x " + SmoothSc.mc.getWindow().getScaledHeight());
+        //SmoothSc.print(SmoothSc.mc.getWindow().getScaledWidth() + " x " + SmoothSc.mc.getWindow().getScaledHeight());
 
         tabs = new ArrayList<CustomTab>();
         for (CfgValue cfgValue : SmoothSc.cfg.getConfigForModifying().getList()) {

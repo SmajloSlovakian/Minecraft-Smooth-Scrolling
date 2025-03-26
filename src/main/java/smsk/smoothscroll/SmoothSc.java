@@ -65,7 +65,7 @@ public class SmoothSc implements ClientModInitializer {
 		return Math.max(min, Math.min(max, val));
 	}
 	public static float getLastFrameDuration() {
-		return mc.getRenderTickCounter().getLastFrameDuration();
+		return mc.getRenderTickCounter().getDynamicDeltaTicks();
 	}
 	public static void debugTextDraw(DrawContext context, Object s, int x, int y) {
 		context.drawText(mc.textRenderer, s + "", x, y, ColorHelper.getArgb(255, 0, 255, 255), true);

@@ -94,9 +94,8 @@ public class ChatHudMixin {
                 maskbottom += 2;
             }
         }
-        SmoothSc.printt(m,maskbottom);
 
-        context.enableScissor(-20, masktop, getWidth(), maskbottom);
+        context.enableScissor(-10, masktop, getWidth() + 999999, maskbottom);
 
         return (m);
     }

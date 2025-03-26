@@ -15,7 +15,7 @@ public class PlayerInventoryMixin {
     private void setselect(int slot, CallbackInfo ci) {
         if (!SmScCfg.hotbarRollover) return;
         PlayerInventory inv = SmoothSc.mc.player.getInventory();
-        if (inv.selectedSlot == 8 && slot == 0) SmoothSc.hotbarRollover += -1;
-        if (inv.selectedSlot == 0 && slot == 8) SmoothSc.hotbarRollover += 1;
+        if (inv.getSelectedSlot() == 8 && slot == 0) SmoothSc.hotbarRollover += -1;
+        if (inv.getSelectedSlot() == 0 && slot == 8) SmoothSc.hotbarRollover += 1;
     }
 }
