@@ -10,11 +10,12 @@
 		"Chat.ChatHudMixin",
 		"Chat.SuggestionWindowMixin",
 		"CreativeScreen.CreativeScreenHandlerMixin",
+		"compat.CreativeScreenHandlerMixin_CC",
 		"CreativeScreen.CreativeScreenMixin",
 		"CreativeScreen.HandledScreenMixin",
 		"CreativeScreen.MinecraftClientMixin",
 		"CreativeScreen.CreativeScreenHandlerAccessor",
-		"EntryListWidgetMixin",
+		"ScrollableWidgetMixin",
 		"DrawContextMixin"
 	],
 	"injectors": {

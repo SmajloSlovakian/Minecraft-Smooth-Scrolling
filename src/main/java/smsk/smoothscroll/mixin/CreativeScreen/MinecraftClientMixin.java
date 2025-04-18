@@ -28,6 +28,6 @@ public class MinecraftClientMixin {
 
     @Inject(method = "reloadResources", at = @At("HEAD"))
     private void onResReload(CallbackInfoReturnable<CompletableFuture<Void>> cir) {
-        SmoothSc.updateConfig();
+        SmoothSc.readConfig();
     }
 }
