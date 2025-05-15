@@ -33,6 +33,7 @@ public class SmoothSc implements ClientModInitializer {
 	public static int creativeScreenPrevRow = 0;
 
 	public static int hotbarRollover = 0;
+	public static boolean preciseScissor = false;
 
 	@Override
 	public void onInitializeClient() {
