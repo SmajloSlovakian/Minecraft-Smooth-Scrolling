@@ -41,6 +41,7 @@ public class ChatHudMixin {
     @Inject(method = "render", at = @At("HEAD"))
     private void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, CallbackInfo ci) {
         if (SmScCfg.chatSmoothness == 0) return;
+        if (SmScCfg.enableMaskDebug) SmoothSc.debugMaskMatrix(context, mouseX, mouseY);
         savedCurrentTick = currentTick;
 
         scrollOffset = (float) (scrollOffset * Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()));
@@ -63,11 +64,12 @@ public class ChatHudMixin {
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 7)
     private int mask(int m, @Local(argsOnly = true) DrawContext context) { // m - the y position of the chat
-        if ((SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) || isChatHidden()) return (m);
+        if ((SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) || isChatHidden()) return m;
 
         var shownLineCount = 0;
         for(int r = 0; r + scrolledLines < visibleMessages.size() && r < getVisibleLineCount(); r++) {
-            if (savedCurrentTick - visibleMessages.get(r).addedTime() < 200 || isChatFocused()) shownLineCount++;
+            if (savedCurrentTick - visibleMessages.get(r).addedTime() < 200 || isChatFocused())
+                shownLineCount++;
         }
         // var targetHeight = getVisibleLineCount() * getLineHeight();
         var targetHeight = shownLineCount * getLineHeight();
@@ -95,9 +97,20 @@ public class ChatHudMixin {
             }
         }
 
-        context.enableScissor(-10, masktop, getWidth() + 999999, maskbottom);
+        //SmoothSc.printt("m", m, maskbottom, maskHeightBuffer, masktop);
+        //SmoothSc.debugMaskMatrix(context, 200, maskbottom);
+        //SmoothSc.debugMaskMatrix(context, 200, masktop);
+        //context.drawHorizontalLine(0, 1000, m, ColorHelper.Argb.getArgb(255, 255, 255, 255));
+        //context.drawHorizontalLine(0, 1000, maskbottom, ColorHelper.Argb.getArgb(255, 255, 255, 255));
+        //context.drawHorizontalLine(0, 1000, masktop, ColorHelper.Argb.getArgb(255, 255, 255, 255));
 
-        return (m);
+        SmoothSc.matrixedScissor(context, -10, masktop, getWidth() + 999999, maskbottom);
+
+        /*SmoothSc.scissorMatrixEnabled = true;
+        context.enableScissor(0, masktop, getWidth() + 999999, maskbottom);
+        SmoothSc.scissorMatrixEnabled = false;/* */
+
+        return m;
     }
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 14)

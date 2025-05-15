@@ -48,18 +48,18 @@ public class CreativeScreenMixin {
         context.drawTexture(RenderLayer::getGuiTextured, selectedTab.getTexture(), posx,
             (int) (posy + SmoothSc.getCreativeDrawOffset() - height * Math.signum(SmoothSc.getCreativeScrollOffset())),
                 u, v, width, height, 256, 256);/* */
-            context.drawTexture(
-                new Identifier("textures/gui/container/creative_inventory/tab_" + selectedTab.getTexture()),
-                posx, posy + SmoothSc.getCreativeDrawOffset(),
-                u, v,
-                width, height,
-                256, 256);
-            context.drawTexture(
-                new Identifier("textures/gui/container/creative_inventory/tab_" + selectedTab.getTexture()),
-                posx, (int) (posy + SmoothSc.getCreativeDrawOffset() - height * Math.signum(SmoothSc.getCreativeScrollOffset())),
-                u, v,
-                width, height,
-                256, 256);
+        context.drawTexture(
+            new Identifier("textures/gui/container/creative_inventory/tab_" + selectedTab.getTexture()),
+            posx, posy + SmoothSc.getCreativeDrawOffset(),
+            u, v,
+            width, height,
+            256, 256);
+        context.drawTexture(
+            new Identifier("textures/gui/container/creative_inventory/tab_" + selectedTab.getTexture()),
+            posx, (int) (posy + SmoothSc.getCreativeDrawOffset() - height * Math.signum(SmoothSc.getCreativeScrollOffset())),
+            u, v,
+            width, height,
+            256, 256);
 
         if (SmScCfg.enableMaskDebug)
             context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.Argb.getArgb(50, 255, 255, 0));

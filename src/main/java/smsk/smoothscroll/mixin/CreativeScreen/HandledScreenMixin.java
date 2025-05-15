@@ -17,8 +17,6 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalDoubleRef;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
@@ -139,7 +137,8 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     @Unique
     private void tryEnableMask(DrawContext context) {
         if (cutEnabled) return;
-        context.enableScissor(8,18,170,106);
+        //context.enableScissor(8, 18, 170, 106);
+        context.enableScissor(0, context.getScaledWindowHeight() / 2 - 50, context.getScaledWindowWidth(), context.getScaledWindowHeight() / 2 + 38);
         context.getMatrices().push();
         context.getMatrices().translate(0, SmoothSc.getCreativeDrawOffset(), 0);
         cutEnabled = true;

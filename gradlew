@@ -114,7 +114,7 @@ esac
 
 CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
 
-
+#echo $JAVA_HOME
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then
     if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
@@ -139,7 +139,8 @@ Please set the JAVA_HOME variable in your environment to match the
 location of your Java installation."
     fi
 fi
-
+echo $JAVACMD
+$JAVACMD --version
 # Increase the maximum file descriptors if we can.
 if ! "$cygwin" && ! "$darwin" && ! "$nonstop" ; then
     case $MAX_FD in #(

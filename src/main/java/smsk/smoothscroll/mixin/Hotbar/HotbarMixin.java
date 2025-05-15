@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
@@ -34,8 +33,10 @@ public class HotbarMixin {
 		Identifier texture = args.get(0);
 		int x = args.get(1);
 		int y = args.get(2);
-		int width = args.get(3);
-		int height = args.get(4);
+		//int u = args.get(3);
+		//int v = args.get(4);
+		int width = args.get(5);
+		int height = args.get(6);
 		PlayerInventory inv = SmoothSc.mc.player.getInventory();
 
 		var target = (inv.selectedSlot - SmoothSc.hotbarRollover * 9) * 20 - SmoothSc.hotbarRollover * rolloverOffset;
