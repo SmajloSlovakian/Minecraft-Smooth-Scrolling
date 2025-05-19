@@ -40,8 +40,8 @@ public class ChatHudMixin {
 
     @Inject(method = "render", at = @At("HEAD"))
     private void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
-        if (SmScCfg.chatSmoothness == 0) return;
         savedCurrentTick = currentTick;
+        if (SmScCfg.chatSmoothness == 0) return;
 
         scrollOffset = (float) (scrollOffset * Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()));
 
@@ -198,6 +198,7 @@ public class ChatHudMixin {
 
     @Unique
     private int getChatScrollOffset() {
+        if (SmScCfg.chatSmoothness == 0) return 0;
         return Math.round(scrollOffset);
     }
 }
