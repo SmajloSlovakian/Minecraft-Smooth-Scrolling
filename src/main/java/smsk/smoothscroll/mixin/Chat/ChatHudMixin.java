@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import org.spongepowered.asm.mixin.injection.At;
@@ -30,7 +31,7 @@ public class ChatHudMixin {
     @Shadow private int scrolledLines;
     @Final @Shadow private List<ChatHudLine.Visible> visibleMessages;
 
-    @Unique private float scrollOffset;
+    @Unique private float scrollOffset; // + while scrolling up
     @Unique private float maskHeightBuffer;
     @Unique private boolean refreshing = false;
     @Unique private int scrollValBefore;
@@ -43,6 +44,7 @@ public class ChatHudMixin {
         savedCurrentTick = currentTick;
         if (SmScCfg.chatSmoothness == 0) return;
 
+        //SmoothSc.print(scrollOffset);
         scrollOffset = (float) (scrollOffset * Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()));
 
         scrollValBefore = scrolledLines;
@@ -50,7 +52,7 @@ public class ChatHudMixin {
         if (scrolledLines < 0) scrolledLines = 0;
     }
 
-    @ModifyArgs(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V", ordinal = 0))
+    @ModifyArgs(method = "render", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;translate(FF)Lorg/joml/Matrix3x2f;", ordinal = 0, remap = false))
     private void matrixTranslateCorrector(Args args) {
         int x = (int) (float) args.get(0) - 4;
         int y = (int) (float) args.get(1);
@@ -96,30 +98,40 @@ public class ChatHudMixin {
         }
 
         SmoothSc.preciseScissor = true;
+        //SmoothSc.print("ES");
+        //context.fill(-10, masktop, getWidth() + 99999, maskbottom, ColorHelper.getArgb(50, 255, 0, 0));
         context.enableScissor(-10, masktop, getWidth() + 999999, maskbottom);
         SmoothSc.preciseScissor = false;
 
-        return (m);
+        return m;
     }
 
-    @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 14)
-    private int opacity(int t) {
-        if (SmScCfg.chatOpeningSmoothness == 0) return (t);
-        return (0);
+    @ModifyVariable(method = "method_71990", at = @At(value = "STORE"), ordinal = 7)
+    private int opacity(int p) {
+        if (SmScCfg.chatOpeningSmoothness == 0) return p;
+        return 0;
     }
 
-    @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 18)
-    private int changePosY(int y) {
-        if (SmScCfg.chatSmoothness == 0) return (y);
-        return (y - getChatDrawOffset());
+    @Inject(method = "render", at = @At(value = "INVOKE", shift = Shift.BEFORE, target = "Lnet/minecraft/client/gui/hud/ChatHud;method_71990(IIZILnet/minecraft/client/gui/hud/ChatHud$class_11511;)I"))
+    private void translateYStart(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
+        if (SmScCfg.chatSmoothness == 0) return;
+        context.getMatrices().pushMatrix();
+        context.getMatrices().translate(0, -getChatDrawOffset());
     }
 
-    @ModifyVariable(method = "render", at = @At("STORE"))
-    private long demask(long a, @Local(argsOnly = true) DrawContext context) { // after the cycle
-        if ((SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) || this.isChatHidden()) return (a);
+    @Inject(method = "render", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/hud/ChatHud;method_71990(IIZILnet/minecraft/client/gui/hud/ChatHud$class_11511;)I"))
+    private void translateYEnd(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
+        if (SmScCfg.chatSmoothness == 0) return;
+        context.getMatrices().popMatrix();
+    }
+
+    @Inject(method = "render", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/hud/ChatHud;method_71990(IIZILnet/minecraft/client/gui/hud/ChatHud$class_11511;)I", ordinal = 1))
+    private void demask(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) { // after the cycle
+        if ((SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) || this.isChatHidden()) return;
         if (SmScCfg.enableMaskDebug) context.fill(-10000, -10000, 10000, 10000, ColorHelper.getArgb(50, 255, 0, 255));
         context.disableScissor();
-        return (a);
+        //SmoothSc.print("DS");
+        return;
     }
 
     @Inject(method = "render", at = @At("TAIL"))
@@ -130,9 +142,9 @@ public class ChatHudMixin {
 
     @ModifyVariable(method = "addVisibleMessage", at = @At("STORE"), ordinal = 0)
     private List<OrderedText> onNewMessage(List<OrderedText> ot) {
-        if (refreshing) return (ot);
+        if (refreshing) return ot;
         scrollOffset -= ot.size() * getLineHeight();
-        return (ot);
+        return ot;
     }
 
     @Inject(method = "scroll", at = @At("HEAD"))
@@ -155,16 +167,32 @@ public class ChatHudMixin {
         scrollOffset += (scrolledLines - scrollValBefore) * getLineHeight();
     }
 
-    @ModifyVariable(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;getLineHeight()I"), ordinal = 3)
+    @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 3)
     private int addLinesAbove(int i) {
-        if (SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) return (i);
-        return ((int) Math.ceil(Math.round(maskHeightBuffer) / (float) getLineHeight()) + (getChatScrollOffset() < 0 ? 1 : 0));
+        if (SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) return i;
+        //SmoothSc.printt("i", (int) Math.ceil(Math.round(maskHeightBuffer) / (float) getLineHeight()) + (getChatScrollOffset() != 0 ? 1 : 0), visibleMessages.size(), scrolledLines);
+        return (int) Math.ceil(Math.round(maskHeightBuffer) / (float) getLineHeight()) + (getChatScrollOffset() < 0 ? 1 : 0); // 21 100 80, 20 100 80
     }
 
-    @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 12)
-    private int addLinesUnder(int r) {
-        if (scrolledLines == 0 || SmScCfg.chatSmoothness == 0 || getChatScrollOffset() <= 0) return (r);
-        return (r - 1);
+    @ModifyVariable(method = "method_71990", at = @At(value = "STORE"), ordinal = 5)
+    private int addLinesUnder0(int n) {
+        if (scrolledLines == 0 || SmScCfg.chatSmoothness == 0 || getChatScrollOffset() <= 0) return n;
+        //SmoothSc.print("Undering");
+        return n + 1;
+    }
+    @ModifyVariable(method = "method_71990", at = @At(value = "STORE"), ordinal = 6)
+    private int addLinesUnder1(int o) {
+        if (scrolledLines == 0 || SmScCfg.chatSmoothness == 0 || getChatScrollOffset() <= 0) return o;
+        //SmoothSc.print("Undering");
+        return o - 1;
+    }
+
+    @ModifyArgs(method = "method_71990", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud$class_11511;accept(IIILnet/minecraft/client/gui/hud/ChatHudLine$Visible;IF)V"))
+    private void addLinesUnder2(Args args, @Local(ordinal = 3) int l) {
+        if (scrolledLines == 0 || SmScCfg.chatSmoothness == 0 || getChatScrollOffset() <= 0) return;
+        args.set(1, (int)args.get(1) + l);
+        args.set(2, (int)args.get(2) + l);
+        args.set(4, (int)args.get(4) + 1);
     }
 
     @Inject(method = "refresh", at = @At("HEAD"))
@@ -174,22 +202,22 @@ public class ChatHudMixin {
     private void refreshT(CallbackInfo ci) {refreshing = false;}
 
     @Shadow
-    private int getLineHeight() {return (0);}
+    private int getLineHeight() {return 0;}
 
     @Shadow
-    public double getChatScale() {return (0);}
+    public double getChatScale() {return 0;}
 
     @Shadow
-    public int getWidth() {return (0);}
+    public int getWidth() {return 0;}
     
     @Shadow
-    public int getVisibleLineCount() {return (0);}
+    public int getVisibleLineCount() {return 0;}
 
     @Shadow
-    private boolean isChatHidden() {return (false);}
+    private boolean isChatHidden() {return false;}
 
     @Shadow
-    public boolean isChatFocused() {return (false);}
+    public boolean isChatFocused() {return false;}
 
     @Unique
     private int getChatDrawOffset() {

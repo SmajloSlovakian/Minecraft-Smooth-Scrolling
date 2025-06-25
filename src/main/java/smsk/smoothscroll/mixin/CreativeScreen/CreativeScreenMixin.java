@@ -7,9 +7,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.SmoothSc;
@@ -26,7 +26,7 @@ public class CreativeScreenMixin {
         SmoothSc.creativeScreenScrollOffset = 0;
     }
 
-    @Inject(method = "drawBackground", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Ljava/util/function/Function;Lnet/minecraft/util/Identifier;IIFFIIII)V"))
+    @Inject(method = "drawBackground", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/util/Identifier;IIFFIIII)V"))
     private void drawBackground(DrawContext context, float delta, int mouseX, int mouseY, CallbackInfo ci) {
         if (SmoothSc.getCreativeScrollOffset() == 0 || SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeSH == null) return;
 
@@ -41,10 +41,10 @@ public class CreativeScreenMixin {
         //context.drawText(SmoothSc.mc.textRenderer, mouseX + " - " + mouseY, 10, 10, ColorHelper.getArgb(255, 0, 255, 255), true);
         //context.fill(0, 0, 1920, 1080, ColorHelper.getArgb(50, 255, 128, 0));
         context.enableScissor(posx, posy + 1, posx + width, posy + height - 1);
-        context.drawTexture(RenderLayer::getGuiTextured, selectedTab.getTexture(), posx, 
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, selectedTab.getTexture(), posx, 
             posy + SmoothSc.getCreativeDrawOffset(),
                 u, v, width, height, 256, 256);
-        context.drawTexture(RenderLayer::getGuiTextured, selectedTab.getTexture(), posx,
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, selectedTab.getTexture(), posx,
             (int) (posy + SmoothSc.getCreativeDrawOffset() - height * Math.signum(SmoothSc.getCreativeScrollOffset())),
                 u, v, width, height, 256, 256);
 

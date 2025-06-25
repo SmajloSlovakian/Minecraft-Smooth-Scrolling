@@ -44,4 +44,9 @@ public class CustomTab implements Tab {
      */
     @Override
     public void refreshGrid(ScreenRect tabArea) {}
+
+    @Override
+    public Text getNarratedHint() {
+        return Text.literal("Custom Tab Smooth Scrolling Settings");
+    }
 }

@@ -3,15 +3,14 @@ package smsk.smoothscroll;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeScreenHandler;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 
-import org.joml.Vector3f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,9 +84,10 @@ public class SmoothSc implements ClientModInitializer {
     }
 	
 	public static void drawHotbarRolloverMirror(DrawContext context, Identifier texture, int x, int hotbarWidth, int offset, int y, int width, int height) {
-		context.drawGuiTexture(RenderLayer::getGuiTextured, texture, x + hotbarWidth + offset, y, width, height);
+		context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, x + hotbarWidth + offset, y, width, height);
 	}
+	/*
 	public static Vector3f getMatrixTranslate(DrawContext context) {
 		return context.getMatrices().peek().getPositionMatrix().getTranslation(new Vector3f(0,0,0));
-	}
+	}/* */
 }

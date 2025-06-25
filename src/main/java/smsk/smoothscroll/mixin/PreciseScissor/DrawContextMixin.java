@@ -11,7 +11,7 @@ import smsk.smoothscroll.SmoothSc;
 @Mixin(DrawContext.class)
 public class DrawContextMixin {
     
-    @Redirect(method = "setScissor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getScaleFactor()D"))
+    //@Redirect(method = "setScissor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getScaleFactor()D"))
     private double windowScale(Window w) {
         if (!SmoothSc.preciseScissor) return w.getScaleFactor();
         return 1;

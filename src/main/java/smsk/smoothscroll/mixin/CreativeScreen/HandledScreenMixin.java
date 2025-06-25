@@ -38,8 +38,8 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     @Unique private int originalCursorY;
     @Unique private boolean drawingOverdrawnSlot = false;
 
-    @Inject(method = "render", at = @At("HEAD"))
-    private void render(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+    @Inject(method = "renderMain", at = @At("HEAD"))
+    private void renderMainH(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         this.originalCursorY = my;
         if (SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeSH == null || SmoothSc.getCreativeScrollOffset() == 0) return;
@@ -56,8 +56,8 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
 		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/item_count", SmoothSc.creativeScreenItemCount);
     }
 
-    @Inject(method = "render", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
-    private void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
+    @Inject(method = "renderMain", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;translate(FF)Lorg/joml/Matrix3x2f;", remap = false))
+    private void renderMain0(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         if (SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.getCreativeScrollOffset() == 0) return;
         if(isInBounds(mx, originalCursorY))
@@ -94,7 +94,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     }
 
     @SuppressWarnings("rawtypes")
-    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlotHighlightBack(Lnet/minecraft/client/gui/DrawContext;)V"))
+    @WrapOperation(method = "renderMain", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlotHighlightBack(Lnet/minecraft/client/gui/DrawContext;)V"))
     private void highlightBack(HandledScreen hs, DrawContext context, Operation<Void> original, @Local(argsOnly = true, ordinal = 0) LocalIntRef mouseX) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) {original.call(hs, context); return;}
         if (SmoothSc.getCreativeScrollOffset() == 0 || !isInBounds(mouseX.get(), originalCursorY)) {original.call(hs, context); return;}
@@ -103,15 +103,15 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         tryDisableMask(context);
     }
 
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlots(Lnet/minecraft/client/gui/DrawContext;)V"))
-    private void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+    @Inject(method = "renderMain", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlots(Lnet/minecraft/client/gui/DrawContext;)V"))
+    private void renderMain1(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         if (SmoothSc.getCreativeScrollOffset() == 0) return;
         tryEnableMask(context);
     }
 
     @SuppressWarnings("rawtypes")
-    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlotHighlightFront(Lnet/minecraft/client/gui/DrawContext;)V"))
+    @WrapOperation(method = "renderMain", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlotHighlightFront(Lnet/minecraft/client/gui/DrawContext;)V"))
     private void highlightFront(HandledScreen hs, DrawContext context, Operation<Void> original, @Local(argsOnly = true, ordinal = 0) LocalIntRef mouseX, @Local(argsOnly = true, ordinal = 1) LocalIntRef mouseY) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) {original.call(hs, context); return;}
         if (SmoothSc.getCreativeScrollOffset() == 0 || !isInBounds(mouseX.get(), originalCursorY)) {original.call(hs, context); return;}
@@ -121,8 +121,8 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         mouseY.set(originalCursorY);
     }
 
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(Lnet/minecraft/client/gui/DrawContext;II)V"))
-    private void renderMid2(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
+    @Inject(method = "renderMain", at = @At(value = "TAIL"))
+    private void renderMainT(DrawContext context, int mx, int my, float d, CallbackInfo ci, @Local(ordinal = 1, argsOnly = true) LocalIntRef mouseY) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         tryDisableMask(context);
         mouseY.set(originalCursorY);
@@ -139,8 +139,8 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     private void tryEnableMask(DrawContext context) {
         if (cutEnabled) return;
         context.enableScissor(8,18,170,106);
-        context.getMatrices().push();
-        context.getMatrices().translate(0, SmoothSc.getCreativeDrawOffset(), 0);
+        context.getMatrices().pushMatrix();
+        context.getMatrices().translate(0, SmoothSc.getCreativeDrawOffset());
         cutEnabled = true;
     }
 
@@ -150,7 +150,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         if (SmScCfg.enableMaskDebug)
             context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 0, 255, 255));
         context.disableScissor();
-        context.getMatrices().pop();
+        context.getMatrices().popMatrix();
         cutEnabled = false;
     }
     @Unique
