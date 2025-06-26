@@ -25,6 +25,7 @@ public class HandledScreenMixin {
 
     @Inject(method = "render", at = @At("HEAD"))
     void render(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         savedContext = context;
         originalCursorY = my;
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeSH == null) return;
@@ -43,6 +44,7 @@ public class HandledScreenMixin {
 
     @Inject(method = "render", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"))
     void renderMid0(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount <= 0 || SmoothSc.getCreativeScrollOffset() == 0) return;
         context.enableScissor(0, context.getScaledWindowHeight() / 2 - 50, context.getScaledWindowWidth(), context.getScaledWindowHeight() / 2 + 38);
         cutEnabled = true;
@@ -60,6 +62,7 @@ public class HandledScreenMixin {
 
     @ModifyVariable(method = "drawSlot", at = @At(value = "STORE"), ordinal = 1)
     int drawItemY(int y) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return y;
         SmoothSc.creativeScreenItemCount -= 1;
         if (SmoothSc.creativeScreenItemCount < 0) tryDisableMask(savedContext);
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return (y);
@@ -68,12 +71,14 @@ public class HandledScreenMixin {
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"),ordinal = 6)
     int drawHighlightY(int y) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return y;
         if (Config.cfg.creativeScreenSpeed == 0 || SmoothSc.creativeScreenItemCount < 0) return (y);
         return (y + SmoothSc.getCreativeDrawOffset());
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawForeground(Lnet/minecraft/client/gui/DrawContext;II)V"))
     void renderMid1(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return;
         tryDisableMask(context);
     }
 
@@ -86,6 +91,7 @@ public class HandledScreenMixin {
     }
     @ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;isPointOverSlot(Lnet/minecraft/screen/slot/Slot;DD)Z"), index = 2)
     double modifyCursorPosY(double my) {
+        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching) return my;
         if(!cutEnabled || originalCursorY < savedContext.getScaledWindowHeight() / 2 - 51 || originalCursorY > savedContext.getScaledWindowHeight() / 2 + 38) return my;
         return originalCursorY - SmoothSc.getCreativeDrawOffset();
     }
