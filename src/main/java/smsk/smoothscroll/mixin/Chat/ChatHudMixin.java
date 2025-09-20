@@ -64,12 +64,12 @@ public class ChatHudMixin {
     }
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 7)
-    private int mask(int m, @Local(argsOnly = true) DrawContext context) { // m - the y position of the chat
+    private int mask(int m, @Local(argsOnly = true) DrawContext context, @Local(argsOnly = true) boolean focused) { // m - the y position of the chat
         if ((SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) || isChatHidden()) return (m);
 
         var shownLineCount = 0;
         for(int r = 0; r + scrolledLines < visibleMessages.size() && r < getVisibleLineCount(); r++) {
-            if (savedCurrentTick - visibleMessages.get(r).addedTime() < 200 || isChatFocused()) shownLineCount++;
+            if (savedCurrentTick - visibleMessages.get(r).addedTime() < 200 || focused) shownLineCount++;
         }
         // var targetHeight = getVisibleLineCount() * getLineHeight();
         var targetHeight = shownLineCount * getLineHeight();
