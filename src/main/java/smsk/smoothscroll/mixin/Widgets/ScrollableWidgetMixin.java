@@ -1,4 +1,4 @@
-package smsk.smoothscroll.mixin;
+package smsk.smoothscroll.mixin.Widgets;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.dialog.DialogScreen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.ScrollableWidget;
@@ -25,10 +26,11 @@ public class ScrollableWidgetMixin extends ClickableWidget{
 
     @Unique private double prevScrollVal;
     @Unique private boolean updateScActive = false; // this makes the mod know, when things aren't working as expected and lets the user scroll non-smoothly
+    @Unique private boolean noSetScrollT = false;
 
     @Inject(method = "setScrollY", at = @At("TAIL"))
     private void setScrollT(double s, CallbackInfo ci) {
-        if (mousescrolling) return;
+        if (mousescrolling || noSetScrollT) return;
         targetScroll = scrollY;
         scrollAmountBuffer = scrollY;
     }
@@ -40,6 +42,15 @@ public class ScrollableWidgetMixin extends ClickableWidget{
 
         scrollAmountBuffer = (scrollAmountBuffer - targetScroll) * Math.pow(SmScCfg.entryListSmoothness, SmoothSc.getLastFrameDuration()) + targetScroll;
         scrollY = Math.round(scrollAmountBuffer);
+
+        //SmoothSc.print(SmoothSc.mc.currentScreen.getClass().getName());
+        if (SmoothSc.mc.currentScreen instanceof DialogScreen ds) {
+            noSetScrollT = true;
+            ((DialogScreenAccessor) ds).refreshScroll();
+            noSetScrollT = false;
+            //((ThreePartsLayoutWidgetAccessor) ((DialogScreenAccessor) ds).getLayout()).getBody().refreshPositions();
+            //((DialogScreenAccessor) ds).getContents().refreshPositions();
+        }
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), require = 0)

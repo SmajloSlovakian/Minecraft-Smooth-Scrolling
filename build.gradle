@@ -45,6 +45,7 @@ dependencies {
 }
 
 loom {
+	accessWidenerPath = file("src/main/resources/${project.archives_base_name}.accesswidener")
 	runs {
 		// Loom Run for using Mixin Debugging with export and HotSwapping capability
 		it.create("clientMixinDebug", {

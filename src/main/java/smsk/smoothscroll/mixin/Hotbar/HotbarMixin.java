@@ -22,10 +22,10 @@ import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.SmoothSc;
 import smsk.smoothscroll.cfg.SmScCfg;
 
-/**
+/*
  * Priority
  * <1000: if bedrockify applies its mixin before smoothsc, modifyarg crashes
- * <-999999999: to apply patches before raised mod (to raised mod)
+ * >-999999999: to apply wrapoperation after raised mod (fix for the underside of raised hotbar selector with "PATCH" option)
  */
 
 @Mixin(value = InGameHud.class, priority = 999)

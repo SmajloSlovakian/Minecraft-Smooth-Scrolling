@@ -15,9 +15,10 @@
 		"CreativeScreen.HandledScreenMixin",
 		"CreativeScreen.MinecraftClientMixin",
 		"CreativeScreen.CreativeScreenHandlerAccessor",
-		"ScrollableWidgetMixin",
 		"PreciseScissor.DrawContextMixin",
-		"PreciseScissor.ScreenRectMixin"
+		"PreciseScissor.ScreenRectMixin",
+		"Widgets.ScrollableWidgetMixin",
+		"Widgets.DialogScreenAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
