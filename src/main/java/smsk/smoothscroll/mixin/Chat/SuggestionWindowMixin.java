@@ -1,9 +1,11 @@
 package smsk.smoothscroll.mixin.Chat;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,10 +14,14 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.brigadier.suggestion.Suggestion;
 
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.ChatInputSuggestor.SuggestionWindow;
 import net.minecraft.client.util.math.Rect2i;
 import net.minecraft.util.math.ColorHelper;
@@ -29,21 +35,31 @@ public class SuggestionWindowMixin {
     @Final @Shadow private List<Suggestion> suggestions;
     @Final @Shadow private Rect2i area;
 
-    @Unique private int indexBefore;
-    @Unique private float scrollPixelOffset;
-    @Unique private int targetIndex;
+    @Unique private int lineHeight = 12;
+    @Unique private int maxLinesShown = 10;
+
+    @Unique private float currentIndex = inWindowIndex;
+    @Unique private int targetIndex = inWindowIndex;
     @Unique private boolean translated = false;
 
-    @Inject(method = "render", at = @At("HEAD"))
-    private void renderH(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
-        if(SmScCfg.chatSmoothness == 0) return;
-        scrollPixelOffset = (float) (scrollPixelOffset * Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()));
-        inWindowIndex = SmoothSc.clamp(targetIndex - getScrollOffset() / 12, 0, suggestions.size() - 10); // the clamp is here as a workaround to a crash
+    @WrapMethod(method = "render")
+    private void renderH(DrawContext context, int mouseX, int mouseY, Operation<Void> operation) {
+        if (SmScCfg.chatSmoothness == 0) {
+            operation.call(context, mouseX, mouseY);
+            return;
+        }
+
+        currentIndex = (currentIndex - targetIndex) * (float) Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()) + targetIndex;
+        inWindowIndex = (int) Math.floor(currentIndex);
+
+        operation.call(context, mouseX, mouseY - getDrawOffset());
+        
+        tryUnTextPosY(context);
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Ljava/util/List;get(I)Ljava/lang/Object;", ordinal = 0))
     private void textPosY(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
-        if(SmScCfg.chatSmoothness == 0) return;
+        if (SmScCfg.chatSmoothness == 0) return;
         if (translated) return;
         context.enableScissor(0, area.getY(), context.getScaledWindowWidth(), area.getY() + area.getHeight());
         context.getMatrices().pushMatrix();
@@ -54,12 +70,6 @@ public class SuggestionWindowMixin {
     private Message unTextPosY(Message a, @Local DrawContext context) {
         tryUnTextPosY(context);
         return a;
-    }
-    @Inject(method = "render", at = @At("TAIL"))
-    private void renderT(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
-        tryUnTextPosY(context);
-        if(SmScCfg.chatSmoothness == 0) return;
-        inWindowIndex = targetIndex;
     }
 
     private void tryUnTextPosY(DrawContext context) {
@@ -73,48 +83,43 @@ public class SuggestionWindowMixin {
     }
 
 
-    @Inject(method = "mouseScrolled", at = @At("HEAD"))
-    private void mScrollH(double am, CallbackInfoReturnable<Boolean> ci) {commonSH();}
-    @Inject(method = "mouseScrolled", at = @At("RETURN"))
-    private void mScrollT(double am, CallbackInfoReturnable<Boolean> ci) {commonST();}
-    @Inject(method = "scroll", at = @At("HEAD"))
-    private void scrollH(int off, CallbackInfo ci) {commonSH();}
-    @Inject(method = "scroll", at = @At("TAIL"))
-    private void scrollT(int off, CallbackInfo ci) {commonST();}
-
-    @Unique
-    private void commonSH(){
-        if(SmScCfg.chatSmoothness == 0) return;
-        indexBefore = inWindowIndex;
+    @WrapMethod(method = "mouseScrolled")
+    private boolean mScrollH(double am, Operation<Boolean> operation) {
+        return commonScrollWrap(() -> {
+            return operation.call(am);
+        });
+    }
+    @WrapMethod(method = "scroll")
+    private void scrollT(int off, Operation<Void> operation) {
+        commonScrollWrap(() -> {
+            operation.call(off);
+            return null;
+        });
     }
 
     @Unique
-    private void commonST(){
-        if(SmScCfg.chatSmoothness == 0) return;
-        scrollPixelOffset += (inWindowIndex - indexBefore) * 12;
+    private <T> T commonScrollWrap(Supplier<T> operation){
+        if (SmScCfg.chatSmoothness == 0) return operation.get();
+
+        var indexBefore = inWindowIndex;
+        inWindowIndex = targetIndex;
+
+        var ret = operation.get();
+        
         targetIndex = inWindowIndex;
         inWindowIndex = indexBefore;
-    }
-
-    @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 4)
-    private int addLineAbove(int r) { // this function gets called three times for just one line for some reason
-        if (SmScCfg.chatSmoothness == 0 || getScrollOffset() <= 0 || inWindowIndex <= 0) return (r);
-        return (r - 1);
+        
+        return ret;
     }
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 2)
     private int addLineUnder(int i) {
-        if (SmScCfg.chatSmoothness == 0 || getScrollOffset() >= 0 || inWindowIndex >= suggestions.size() - 10) return (i);
-        return (i + 1);
+        if (SmScCfg.chatSmoothness == 0 || getDrawOffset() == 0) return i;
+        return i + 1;
     }
 
     @Unique
     private int getDrawOffset() {
-        return Math.round(scrollPixelOffset) - (Math.round(scrollPixelOffset) / 12 * 12);
-    }
-
-    @Unique
-    private int getScrollOffset() {
-        return Math.round(scrollPixelOffset);
+        return (int) Math.floor((inWindowIndex - currentIndex) * lineHeight);
     }
 }
