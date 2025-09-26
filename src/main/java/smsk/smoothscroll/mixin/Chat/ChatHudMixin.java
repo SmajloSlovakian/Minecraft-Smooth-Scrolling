@@ -25,6 +25,7 @@ import net.minecraft.util.math.Vec2f;
 import smsk.smoothscroll.SmoothSc;
 import smsk.smoothscroll.cfg.SmScCfg;
 
+//TODO rework chat smooth scrolling to use targetPosition
 @Mixin(value = ChatHud.class, priority = 1001) // i want mods to modify the chat position before, so i get to know where they put it
 public class ChatHudMixin {
 
