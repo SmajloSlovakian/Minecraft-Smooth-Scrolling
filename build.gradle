@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.7-SNAPSHOT'
+	id 'fabric-loom' version '1.11-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -46,33 +46,6 @@ dependencies {
 
 loom {
 	accessWidenerPath = file("src/main/resources/${project.archives_base_name}.accesswidener")
-	runs {
-		// Loom Run for using Mixin Debugging with export and HotSwapping capability
-		it.create("clientMixinDebug", {
-			client()
-			runDir "run"
-			name "Minecraft Client [Mixin Debug]"
-
-			vmArg "-Dfabric.dli.config=${file(".gradle/loom-cache/launch.cfg").toString()}"
-			vmArg "-Dfabric.dli.env=client"
-			vmArg "-Dfabric.dli.main=net.fabricmc.loader.impl.launch.knot.KnotClient"
-
-			Object runConfig = it
-
-			project.afterEvaluate {
-				project.configurations.compileClasspath
-						.getAllDependencies()
-						.findAll { Dependency test -> test.getName() == "sponge-mixin" }
-						.iterator().forEachRemaining {runConfig.vmArg "-javaagent:\"${(project.configurations.compileClasspath.files(it).iterator().next().getPath())}\"" }
-			}
-
-			vmArg "-Dlog4j.configurationFile=${file(".gradle/loom-cache/log4j.xml").toString()}"
-			vmArg "-Dfabric.log.disableAnsi=false"
-			vmArg "-Dmixin.debug.export=true"
-
-			ideConfigGenerated = true
-		})
-	}
 }
 
 processResources {

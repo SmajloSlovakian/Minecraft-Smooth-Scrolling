@@ -107,26 +107,26 @@ public class ChatHudMixin {
         return m;
     }
 
-    @ModifyVariable(method = "method_71990", at = @At(value = "STORE"), ordinal = 7)
+    @ModifyVariable(method = "forEachVisibleLine", at = @At(value = "STORE"), ordinal = 7)
     private int opacity(int p) {
         if (SmScCfg.chatOpeningSmoothness == 0) return p;
         return 0;
     }
 
-    @Inject(method = "render", at = @At(value = "INVOKE", shift = Shift.BEFORE, target = "Lnet/minecraft/client/gui/hud/ChatHud;method_71990(IIZILnet/minecraft/client/gui/hud/ChatHud$class_11511;)I"))
+    @Inject(method = "render", at = @At(value = "INVOKE", shift = Shift.BEFORE, target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(IIZILnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I"))
     private void translateYStart(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
         if (SmScCfg.chatSmoothness == 0) return;
         context.getMatrices().pushMatrix();
         context.getMatrices().translate(0, -getChatDrawOffset());
     }
 
-    @Inject(method = "render", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/hud/ChatHud;method_71990(IIZILnet/minecraft/client/gui/hud/ChatHud$class_11511;)I"))
+    @Inject(method = "render", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(IIZILnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I"))
     private void translateYEnd(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
         if (SmScCfg.chatSmoothness == 0) return;
         context.getMatrices().popMatrix();
     }
 
-    @Inject(method = "render", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/hud/ChatHud;method_71990(IIZILnet/minecraft/client/gui/hud/ChatHud$class_11511;)I", ordinal = 1))
+    @Inject(method = "render", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(IIZILnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I", ordinal = 1))
     private void demask(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) { // after the cycle
         if ((SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) || this.isChatHidden()) return;
         if (SmScCfg.enableMaskDebug) context.fill(-10000, -10000, 10000, 10000, ColorHelper.getArgb(50, 255, 0, 255));
@@ -175,20 +175,20 @@ public class ChatHudMixin {
         return (int) Math.ceil(Math.round(maskHeightBuffer) / (float) getLineHeight()) + (getChatScrollOffset() < 0 ? 1 : 0); // 21 100 80, 20 100 80
     }
 
-    @ModifyVariable(method = "method_71990", at = @At(value = "STORE"), ordinal = 5)
+    @ModifyVariable(method = "forEachVisibleLine", at = @At(value = "STORE"), ordinal = 5)
     private int addLinesUnder0(int n) {
         if (scrolledLines == 0 || SmScCfg.chatSmoothness == 0 || getChatScrollOffset() <= 0) return n;
         //SmoothSc.print("Undering");
         return n + 1;
     }
-    @ModifyVariable(method = "method_71990", at = @At(value = "STORE"), ordinal = 6)
+    @ModifyVariable(method = "forEachVisibleLine", at = @At(value = "STORE"), ordinal = 6)
     private int addLinesUnder1(int o) {
         if (scrolledLines == 0 || SmScCfg.chatSmoothness == 0 || getChatScrollOffset() <= 0) return o;
         //SmoothSc.print("Undering");
         return o - 1;
     }
 
-    @ModifyArgs(method = "method_71990", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud$class_11511;accept(IIILnet/minecraft/client/gui/hud/ChatHudLine$Visible;IF)V"))
+    @ModifyArgs(method = "forEachVisibleLine", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud$LineConsumer;accept(IIILnet/minecraft/client/gui/hud/ChatHudLine$Visible;IF)V"))
     private void addLinesUnder2(Args args, @Local(ordinal = 3) int l) {
         if (scrolledLines == 0 || SmScCfg.chatSmoothness == 0 || getChatScrollOffset() <= 0) return;
         args.set(1, (int)args.get(1) + l);

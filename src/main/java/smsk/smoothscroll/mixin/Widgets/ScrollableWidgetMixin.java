@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.dialog.DialogScreen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.ScrollableWidget;
@@ -36,21 +35,17 @@ public class ScrollableWidgetMixin extends ClickableWidget{
     }
 
     @Inject(method = "drawScrollbar", at = @At("HEAD"), require = 0)
-    private void updateScroll(DrawContext dc, CallbackInfo ci) {
+    private void updateScroll(DrawContext dc, int mx, int my, CallbackInfo ci) {
         if (SmScCfg.entryListSmoothness == 0) return;
         updateScActive = true;
 
         scrollAmountBuffer = (scrollAmountBuffer - targetScroll) * Math.pow(SmScCfg.entryListSmoothness, SmoothSc.getLastFrameDuration()) + targetScroll;
         scrollY = Math.round(scrollAmountBuffer);
 
-        //SmoothSc.print(SmoothSc.mc.currentScreen.getClass().getName());
-        if (SmoothSc.mc.currentScreen instanceof DialogScreen ds) {
-            noSetScrollT = true;
-            ((DialogScreenAccessor) ds).refreshScroll();
-            noSetScrollT = false;
-            //((ThreePartsLayoutWidgetAccessor) ((DialogScreenAccessor) ds).getLayout()).getBody().refreshPositions();
-            //((DialogScreenAccessor) ds).getContents().refreshPositions();
-        }
+        // TODO not so pretty workaround, have to fix later
+        noSetScrollT = true;
+        setScrollY(scrollY);
+        noSetScrollT = false;
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), require = 0)
