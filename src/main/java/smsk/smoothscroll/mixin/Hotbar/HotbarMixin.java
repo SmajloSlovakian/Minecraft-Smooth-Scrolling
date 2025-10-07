@@ -40,7 +40,10 @@ public class HotbarMixin {
 
 	@WrapOperation(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
 	private void moveSelector(DrawContext context, RenderPipeline pipeline, Identifier texture, int x, int y, int width, int height, Operation<Void> operation) {
-		if (SmScCfg.hotbarSmoothness == 0) return;
+		if (SmScCfg.hotbarSmoothness == 0) {
+			operation.call(context, pipeline, texture, x, y, width, height);
+			return;
+		}
 		PlayerInventory inv = SmoothSc.mc.player.getInventory();
 
 		var hotbarStart = x - inv.getSelectedSlot() * slotWidth;
