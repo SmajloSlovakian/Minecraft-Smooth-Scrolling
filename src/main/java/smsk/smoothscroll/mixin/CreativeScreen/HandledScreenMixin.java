@@ -44,12 +44,6 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         this.originalCursorY = my;
         if (SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeSH == null || SmoothSc.getCreativeScrollOffset() == 0) return;
 
-        SmoothSc.creativeScreenScrollOffset = (float) ((SmoothSc.creativeScreenScrollOffset) * Math.pow(SmScCfg.creativeScreenSmoothness, SmoothSc.getLastFrameDuration()));
-
-        SmoothSc.creativeScreenScrollMixin = false;
-        SmoothSc.creativeSH.scrollItems(((CreativeScreenHandlerAccessor) SmoothSc.creativeSH)
-                .getPos(SmoothSc.creativeScreenPrevRow - SmoothSc.getCreativeScrollOffset() / 18));
-        SmoothSc.creativeScreenScrollMixin = true;
 
         // this shares the y offset of the items in the creative inventory i want other mods to follow for better compatibility
 		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/y_offset", SmoothSc.getCreativeDrawOffset());
