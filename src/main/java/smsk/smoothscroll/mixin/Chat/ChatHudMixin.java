@@ -2,198 +2,162 @@ package smsk.smoothscroll.mixin.Chat;
 
 import java.util.List;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 
+import org.joml.Matrix3x2f;
+import org.joml.Matrix3x2fStack;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArgs;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.At.Shift;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Coerce;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.ChatHudLine;
+import net.minecraft.client.util.math.Vector2f;
 import net.minecraft.text.OrderedText;
 import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.Vec2f;
 import smsk.smoothscroll.SmoothSc;
 import smsk.smoothscroll.cfg.SmScCfg;
 
-//TODO rework chat smooth scrolling to use targetPosition
+// TODO optimize: don't calculate much stuff when config set to zero
 @Mixin(value = ChatHud.class, priority = 1001) // i want mods to modify the chat position before, so i get to know where they put it
 public class ChatHudMixin {
 
     @Shadow private int scrolledLines;
     @Final @Shadow private List<ChatHudLine.Visible> visibleMessages;
 
-    @Unique private float scrollOffset; // + while scrolling up
-    @Unique private float maskHeightBuffer;
+    @Unique private float smoothScrollPos = scrolledLines;
+    @Unique private float targetScrollPos = scrolledLines;
+    @Unique private float smoothMaskHeight = 0;
+    @Unique private float targetMaskHeight = 0;
+    @Unique private Vector2f smoothMtxTrans = null;
+    @Unique private boolean translated = false;
     @Unique private boolean refreshing = false;
-    @Unique private int scrollValBefore;
-    @Unique private int savedCurrentTick;
-    @Unique private Vec2f mtc = new Vec2f(0, 0); // smoothly moves matrix translation from beginning of render()
-    @Unique private int shownLineCount;
 
-    @Inject(method = "render", at = @At("HEAD"))
-    private void renderH(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
-        savedCurrentTick = currentTick;
-        if (SmScCfg.chatSmoothness == 0) return;
+    @WrapMethod(method = "render")
+    private void renderWrap(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, Operation<Void> operation) {
+        smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
-        //SmoothSc.print(scrollOffset);
-        scrollOffset = (float) (scrollOffset * Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()));
-
-        scrollValBefore = scrolledLines;
-        scrolledLines -= getChatScrollOffset() / getLineHeight();
-        if (scrolledLines < 0) scrolledLines = 0;
-    }
-
-    @ModifyArgs(method = "render", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;translate(FF)Lorg/joml/Matrix3x2f;", ordinal = 0, remap = false))
-    private void matrixTranslateCorrector(Args args) {
-        int x = (int) (float) args.get(0) - 4;
-        int y = (int) (float) args.get(1);
-
-        var newY = (float) ((mtc.y - y) * Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + y);
-
-        args.set(1, (float) Math.round(newY));
-        mtc = new Vec2f(x, newY);
-    }
-
-    @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 7)
-    private int mask(int m, @Local(argsOnly = true) DrawContext context, @Local(argsOnly = true) boolean focused) { // m - the y position of the chat
-        if ((SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) || isChatHidden()) return (m);
-
+        // snap on less than half a pixel difference
+        if (Math.abs(smoothScrollPos - targetScrollPos) < 1f / getLineHeight() / 2)
+            smoothScrollPos = targetScrollPos;
+        
+        scrolledLines = (int) Math.floor(smoothScrollPos);
+        
+        // mask height
         var shownLineCount = 0;
         for(int r = 0; r + scrolledLines < visibleMessages.size() && r < getVisibleLineCount(); r++) {
-            if (savedCurrentTick - visibleMessages.get(r).addedTime() < 200 || focused) shownLineCount++;
+            if (currentTick - visibleMessages.get(r).addedTime() < 200 || focused) shownLineCount++;
         }
-        // var targetHeight = getVisibleLineCount() * getLineHeight();
-        var targetHeight = shownLineCount * getLineHeight();
 
-        // mask doesn't really match the smooth scrolling with the first few messages
-        // i really don't know the root cause currently
-        // cause: targetHeight matches the interpolated scroll value for some reason
-        //     when the shownlinecount is equal to the size of visible messages
-        //     so the mask falls behind sometimes
-        // not working great workaround:
-        // if (shownLineCount == visibleMessages.size()) maskHeightBuffer = targetHeight;
-        // else {
-        maskHeightBuffer = (float) ((maskHeightBuffer - targetHeight) * Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + targetHeight);
+        targetMaskHeight = shownLineCount * getLineHeight();
+        smoothMaskHeight = (smoothMaskHeight - targetMaskHeight) * (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + targetMaskHeight;
 
-        var masktop = m - Math.round(maskHeightBuffer);
-        var maskbottom = m;
+        operation.call(context, currentTick, mouseX, mouseY, focused);
+    }
 
-        // this makes underlined text and such correct again
-        if (getChatScrollOffset() == 0 && Math.round(maskHeightBuffer) != 0) {
-            if (Math.round(maskHeightBuffer) == targetHeight) {
-                maskbottom += 2;
-                masktop -= 2;
+    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;translate(FF)Lorg/joml/Matrix3x2f;", ordinal = 0))
+    private Matrix3x2f matrixTranslateWrap(Matrix3x2fStack matrix, float x, float y, Operation<Matrix3x2f> operation) {
+        var targetVec = new Vector2f(x, y);
+        if (smoothMtxTrans == null) {
+            smoothMtxTrans = targetVec;
+        } else {
+            smoothMtxTrans = SmoothSc.vec2fAdd(SmoothSc.vec2fMul(SmoothSc.vec2fSub(smoothMtxTrans, targetVec), (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration())), targetVec);
+        }
+        return operation.call(matrix, (float) Math.round(smoothMtxTrans.getX()), (float) Math.round(smoothMtxTrans.getY()));
+    }
+
+    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(IIZILnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I"))
+    private int forVisibleLineWrap(ChatHud ch, int visibleLineCount, int currentTick, boolean focused, int windowHeight, @Coerce Object consumer, Operation<Integer> operation, @Local DrawContext context) {
+        enMask(context, windowHeight);
+        context.getMatrices().pushMatrix();
+        context.getMatrices().translate(0, (int) Math.floor(getDrawOffset()));
+
+        int ret = operation.call(ch, visibleLineCount, currentTick, focused, windowHeight, consumer);
+
+        context.getMatrices().popMatrix();
+        if (SmScCfg.enableMaskDebug)
+            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 255, 255, 0));
+        context.disableScissor();
+        return ret;
+    }
+
+    @Unique
+    private void enMask(DrawContext context, int chatYPos) {
+        int maskTop = (int) Math.round(chatYPos - smoothMaskHeight);
+        int maskBottom = chatYPos;
+
+        // this lets underlined text, diacritics and stuff overflow two pixels above or under chat
+        if (smoothScrollPos == targetScrollPos && Math.round(getDrawOffset()) == 0 && Math.round(smoothMaskHeight) != 0) {
+            if (Math.round(smoothMaskHeight) == targetMaskHeight) {
+                maskBottom += 2;
+                maskTop -= 2;
             } else {
-                maskbottom += 2;
+                maskBottom += 2;
             }
         }
 
         SmoothSc.preciseScissor = true;
-        //SmoothSc.print("ES");
-        //context.fill(-10, masktop, getWidth() + 99999, maskbottom, ColorHelper.getArgb(50, 255, 0, 0));
-        context.enableScissor(-10, masktop, getWidth() + 999999, maskbottom);
+        context.enableScissor(-10, maskTop, getWidth() + 999999, maskBottom);
         SmoothSc.preciseScissor = false;
-
-        return m;
     }
 
+    @WrapMethod(method = "scroll")
+    private void scrollWrap(int amount, Operation<Void> operation) {
+        if (SmScCfg.chatSmoothness == 0) {
+            operation.call(amount);
+            return;
+        }
+
+        var newTarget = targetScrollPos + (amount / 7f) * (SmScCfg.chatAmount != 0 ? SmScCfg.chatAmount / getLineHeight() : 7);
+        scrolledLines = (int) Math.ceil(newTarget);
+
+
+        // we'll only use the clamp from the call
+        operation.call(0);
+
+        if (newTarget > scrolledLines) {
+            newTarget = scrolledLines;
+        }
+        if (newTarget < 0) {
+            newTarget = 0;
+        }
+
+        targetScrollPos = (float) newTarget;
+    }
+    
     @ModifyVariable(method = "forEachVisibleLine", at = @At(value = "STORE"), ordinal = 7)
     private int opacity(int p) {
         if (SmScCfg.chatOpeningSmoothness == 0) return p;
         return 0;
     }
 
-    @Inject(method = "render", at = @At(value = "INVOKE", shift = Shift.BEFORE, target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(IIZILnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I"))
-    private void translateYStart(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
-        if (SmScCfg.chatSmoothness == 0) return;
-        context.getMatrices().pushMatrix();
-        context.getMatrices().translate(0, -getChatDrawOffset());
-    }
-
-    @Inject(method = "render", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(IIZILnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I"))
-    private void translateYEnd(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
-        if (SmScCfg.chatSmoothness == 0) return;
-        context.getMatrices().popMatrix();
-    }
-
-    @Inject(method = "render", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(IIZILnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I", ordinal = 1))
-    private void demask(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) { // after the cycle
-        if ((SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) || this.isChatHidden()) return;
-        if (SmScCfg.enableMaskDebug) context.fill(-10000, -10000, 10000, 10000, ColorHelper.getArgb(50, 255, 0, 255));
-        context.disableScissor();
-        //SmoothSc.print("DS");
-        return;
-    }
-
-    @Inject(method = "render", at = @At("TAIL"))
-    private void renderT(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
-        if (SmScCfg.chatSmoothness == 0) return;
-        scrolledLines = scrollValBefore;
-    }
-
     @ModifyVariable(method = "addVisibleMessage", at = @At("STORE"), ordinal = 0)
     private List<OrderedText> onNewMessage(List<OrderedText> ot) {
         if (refreshing) return ot;
-        scrollOffset -= ot.size() * getLineHeight();
+        smoothScrollPos += ot.size();
         return ot;
-    }
-
-    @Inject(method = "scroll", at = @At("HEAD"))
-    private void scrollH(int scroll, CallbackInfo ci) {
-        scrollValBefore = scrolledLines;
-    }
-
-    @Inject(method = "scroll", at = @At("TAIL"))
-    private void scrollT(int scroll, CallbackInfo ci) {
-        scrollOffset += (scrolledLines - scrollValBefore) * getLineHeight();
-    }
-
-    @Inject(method = "resetScroll", at = @At("HEAD"))
-    private void scrollResetH(CallbackInfo ci) {
-        scrollValBefore = scrolledLines;
-    }
-
-    @Inject(method = "resetScroll", at = @At("TAIL"))
-    private void scrollResetT(CallbackInfo ci) {
-        scrollOffset += (scrolledLines - scrollValBefore) * getLineHeight();
     }
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 3)
     private int addLinesAbove(int i) {
         if (SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) return i;
-        //SmoothSc.printt("i", (int) Math.ceil(Math.round(maskHeightBuffer) / (float) getLineHeight()) + (getChatScrollOffset() != 0 ? 1 : 0), visibleMessages.size(), scrolledLines);
-        return (int) Math.ceil(Math.round(maskHeightBuffer) / (float) getLineHeight()) + (getChatScrollOffset() < 0 ? 1 : 0); // 21 100 80, 20 100 80
+        return (int) Math.ceil(Math.round(smoothMaskHeight) / (float) getLineHeight()) + (Math.round(getDrawOffset()) == 0 ? 0 : 1);
     }
 
-    @ModifyVariable(method = "forEachVisibleLine", at = @At(value = "STORE"), ordinal = 5)
-    private int addLinesUnder0(int n) {
-        if (scrolledLines == 0 || SmScCfg.chatSmoothness == 0 || getChatScrollOffset() <= 0) return n;
-        //SmoothSc.print("Undering");
-        return n + 1;
-    }
-    @ModifyVariable(method = "forEachVisibleLine", at = @At(value = "STORE"), ordinal = 6)
-    private int addLinesUnder1(int o) {
-        if (scrolledLines == 0 || SmScCfg.chatSmoothness == 0 || getChatScrollOffset() <= 0) return o;
-        //SmoothSc.print("Undering");
-        return o - 1;
-    }
-
-    @ModifyArgs(method = "forEachVisibleLine", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud$LineConsumer;accept(IIILnet/minecraft/client/gui/hud/ChatHudLine$Visible;IF)V"))
-    private void addLinesUnder2(Args args, @Local(ordinal = 3) int l) {
-        if (scrolledLines == 0 || SmScCfg.chatSmoothness == 0 || getChatScrollOffset() <= 0) return;
-        args.set(1, (int)args.get(1) + l);
-        args.set(2, (int)args.get(2) + l);
-        args.set(4, (int)args.get(4) + 1);
+    @WrapMethod(method = "resetScroll")
+    private void resetScrollWrap(Operation<Void> operation) {
+        operation.call();
+        targetScrollPos = scrolledLines;
     }
 
     @Inject(method = "refresh", at = @At("HEAD"))
@@ -221,13 +185,7 @@ public class ChatHudMixin {
     public boolean isChatFocused() {return false;}
 
     @Unique
-    private int getChatDrawOffset() {
-        return Math.round(scrollOffset) - (Math.round(scrollOffset) / getLineHeight() * getLineHeight());
-    }
-
-    @Unique
-    private int getChatScrollOffset() {
-        if (SmScCfg.chatSmoothness == 0) return 0;
-        return Math.round(scrollOffset);
+    private float getDrawOffset() {
+        return -(scrolledLines - smoothScrollPos) * getLineHeight();
     }
 }

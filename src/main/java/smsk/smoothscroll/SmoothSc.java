@@ -6,6 +6,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen.CreativeScreenHandler;
+import net.minecraft.client.util.math.Vector2f;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
@@ -90,4 +91,13 @@ public class SmoothSc implements ClientModInitializer {
 	public static Vector3f getMatrixTranslate(DrawContext context) {
 		return context.getMatrices().peek().getPositionMatrix().getTranslation(new Vector3f(0,0,0));
 	}/* */
+	public static Vector2f vec2fAdd(Vector2f a, Vector2f b) {
+		return new Vector2f(a.getX() + b.getX(), a.getY() + b.getY());
+	}
+	public static Vector2f vec2fSub(Vector2f a, Vector2f b) {
+		return new Vector2f(a.getX() - b.getX(), a.getY() - b.getY());
+	}
+	public static Vector2f vec2fMul(Vector2f a, float b) {
+		return new Vector2f(a.getX() * b, a.getY() * b);
+	}
 }

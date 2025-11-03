@@ -31,7 +31,6 @@ public class SuggestionWindowMixin {
     @Final @Shadow private Rect2i area;
 
     @Unique private int lineHeight = 12;
-    @Unique private int maxLinesShown = 10;
 
     @Unique private float smoothIndex = inWindowIndex;
     @Unique private float targetIndex = inWindowIndex;
@@ -52,27 +51,27 @@ public class SuggestionWindowMixin {
 
         inWindowIndex = (int) Math.floor(smoothIndex);
 
-        operation.call(context, mouseX, mouseY - getDrawOffset());
+        operation.call(context, mouseX, (int) Math.floor(mouseY - (int) Math.floor(getDrawOffset())));
         
-        tryUnTextPosY(context);
+        tryUntranslate(context);
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Ljava/util/List;get(I)Ljava/lang/Object;", ordinal = 0))
-    private void textPosY(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
+    private void translate(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
         if (SmScCfg.suggestionWindowSmoothness == 0) return;
         if (translated) return;
         context.enableScissor(0, area.getY(), context.getScaledWindowWidth(), area.getY() + area.getHeight());
         context.getMatrices().pushMatrix();
-        context.getMatrices().translate(0, getDrawOffset());
+        context.getMatrices().translate(0, (int) Math.floor(getDrawOffset()));
         translated = true;
     }
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 0)
-    private Message unTextPosY(Message a, @Local DrawContext context) {
-        tryUnTextPosY(context);
+    private Message unTranslate(Message a, @Local DrawContext context) {
+        tryUntranslate(context);
         return a;
     }
 
-    private void tryUnTextPosY(DrawContext context) {
+    private void tryUntranslate(DrawContext context) {
         if (translated) {
             context.getMatrices().popMatrix();
             if (SmScCfg.enableMaskDebug)
@@ -137,7 +136,7 @@ public class SuggestionWindowMixin {
     }
 
     @Unique
-    private int getDrawOffset() {
-        return (int) Math.floor((inWindowIndex - smoothIndex) * lineHeight);
+    private float getDrawOffset() {
+        return (inWindowIndex - smoothIndex) * lineHeight;
     }
 }

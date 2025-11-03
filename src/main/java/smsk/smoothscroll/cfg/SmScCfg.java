@@ -11,6 +11,7 @@ public class SmScCfg extends NewConfig {
     public static float hotbarSmoothness;
     public static float chatSmoothness;
     public static float chatOpeningSmoothness;
+    public static float chatAmount;
     public static float suggestionWindowSmoothness;
     public static float suggestionWindowAmount;
     public static float creativeScreenSmoothness;
@@ -33,6 +34,7 @@ public class SmScCfg extends NewConfig {
         new CfgValueBuilder("Chat", new ArrayList<CfgValue>(Arrays.asList(
             new CfgValueBuilder("Smoothness", 0.5f).minMax(0, 1).map(0.0, "Off").map(1.0, "No Scrolling").build(),
             new CfgValueBuilder("Opening Speed", 0.5f).minMax(0, 1).map(0.0, "Off").map(1.0, "No Scrolling").build(),
+            new CfgValueBuilder("Scrolling Speed", 0f).minMax(0, 100).step(1).map(0.0, "Auto").format("%s: %s px").build(),
             new CfgValueBuilder("Suggestion Smoothness", 0.5f).minMax(0, 1).map(0.0, "Off").map(1.0, "No Scrolling").build(),
             new CfgValueBuilder("Suggestion Speed", 30.0f).minMax(0, 100).step(1).format("%s: %s px").map(0.0, "Auto").build()
         ))).build(),
@@ -61,6 +63,7 @@ public class SmScCfg extends NewConfig {
 
         chatSmoothness = (float) root.get("Chat").get("Smoothness").getValue();
         chatOpeningSmoothness = (float) root.get("Chat").get("Opening Speed").getValue();
+        chatAmount = (float) root.get("Chat").get("Scrolling Speed").getValue();
         suggestionWindowSmoothness = (float) root.get("Chat").get("Suggestion Smoothness").getValue();
         suggestionWindowAmount = (float) root.get("Chat").get("Suggestion Speed").getValue();
 
