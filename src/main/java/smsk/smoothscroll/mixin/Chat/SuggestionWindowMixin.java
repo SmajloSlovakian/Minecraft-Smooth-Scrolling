@@ -26,14 +26,14 @@ import smsk.smoothscroll.cfg.SmScCfg;
 
 @Mixin(SuggestionWindow.class)
 public class SuggestionWindowMixin {
-    @Shadow private int inWindowIndex;
     @Final @Shadow private List<Suggestion> suggestions;
     @Final @Shadow private Rect2i area;
+    @Shadow private int inWindowIndex; // scroll position - index of the uppermost line (up < down)
 
     @Unique private int lineHeight = 12;
 
-    @Unique private float smoothIndex = inWindowIndex;
-    @Unique private float targetIndex = inWindowIndex;
+    @Unique private float smoothScrollPos = inWindowIndex;
+    @Unique private float targetScrollPos = inWindowIndex;
     @Unique private boolean translated = false;
 
     @WrapMethod(method = "render")
@@ -43,13 +43,13 @@ public class SuggestionWindowMixin {
             return;
         }
 
-        smoothIndex = (smoothIndex - targetIndex) * (float) Math.pow(SmScCfg.suggestionWindowSmoothness, SmoothSc.getLastFrameDuration()) + targetIndex;
+        smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.suggestionWindowSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
         // snap on less than half a pixel difference
-        if (Math.abs(smoothIndex - targetIndex) < 1f / lineHeight / 2)
-            smoothIndex = targetIndex;
+        if (Math.abs(smoothScrollPos - targetScrollPos) < 1f / lineHeight / 2)
+            smoothScrollPos = targetScrollPos;
 
-        inWindowIndex = (int) Math.floor(smoothIndex);
+        inWindowIndex = (int) Math.floor(smoothScrollPos);
 
         operation.call(context, mouseX, (int) Math.floor(mouseY - (int) Math.floor(getDrawOffset())));
         
@@ -88,7 +88,7 @@ public class SuggestionWindowMixin {
 
         var indexBefore = inWindowIndex;
 
-        var newTarget = targetIndex - am * (SmScCfg.suggestionWindowAmount != 0 ? SmScCfg.suggestionWindowAmount / lineHeight : 1);
+        var newTarget = targetScrollPos - am * (SmScCfg.suggestionWindowAmount != 0 ? SmScCfg.suggestionWindowAmount / lineHeight : 1);
         inWindowIndex = (int) Math.ceil(newTarget);
 
 
@@ -107,7 +107,7 @@ public class SuggestionWindowMixin {
             newTarget = 0;
         }
 
-        targetIndex = (float) newTarget;
+        targetScrollPos = (float) newTarget;
 
         return ret;
     }
@@ -121,11 +121,11 @@ public class SuggestionWindowMixin {
         }
 
         var indexBefore = inWindowIndex;
-        inWindowIndex = (int) Math.floor(targetIndex);
+        inWindowIndex = (int) Math.floor(targetScrollPos);
 
         operation.call(off);
         
-        targetIndex = inWindowIndex;
+        targetScrollPos = inWindowIndex;
         inWindowIndex = indexBefore;
     }
 
@@ -137,6 +137,6 @@ public class SuggestionWindowMixin {
 
     @Unique
     private float getDrawOffset() {
-        return (inWindowIndex - smoothIndex) * lineHeight;
+        return (inWindowIndex - smoothScrollPos) * lineHeight;
     }
 }

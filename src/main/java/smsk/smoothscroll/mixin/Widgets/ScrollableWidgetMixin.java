@@ -8,6 +8,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -16,22 +19,20 @@ import smsk.smoothscroll.SmoothSc;
 import smsk.smoothscroll.cfg.SmScCfg;
 
 @Mixin(ScrollableWidget.class)
-public class ScrollableWidgetMixin extends ClickableWidget{
-    @Shadow private double scrollY; // this is the number of pixels
+public class ScrollableWidgetMixin extends ClickableWidget {
+    @Shadow private double scrollY; // scroll position - number of pixels scrolled down (up < down)
 
-    @Unique private double scrollAmountBuffer;
-    @Unique private double targetScroll;
-    @Unique private boolean mousescrolling = false;
+    @Unique private double smoothScrollPos;
+    @Unique private double targetScrollPos;
 
-    @Unique private double prevScrollVal;
     @Unique private boolean updateScActive = false; // this makes the mod know, when things aren't working as expected and lets the user scroll non-smoothly
     @Unique private boolean noSetScrollT = false;
 
     @Inject(method = "setScrollY", at = @At("TAIL"))
     private void setScrollT(double s, CallbackInfo ci) {
-        if (mousescrolling || noSetScrollT) return;
-        targetScroll = scrollY;
-        scrollAmountBuffer = scrollY;
+        if (noSetScrollT) return;
+        targetScrollPos = scrollY;
+        smoothScrollPos = scrollY;
     }
 
     @Inject(method = "drawScrollbar", at = @At("HEAD"), require = 0)
@@ -39,35 +40,35 @@ public class ScrollableWidgetMixin extends ClickableWidget{
         if (SmScCfg.entryListSmoothness == 0) return;
         updateScActive = true;
 
-        scrollAmountBuffer = (scrollAmountBuffer - targetScroll) * Math.pow(SmScCfg.entryListSmoothness, SmoothSc.getLastFrameDuration()) + targetScroll;
-        scrollY = Math.round(scrollAmountBuffer);
 
-        // TODO not so pretty workaround, have to fix later
+        smoothScrollPos = (smoothScrollPos - targetScrollPos) * Math.pow(SmScCfg.entryListSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
+        scrollY = Math.round(smoothScrollPos);
+
+        // TODO not so pretty workaround, might fix later
+        // basically setscroll also makes the screen redraw
         noSetScrollT = true;
         setScrollY(scrollY);
         noSetScrollT = false;
     }
 
-    @Inject(method = "mouseScrolled", at = @At("HEAD"), require = 0)
-    private void mouseScrollH(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir) {
-        if (SmScCfg.entryListSmoothness == 0 || !updateScActive) return;
-        mousescrolling = true;
-        prevScrollVal = scrollY;
-        setScrollY(targetScroll);
-    }
+    @WrapMethod(method = "mouseScrolled")
+    private boolean mouseScrolledWrap(double mouseX, double mouseY, double hA, double vA, Operation<Boolean> operation) {
+        noSetScrollT = true;
+        var prevScrollPos = scrollY;
+        if (SmScCfg.entryListSmoothness != 0) {
+            setScrollY(targetScrollPos);
+        }
+        var ret = operation.call(mouseX, mouseY, hA, vA);
 
-    @Inject(method = "mouseScrolled", at = @At("TAIL"), require = 0)
-    private void mouseScrollT(double mouseX, double mouseY, double hA, double vA, CallbackInfoReturnable<Boolean> cir) {
-        var diff = scrollY - targetScroll;
-        if (SmScCfg.entryListAmount != 0)
-            diff = - SmScCfg.entryListAmount * vA;
-        setScrollY(targetScroll + diff);
-        
-        if (SmScCfg.entryListSmoothness == 0 || !updateScActive) return;
-
-        targetScroll = scrollY;
-        setScrollY(prevScrollVal);
-        mousescrolling = false;
+        if (SmScCfg.entryListAmount != 0 && ret) {
+            setScrollY(prevScrollPos - SmScCfg.entryListAmount * vA);
+        }
+        targetScrollPos = scrollY;
+        if (SmScCfg.entryListSmoothness != 0) {
+            setScrollY(prevScrollPos);
+        }
+        noSetScrollT = false;
+        return ret;
     }
 
     @Shadow

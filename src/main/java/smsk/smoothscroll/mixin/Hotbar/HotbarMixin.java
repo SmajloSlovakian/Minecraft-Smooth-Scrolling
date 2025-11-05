@@ -36,7 +36,7 @@ public class HotbarMixin {
 	@Unique private int rolloverSpace = 4;
 
 	@Unique private boolean masked = false;
-	@Unique private float selectorPos = 0;
+	@Unique private float smoothSelectorPos = 0;
 
 	@WrapOperation(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
 	private void moveSelector(DrawContext context, RenderPipeline pipeline, Identifier texture, int x, int y, int width, int height, Operation<Void> operation) {
@@ -49,31 +49,31 @@ public class HotbarMixin {
 		var hotbarStart = x - inv.getSelectedSlot() * slotWidth;
 
 		var target = (inv.getSelectedSlot() - SmoothSc.hotbarRollover * slotCount) * slotWidth - SmoothSc.hotbarRollover * rolloverSpace;
-		selectorPos = (float) ((selectorPos - target) * Math.pow(SmScCfg.hotbarSmoothness, SmoothSc.getLastFrameDuration()) + target);
+		smoothSelectorPos = (float) ((smoothSelectorPos - target) * Math.pow(SmScCfg.hotbarSmoothness, SmoothSc.getLastFrameDuration()) + target);
 		
-		if (Math.round(selectorPos) <  rolloverSpace - (slotWidth / 2)) {
-			selectorPos += slotCount * slotWidth + rolloverSpace;
+		if (Math.round(smoothSelectorPos) <  rolloverSpace - (slotWidth / 2)) {
+			smoothSelectorPos += slotCount * slotWidth + rolloverSpace;
 			SmoothSc.hotbarRollover -= 1;
-		} else if (Math.round(selectorPos) > rolloverSpace - (slotWidth / 2) + slotWidth * slotCount) {
-			selectorPos -= slotCount * slotWidth + rolloverSpace;
+		} else if (Math.round(smoothSelectorPos) > rolloverSpace - (slotWidth / 2) + slotWidth * slotCount) {
+			smoothSelectorPos -= slotCount * slotWidth + rolloverSpace;
 			SmoothSc.hotbarRollover += 1;
 		}
 
 		masked = false;
 		
-		if (Math.round(selectorPos) < 0) {
+		if (Math.round(smoothSelectorPos) < 0) {
 			enableMask(context);
 			context.getMatrices().pushMatrix();
-			context.getMatrices().translate(selectorPos - (x - hotbarStart) + slotCount * slotWidth + rolloverSpace, 0);
+			context.getMatrices().translate(smoothSelectorPos - (x - hotbarStart) + slotCount * slotWidth + rolloverSpace, 0);
 
 			operation.call(context, pipeline, texture, x, y, width, height);
 
         	context.getMatrices().popMatrix();
 
-		} else if (Math.round(selectorPos) > slotWidth * 8) {
+		} else if (Math.round(smoothSelectorPos) > slotWidth * 8) {
 			enableMask(context);
 			context.getMatrices().pushMatrix();
-			context.getMatrices().translate(selectorPos - (x - hotbarStart) - slotCount * slotWidth - rolloverSpace, 0);
+			context.getMatrices().translate(smoothSelectorPos - (x - hotbarStart) - slotCount * slotWidth - rolloverSpace, 0);
 
 			operation.call(context, pipeline, texture, x, y, width, height);
 
@@ -82,7 +82,7 @@ public class HotbarMixin {
 
 
         context.getMatrices().pushMatrix();
-        context.getMatrices().translate(selectorPos - (x - hotbarStart), 0);
+        context.getMatrices().translate(smoothSelectorPos - (x - hotbarStart), 0);
 		operation.call(context, pipeline, texture, x, y, width, height);
 
         context.getMatrices().popMatrix();

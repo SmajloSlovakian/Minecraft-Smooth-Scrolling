@@ -29,6 +29,10 @@ import smsk.smoothscroll.SmoothSc;
 import smsk.smoothscroll.cfg.SmScCfg;
 
 // TODO optimize: don't calculate much stuff when config set to zero
+/*
+ * Priority
+ * >1000: bedrockify needs to move the matrix translate first, so i can smooth it out
+ */
 @Mixin(value = ChatHud.class, priority = 1001) // i want mods to modify the chat position before, so i get to know where they put it
 public class ChatHudMixin {
 
