@@ -17,7 +17,8 @@
 		"CreativeScreen.CreativeScreenHandlerAccessor",
 		"PreciseScissor.DrawContextMixin",
 		"PreciseScissor.ScreenRectMixin",
-		"Widgets.ScrollableWidgetMixin"
+		"Widgets.ScrollableWidgetMixin",
+		"Widgets.TextFieldWidgetMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
