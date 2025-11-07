@@ -28,7 +28,6 @@ import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.SmoothSc;
 import smsk.smoothscroll.cfg.SmScCfg;
 
-// TODO optimize: don't calculate much stuff when config set to zero
 /*
  * Priority
  * >1000: bedrockify needs to move the matrix translate first, so i can smooth it out
@@ -103,11 +102,9 @@ public class ChatHudMixin {
         // this lets underlined text, diacritics and stuff overflow two pixels above or under chat
         if (smoothScrollPos == targetScrollPos && Math.round(getDrawOffset()) == 0 && Math.round(smoothMaskHeight) != 0) {
             if (Math.round(smoothMaskHeight) == targetMaskHeight) {
-                maskBottom += 2;
                 maskTop -= 2;
-            } else {
-                maskBottom += 2;
             }
+            maskBottom += 2;
         }
 
         SmoothSc.preciseScissor = true;
@@ -117,11 +114,7 @@ public class ChatHudMixin {
 
     @WrapMethod(method = "scroll")
     private void scrollWrap(int amount, Operation<Void> operation) {
-        if (SmScCfg.chatSmoothness == 0) {
-            operation.call(amount);
-            return;
-        }
-
+        // target + mousescrollamount * lineamount
         var newTarget = targetScrollPos + (amount / 7f) * (SmScCfg.chatAmount != 0 ? SmScCfg.chatAmount / getLineHeight() : 7);
         scrolledLines = (int) Math.ceil(newTarget);
 
@@ -154,7 +147,6 @@ public class ChatHudMixin {
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 3)
     private int addLinesAbove(int i) {
-        if (SmScCfg.chatSmoothness == 0 && SmScCfg.chatOpeningSmoothness == 0) return i;
         return (int) Math.ceil(Math.round(smoothMaskHeight) / (float) getLineHeight()) + (Math.round(getDrawOffset()) == 0 ? 0 : 1);
     }
 
@@ -163,6 +155,17 @@ public class ChatHudMixin {
         operation.call();
         targetScrollPos = scrolledLines;
     }
+
+    @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 10)
+    private int scrollbarVisibleLines(int p) {
+        return p - (Math.round(getDrawOffset()) == 0 ? 0 : 1);
+    }
+
+    @ModifyVariable(method = "render" ,at = @At(value = "STORE"), ordinal = 14)
+    private int scrollbarSmooth(int u, @Local(ordinal = 4) int j, @Local(ordinal = 7) int m, @Local(ordinal = 13) int t) {
+        return (int) (Math.round(smoothScrollPos) * t / j - m);
+    }
+
 
     @Inject(method = "refresh", at = @At("HEAD"))
     private void refreshH(CallbackInfo ci) {refreshing = true;}
