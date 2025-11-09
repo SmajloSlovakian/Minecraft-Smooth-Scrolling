@@ -1,5 +1,7 @@
 package smsk.smoothscroll.cfg;
 
+import java.util.function.Function;
+
 import net.minecraft.text.Text;
 
 public class CfgValueBuilder {
@@ -32,6 +34,10 @@ public class CfgValueBuilder {
     }
     public CfgValueBuilder format(String s) {
         cfgVal.unformatted = s;
+        return this;
+    }
+    public CfgValueBuilder disableWhen(Function<CfgValue, Boolean> condition) {
+        cfgVal.disableWhen = condition;
         return this;
     }
 

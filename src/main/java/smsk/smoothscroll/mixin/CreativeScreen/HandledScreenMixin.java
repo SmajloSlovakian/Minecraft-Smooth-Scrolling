@@ -27,7 +27,6 @@ import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import smsk.smoothscroll.SmoothSc;
 import smsk.smoothscroll.cfg.SmScCfg;
 
-// TODO fix background being a bit drunk when scrolling (also rewrite this all)
 @Mixin(value = HandledScreen.class, priority = 999)
 public abstract class HandledScreenMixin<T extends ScreenHandler> {
 

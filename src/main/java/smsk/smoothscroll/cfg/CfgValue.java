@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -21,6 +22,7 @@ public class CfgValue {
     Object currentValue;
     String valueName;
     boolean isFake = false;
+    CfgValue parent = null;
 
     // GUI menu options
     float minVal;
@@ -32,12 +34,19 @@ public class CfgValue {
     Text tooltiptxt;
     Map<Object, String> translationMap = new HashMap<>();
     String unformatted = "%s: %s";
+    Function<CfgValue, Boolean> disableWhen;
 
     public CfgValue(String name, Object defaultVal) {
         valueName = name;
         defaultValue = defaultVal;
         currentValue = defaultVal;
         temporaryValue = currentValue;
+        var list = getList();
+        if (list != null) {
+            for (CfgValue cfgValue : list) {
+                cfgValue.parent = this;
+            }
+        }
     }
     public static CfgValueBuilder builder(String name, Object defaultVal) {
         return new CfgValueBuilder(name, defaultVal);
@@ -52,10 +61,14 @@ public class CfgValue {
      * a fake instance of CfgValue.
      */
     public CfgValue get(String name) {
+        if (name == "..") {
+            return parent != null ? parent : makeFake();
+        }
+
         List<CfgValue> cfgValueList = getList();
         if (cfgValueList == null)
             return makeFake();
-
+        
         for (CfgValue cfgValue : cfgValueList) {
             if (cfgValue.valueName.equals(name))
                 return cfgValue;
@@ -141,7 +154,6 @@ public class CfgValue {
     public ClickableWidget[] generateWidget() {
         myResetButton = ButtonWidget.builder(Text.literal("🗑"), button -> {this.defaultToTemp();}).build();
 
-        //widgets.add(ButtonWidget.builder(Text.literal("🗑"), button -> {this.defaultToTemp();}).build()); // TODO reset button
 
         if (this.getValue() instanceof Number) {
             myWidget = new CustomSlider(this);
@@ -253,6 +265,21 @@ public class CfgValue {
     }
     public String tryTranslate(Object value) {
         return translationMap.getOrDefault(value, "" + value);
+    }
+    public void refreshDisableRecursive() {
+        var list = getList();
+        if (list == null) {
+            if (disableWhen == null) {
+                return;
+            }
+            var shouldBeDisabled = disableWhen.apply(this);
+            myWidget.active = !shouldBeDisabled;
+            myResetButton.active = !shouldBeDisabled;
+            return;
+        }
+        for (CfgValue cfgValue : list) {
+            cfgValue.refreshDisableRecursive();
+        }
     }
 
     public long enHelfStep(double val) {

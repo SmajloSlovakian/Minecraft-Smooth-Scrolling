@@ -6,44 +6,60 @@ import java.util.Arrays;
 import smsk.smoothscroll.SmoothSc;
 
 public class SmScCfg extends NewConfig {
-    public final static float format = 2.2f;
+    public final static float format = 2.4f;
 
     public static float hotbarSmoothness;
+    public static boolean hotbarRollover;
+
     public static float chatSmoothness;
     public static float chatOpeningSmoothness;
     public static float chatAmount;
+
     public static float suggestionWindowSmoothness;
     public static float suggestionWindowAmount;
+
     public static float creativeScreenSmoothness;
+
     public static float entryListSmoothness;
     public static double entryListAmount;
+
+    public static float textSmoothness;
+    public static float textAmount;
+    public static float textMargin;
+    public static boolean textCustomUpdate;
+
     public static boolean enableMaskDebug;
-    public static boolean hotbarRollover;
 
     static CfgValue template = new CfgValueBuilder("root", new ArrayList<CfgValue>(Arrays.asList(
         new CfgValueBuilder("Notes", new ArrayList<String>(Arrays.asList(
-            "Safe values for settings are 0 - 1 (inclusive).",
-            "0 means animation off (no smoothness) and bigger values mean slower animation speed (high smoothness).",
+            "Smoothness values are in %. Scrolling speed values are in pixels.",
+            "0 % means animation off (no smoothness) and bigger values mean slower animation speed (high smoothness).",
             "Press F3+T in a world to update the config.",
             "To access config ingame, use the mod modmenu."
         ))).build(),
         new CfgValueBuilder("Hotbar", new ArrayList<CfgValue>(Arrays.asList(
-            new CfgValueBuilder("Smoothness", 0.2f).minMax(0, 1).map(0.0, "Off").map(1.0, "No Scrolling").build(),
+            new CfgValueBuilder("Smoothness", 20f).minMax(0, 100).map(0, "Off").map(100, "No Scrolling").step(1).format("%s: %s %%").build(),
             new CfgValueBuilder("Rollover", true).build()
         ))).build(),
         new CfgValueBuilder("Chat", new ArrayList<CfgValue>(Arrays.asList(
-            new CfgValueBuilder("Smoothness", 0.5f).minMax(0, 1).map(0.0, "Off").map(1.0, "No Scrolling").build(),
-            new CfgValueBuilder("Opening Speed", 0.5f).minMax(0, 1).map(0.0, "Off").map(1.0, "No Scrolling").build(),
+            new CfgValueBuilder("Smoothness", 50f).minMax(0, 100).map(0, "Off").map(100, "No Scrolling").step(1).format("%s: %s %%").build(),
+            new CfgValueBuilder("Opening Smoothness", 50f).minMax(0, 100).map(0, "Off").map(100, "No Scrolling").step(1).format("%s: %s %%").build(),
             new CfgValueBuilder("Scrolling Speed", 0f).minMax(0, 100).step(1).map(0.0, "Auto").format("%s: %s px").build(),
-            new CfgValueBuilder("Suggestion Smoothness", 0.5f).minMax(0, 1).map(0.0, "Off").map(1.0, "No Scrolling").build(),
-            new CfgValueBuilder("Suggestion Speed", 30.0f).minMax(0, 100).step(1).format("%s: %s px").map(0.0, "Auto").build()
+            new CfgValueBuilder("Suggestion Smoothness", 50f).minMax(0, 100).map(0, "Off").map(100, "No Scrolling").step(1).format("%s: %s %%").build(),
+            new CfgValueBuilder("Suggestion Speed", 30f).minMax(0, 100).step(1).format("%s: %s px").map(0, "Auto").build()
         ))).build(),
         new CfgValueBuilder("Creative Screen", new ArrayList<CfgValue>(Arrays.asList(
-            new CfgValueBuilder("Smoothness", 0.5f).minMax(0, 1).map(0.0, "Off").map(1.0, "No Scrolling").build()
+            new CfgValueBuilder("Smoothness", 50f).minMax(0, 100).map(0, "Off").map(100, "No Scrolling").step(1).format("%s: %s %%").build()
         ))).build(),
         new CfgValueBuilder("Entry List", new ArrayList<CfgValue>(Arrays.asList(
-            new CfgValueBuilder("Smoothness", 0.5f).minMax(0, 1).map(0.0, "Off").map(1.0, "No Scrolling").build(),
-            new CfgValueBuilder("Speed", 30.0f).minMax(0, 100).step(1).format("%s: %s px").map(0.0, "Auto").build()
+            new CfgValueBuilder("Smoothness", 50f).minMax(0, 100).map(0, "Off").map(100, "No Scrolling").step(1).format("%s: %s %%").build(),
+            new CfgValueBuilder("Speed", 30f).minMax(0, 100).step(1).format("%s: %s px").map(0, "Auto").build()
+        ))).build(),
+        new CfgValueBuilder("Text Input Field", new ArrayList<CfgValue>(Arrays.asList(
+            new CfgValueBuilder("Smoothness", 50f).minMax(0, 100).map(0, "Off").map(100, "No Scrolling").step(1).format("%s: %s %%").build(),
+            new CfgValueBuilder("Speed", 100f).minMax(0, 300).step(1).format("%s: %s px").map(0, "Auto").build(),
+            new CfgValueBuilder("Cursor Margin", 10f).minMax(0, 100).step(1).format("%s: %s %%").disableWhen(val -> {return !(boolean)val.get("..").get("Custom Cursor Update").temporaryValue;}).build(), // TODO make this option greyed out when custom update is false
+            new CfgValueBuilder("Custom Cursor Update", true).tooltip("Disable this if you're having problems when you move the cursor with arrows").build()
         ))).build(),
         new CfgValueBuilder("Misc", new ArrayList<CfgValue>(Arrays.asList(
             new CfgValueBuilder("Enable mask debug", false).build()
@@ -58,19 +74,24 @@ public class SmScCfg extends NewConfig {
 
     @Override
     void intoVariables() {
-        hotbarSmoothness = (float) root.get("Hotbar").get("Smoothness").getValue();
+        hotbarSmoothness = (float) root.get("Hotbar").get("Smoothness").getValue() / 100f;
         hotbarRollover = (boolean) root.get("Hotbar").get("Rollover").getValue();
 
-        chatSmoothness = (float) root.get("Chat").get("Smoothness").getValue();
-        chatOpeningSmoothness = (float) root.get("Chat").get("Opening Speed").getValue();
+        chatSmoothness = (float) root.get("Chat").get("Smoothness").getValue() / 100f;
+        chatOpeningSmoothness = (float) root.get("Chat").get("Opening Smoothness").getValue() / 100f;
         chatAmount = (float) root.get("Chat").get("Scrolling Speed").getValue();
-        suggestionWindowSmoothness = (float) root.get("Chat").get("Suggestion Smoothness").getValue();
+        suggestionWindowSmoothness = (float) root.get("Chat").get("Suggestion Smoothness").getValue() / 100f;
         suggestionWindowAmount = (float) root.get("Chat").get("Suggestion Speed").getValue();
 
-        creativeScreenSmoothness = (float) root.get("Creative Screen").get("Smoothness").getValue();
+        creativeScreenSmoothness = (float) root.get("Creative Screen").get("Smoothness").getValue() / 100f;
 
-        entryListSmoothness = (float) root.get("Entry List").get("Smoothness").getValue();
+        entryListSmoothness = (float) root.get("Entry List").get("Smoothness").getValue() / 100f;
         entryListAmount = (float) root.get("Entry List").get("Speed").getValue();
+
+        textSmoothness = (float) root.get("Text Input Field").get("Smoothness").getValue() / 100f;
+        textAmount = (float) root.get("Text Input Field").get("Speed").getValue();
+        textMargin = (float) root.get("Text Input Field").get("Cursor Margin").getValue();
+        textCustomUpdate = (boolean) root.get("Text Input Field").get("Custom Cursor Update").getValue();
 
         enableMaskDebug = (boolean) root.get("Misc").get("Enable mask debug").getValue();
     }
@@ -78,9 +99,8 @@ public class SmScCfg extends NewConfig {
 
     @Override
     void dataCorrectPermanent() {
-        if (rawRoot.get("cfgVersion").exists() && rawRoot.get("cfgVersion").getValue() instanceof Float) {
+        if (rawRoot.get("cfgVersion").exists() && rawRoot.get("cfgVersion").getValue() instanceof Float cfgver) {
             SmoothSc.print("Found old format entries in the config file, attempting to update them.");
-            var cfgver = (float) rawRoot.get("cfgVersion").getValue();
             
             var a = rawRoot.get("hotbarSpeed");
             if (a.exists() && a.getValue() instanceof Float) {
@@ -115,9 +135,30 @@ public class SmScCfg extends NewConfig {
         }
         // New file format corrections go here
 
+        var prevFormat = (float) root.get("Format").getValue();
+        if (prevFormat < 2.4) {
+            var a = root.get("Hotbar");
+            a.get("Smoothness").setValue((float) a.get("Smoothness").getValue() * 100);
+        
+            a = root.get("Chat");
+            a.get("Smoothness").setValue((float) a.get("Smoothness").getValue() * 100);
+            SmoothSc.print(rawRoot.get("Chat"));
+            a.get("Opening Smoothness").setValue((float) rawRoot.get("Chat").get("Opening Speed").getValue() * 100);
+            a.get("Suggestion Smoothness").setValue((float) a.get("Suggestion Smoothness").getValue() * 100);
+        
+            a = root.get("Creative Screen");
+            a.get("Smoothness").setValue((float) a.get("Smoothness").getValue() * 100);
+
+            a = root.get("Entry List");
+            a.get("Smoothness").setValue((float) a.get("Smoothness").getValue() * 100);
+        }
+
+
         // Notes and Format should always be up to date and not modified
         root.get("Notes").defaultToTemp();
+        root.get("Notes").saveTempValue();
         root.get("Format").defaultToTemp();
+        root.get("Format").saveTempValue();
         
     }
     @Override

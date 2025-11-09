@@ -12,6 +12,7 @@ import net.minecraft.client.gui.widget.TabNavigationWidget;
 import net.minecraft.text.Text;
 import smsk.smoothscroll.SmoothSc;
 import smsk.smoothscroll.cfg.CfgValue;
+import smsk.smoothscroll.cfg.SmScCfg;
 
 public class Inspiration extends Screen {
     private final Screen parent;
@@ -105,6 +106,7 @@ public class Inspiration extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        SmoothSc.cfg.getConfigForModifying().refreshDisableRecursive();
         super.render(context, mouseX, mouseY, delta);
     }
 }
