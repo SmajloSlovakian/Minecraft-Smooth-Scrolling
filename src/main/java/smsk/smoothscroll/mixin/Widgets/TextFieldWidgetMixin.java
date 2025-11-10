@@ -67,10 +67,20 @@ public class TextFieldWidgetMixin {
     }
 
     @ModifyVariable(method = "renderWidget", at = @At(value = "STORE"), ordinal = 0)
-    private String addCharacter(String visibleString) {
-        if (firstCharacterIndex + visibleString.length() >= text.length())
+    private String addCharacters(String visibleString) {
+        if (firstCharacterIndex + visibleString.length() >= text.length()) {
             return visibleString;
-        return visibleString + text.charAt(firstCharacterIndex + visibleString.length());
+        }
+        
+        var firstCharWidth = textRenderer.getWidth(visibleString.charAt(0) + "");
+        var additionalChars = textRenderer.trimToWidth(text.substring(firstCharacterIndex + visibleString.length()), firstCharWidth);
+        //var additionalChars = textRenderer.trimToWidth(text.substring(firstCharacterIndex + visibleString.length()), (int) Math.ceil(-getDrawOffset()));
+        var totalLen = firstCharacterIndex + visibleString.length() + additionalChars.length();
+        if (text.length() > totalLen) {
+            additionalChars += text.charAt(totalLen);
+        }
+        
+        return visibleString + additionalChars;
     }
 
     @WrapMethod(method = "calculateCursorPos")

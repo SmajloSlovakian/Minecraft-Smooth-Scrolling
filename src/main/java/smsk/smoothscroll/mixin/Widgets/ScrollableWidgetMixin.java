@@ -60,7 +60,7 @@ public class ScrollableWidgetMixin extends ClickableWidget {
         var ret = operation.call(mouseX, mouseY, hA, vA);
 
         if (SmScCfg.entryListAmount != 0 && ret) {
-            setScrollY(prevScrollPos - SmScCfg.entryListAmount * vA);
+            setScrollY(targetScrollPos - SmScCfg.entryListAmount * vA);
         }
         targetScrollPos = scrollY;
         if (SmScCfg.entryListSmoothness != 0) {
