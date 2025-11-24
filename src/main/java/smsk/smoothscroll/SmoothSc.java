@@ -34,7 +34,7 @@ public class SmoothSc implements ClientModInitializer {
 
 	public static int hotbarRollover = 0;
 	public static boolean preciseScissor = false;
-	public static boolean isScrolling = false;
+
 
 	@Override
 	public void onInitializeClient() {

@@ -16,7 +16,7 @@ public class MouseMixin {
 
     @Inject(method = "onMouseScroll", at = @At("HEAD"))
     private void onScrollHead(long window, double horizontal, double vertical, CallbackInfo ci) {
-        SmoothSc.isScrolling = true;
+
         if (SmoothSc.mc.player != null) {
              this.oldSlot = SmoothSc.mc.player.getInventory().getSelectedSlot();
         }
@@ -24,7 +24,7 @@ public class MouseMixin {
 
     @Inject(method = "onMouseScroll", at = @At("TAIL"))
     private void onScrollTail(long window, double horizontal, double vertical, CallbackInfo ci) {
-        SmoothSc.isScrolling = false;
+
         
         if (!SmScCfg.hotbarRollover || SmScCfg.hotbarSmoothness == 0 || SmoothSc.mc.player == null) return;
         

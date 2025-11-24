@@ -6,7 +6,7 @@
 	"mixins": [],
 	"client": [
 		"Hotbar.HotbarMixin",
-		"Hotbar.PlayerInventoryMixin",
+
 		"Hotbar.MouseMixin",
 		"Chat.ChatHudMixin",
 		"Chat.SuggestionWindowMixin",
