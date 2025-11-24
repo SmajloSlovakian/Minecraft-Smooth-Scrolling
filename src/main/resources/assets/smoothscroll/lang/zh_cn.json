@@ -1,4 +1,5 @@
 {
+  "modmenu.descriptionTranslation.smoothscroll": "使滚动更加流畅",
   "smoothscroll.config.title": "配置屏幕",
   "smoothscroll.config.save": "保存并退出",
   "smoothscroll.config.exit": "不保存退出",

@@ -1,4 +1,5 @@
 {
+  "modmenu.descriptionTranslation.smoothscroll": "Делает прокрутку намного более плавной",
   "smoothscroll.config.title": "Экран настроек",
   "smoothscroll.config.save": "Сохранить и выйти",
   "smoothscroll.config.exit": "Выйти без сохранения",

@@ -1,4 +1,5 @@
 {
+  "modmenu.descriptionTranslation.smoothscroll": "Torna o deslocamento muito mais suave",
   "smoothscroll.config.title": "Ecrã de Configuração",
   "smoothscroll.config.save": "Guardar e sair",
   "smoothscroll.config.exit": "Sair sem guardar",

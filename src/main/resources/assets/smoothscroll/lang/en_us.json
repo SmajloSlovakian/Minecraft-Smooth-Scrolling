@@ -1,4 +1,5 @@
 {
+  "modmenu.descriptionTranslation.smoothscroll": "Makes scrolling much more smooth",
   "smoothscroll.config.title": "Config Screen",
   "smoothscroll.config.save": "Save and exit",
   "smoothscroll.config.exit": "Exit without saving",

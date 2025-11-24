@@ -1,4 +1,5 @@
 {
+  "modmenu.descriptionTranslation.smoothscroll": "Rend le défilement beaucoup plus fluide",
   "smoothscroll.config.title": "Écran de configuration",
   "smoothscroll.config.save": "Enregistrer et quitter",
   "smoothscroll.config.exit": "Quitter sans enregistrer",
