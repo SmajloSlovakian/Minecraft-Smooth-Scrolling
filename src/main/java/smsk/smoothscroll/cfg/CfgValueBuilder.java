@@ -28,12 +28,16 @@ public class CfgValueBuilder {
         cfgVal.tooltiptxt = t;
         return this;
     }
+    public CfgValueBuilder translatable(String key) {
+        cfgVal.setTranslationKey(key);
+        return this;
+    }
     public CfgValueBuilder map(Object from, String to) {
         cfgVal.translationMap.put(from, to);
         return this;
     }
     public CfgValueBuilder format(String s) {
-        cfgVal.unformatted = s;
+        cfgVal.setFormatKey(s);
         return this;
     }
     public CfgValueBuilder disableWhen(Function<CfgValue, Boolean> condition) {
