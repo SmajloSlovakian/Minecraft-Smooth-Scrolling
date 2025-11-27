@@ -7,7 +7,7 @@ import net.minecraft.text.Text;
 import smsk.smoothscroll.SmoothSc;
 
 public class SmScCfg extends NewConfig {
-    public final static float format = 2.4f;
+    public final static float format = 2.41f;
 
     public static float hotbarSmoothness;
     public static boolean hotbarRollover;
@@ -59,7 +59,7 @@ public class SmScCfg extends NewConfig {
         new CfgValueBuilder("Text Input Field", new ArrayList<CfgValue>(Arrays.asList(
             new CfgValueBuilder("Smoothness", 50f).translatable("smoothscroll.config.text_input.smoothness").minMax(0, 100).map(0, "smoothscroll.config.tooltip.off").map(100, "smoothscroll.config.tooltip.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
             new CfgValueBuilder("Speed", 100f).translatable("smoothscroll.config.text_input.speed").minMax(0, 300).step(1).format("smoothscroll.config.format.pixels").map(0, "smoothscroll.config.tooltip.auto").build(),
-            new CfgValueBuilder("Cursor Margin", 10f).translatable("smoothscroll.config.text_input.cursor_margin").minMax(0, 100).step(1).format("smoothscroll.config.format.percent").disableWhen(val -> {return !(boolean)val.get("..").get("Custom Cursor Update").temporaryValue;}).build(), // TODO make this option greyed out when custom update is false
+            new CfgValueBuilder("Cursor Margin", 10f).translatable("smoothscroll.config.text_input.cursor_margin").minMax(0, 100).step(1).format("smoothscroll.config.format.percent").disableWhen(val -> {return !(boolean)val.get("..").get("Custom Cursor Update").temporaryValue;}).build(),
             new CfgValueBuilder("Custom Cursor Update", true).translatable("smoothscroll.config.text_input.custom_cursor_update").tooltip(Text.translatable("smoothscroll.config.tooltip.custom_cursor_update")).build()
         ))).translatable("smoothscroll.config.text_input").build(),
         new CfgValueBuilder("Misc", new ArrayList<CfgValue>(Arrays.asList(
@@ -97,7 +97,7 @@ public class SmScCfg extends NewConfig {
         enableMaskDebug = (boolean) root.get("Misc").get("Enable mask debug").getValue();
     }
 
-
+    // TODO probably would be better to have a getOrMake("") and perform everything in rawRoot and then merge it
     @Override
     void dataCorrectPermanent() {
         if (rawRoot.get("cfgVersion").exists() && rawRoot.get("cfgVersion").getValue() instanceof Float cfgver) {
@@ -116,7 +116,7 @@ public class SmScCfg extends NewConfig {
             }
             a = rawRoot.get("chatOpeningSpeed");
             if (a.exists() && a.getValue() instanceof Float) {
-                root.get("Chat").get("Opening Speed").setValue(a.getValue());
+                root.get("Chat").get("Opening Smoothness").setValue(a.getValue());
             }
             a = rawRoot.get("creativeScreenSpeed");
             if (a.exists() && a.getValue() instanceof Float) {
@@ -135,23 +135,38 @@ public class SmScCfg extends NewConfig {
             }
         }
         // New file format corrections go here
+        // the corrections can try to be performed when the values aren't set,
+        // so every correction should be done from rawRoot and inside the try block
+        // to not perform corrections on new default values
+        // this could also be done with if blocks but i didn't want to be more
+        // verbose than i already am
 
         var prevFormat = (float) root.get("Format").getValue();
         if (prevFormat < 2.4) {
-            var a = root.get("Hotbar");
-            a.get("Smoothness").setValue((float) a.get("Smoothness").getValue() * 100);
+            var merged = root.get("Hotbar");
+            var raw = rawRoot.get("Hotbar");
+            try {merged.get("Smoothness").setValue((float) raw.get("Smoothness").getValue() * 100);} catch (Exception e) {}
         
-            a = root.get("Chat");
-            a.get("Smoothness").setValue((float) a.get("Smoothness").getValue() * 100);
-            SmoothSc.print(rawRoot.get("Chat"));
-            a.get("Opening Smoothness").setValue((float) rawRoot.get("Chat").get("Opening Speed").getValue() * 100);
-            a.get("Suggestion Smoothness").setValue((float) a.get("Suggestion Smoothness").getValue() * 100);
+            merged = root.get("Chat");
+            raw = rawRoot.get("Chat");
+            try {merged.get("Smoothness").setValue((float) raw.get("Smoothness").getValue() * 100);} catch (Exception e) {}
+            try {merged.get("Opening Smoothness").setValue((float) raw.get("Opening Speed").getValue() * 100);} catch (Exception e) {}
+            try {merged.get("Suggestion Smoothness").setValue((float) raw.get("Suggestion Smoothness").getValue() * 100);} catch (Exception e) {}
         
-            a = root.get("Creative Screen");
-            a.get("Smoothness").setValue((float) a.get("Smoothness").getValue() * 100);
+            merged = root.get("Creative Screen");
+            raw = rawRoot.get("Creative Screen");
+            try {merged.get("Smoothness").setValue((float) raw.get("Smoothness").getValue() * 100);} catch (Exception e) {}
 
-            a = root.get("Entry List");
-            a.get("Smoothness").setValue((float) a.get("Smoothness").getValue() * 100);
+            merged = root.get("Entry List");
+            raw = rawRoot.get("Entry List");
+            try {merged.get("Smoothness").setValue((float) raw.get("Smoothness").getValue() * 100);} catch (Exception e) {}
+        }
+
+        if (prevFormat < 2.41) {
+            // previously if you updated and didn't have suggestion
+            // smoothness set (possible without tinkering),
+            // it would data correct the new default value
+            try {if ((float) root.get("Chat").get("Suggestion Smoothness").getValue() == 5000) {root.get("Chat").get("Suggestion Smoothness").setValue(50f);};} catch (Exception e) {}
         }
 
 
