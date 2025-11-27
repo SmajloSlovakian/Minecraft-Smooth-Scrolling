@@ -213,7 +213,7 @@ public class CfgValue {
     public void matchValues(CfgValue source) {
         matchValues(source, this);
     }
-    public void matchValues(CfgValue source, CfgValue destination) {
+    public static void matchValues(CfgValue source, CfgValue destination) {
         if (source.getValue() == null) return;
         if (destination != null && !destination.getValue().getClass().equals(source.getValue().getClass())) return;
         var a = source.getList();
