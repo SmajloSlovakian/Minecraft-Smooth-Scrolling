@@ -33,7 +33,8 @@ public class CfgValue {
     ButtonWidget myResetButton;
     Text tooltiptxt;
     Map<Object, String> translationMap = new HashMap<>();
-    String unformatted = "%s: %s";
+    String formatKey = "smoothscroll.config.format.default";
+    String translationKey;
     Function<CfgValue, Boolean> disableWhen;
 
     public CfgValue(String name, Object defaultVal) {
@@ -136,7 +137,7 @@ public class CfgValue {
                 cs.refreshValue();
             }
             if (myWidget instanceof ButtonWidget bw) {
-                bw.setMessage(Text.literal(makeButtonText()));
+                bw.setMessage(makeButtonText());
             }
         }
     }
@@ -164,10 +165,10 @@ public class CfgValue {
         }
         else if (this.getValue() instanceof Boolean) {
             myWidget = ButtonWidget.builder(
-                Text.literal(makeButtonText()),
+                makeButtonText(),
                 button -> {
                     this.setTempValue(!(boolean) this.getTempValue());
-                    button.setMessage(Text.literal(makeButtonText()));
+                    button.setMessage(makeButtonText());
                 }
             ).build();
             if(tooltiptxt != null)
@@ -175,12 +176,12 @@ public class CfgValue {
             this.assignWidget(myWidget);
             return new ClickableWidget[] {myWidget, myResetButton};
         }
-        myWidget = ButtonWidget.builder(Text.literal(makeButtonText()), button -> {}).build();
+        myWidget = ButtonWidget.builder(makeButtonText(), button -> {}).build();
         return new ClickableWidget[] {myWidget, myResetButton};
     }
 
-    private String makeButtonText() {
-        return this.getName() + ": " + this.getTempValue();
+    private Text makeButtonText() {
+        return Text.translatable(formatKey, getDisplayName(), tryTranslate(getTempValue()));
     }
 
     public static CfgValue parseJson(String name, JsonElement jsonData) {
@@ -260,11 +261,26 @@ public class CfgValue {
     public double getMin() {
         return minVal;
     }
-    public String getUnformatted() {
-        return unformatted;
+    public String getFormatKey() {
+        return formatKey;
     }
-    public String tryTranslate(Object value) {
-        return translationMap.getOrDefault(value, "" + value);
+    public Text tryTranslate(Object value) {
+        if (translationMap.containsKey(value)) {
+            return Text.translatable(translationMap.get(value));
+        }
+        return Text.literal("" + value);
+    }
+    public void setTranslationKey(String key) {
+        this.translationKey = key;
+    }
+    public void setFormatKey(String key) {
+        this.formatKey = key;
+    }
+    public Text getDisplayName() {
+        if (translationKey != null) {
+            return Text.translatable(translationKey);
+        }
+        return Text.literal(valueName);
     }
     public void refreshDisableRecursive() {
         var list = getList();

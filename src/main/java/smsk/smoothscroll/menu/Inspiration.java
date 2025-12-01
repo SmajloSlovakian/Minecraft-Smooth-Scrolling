@@ -12,7 +12,6 @@ import net.minecraft.client.gui.widget.TabNavigationWidget;
 import net.minecraft.text.Text;
 import smsk.smoothscroll.SmoothSc;
 import smsk.smoothscroll.cfg.CfgValue;
-import smsk.smoothscroll.cfg.SmScCfg;
 
 public class Inspiration extends Screen {
     private final Screen parent;
@@ -24,7 +23,7 @@ public class Inspiration extends Screen {
     private ButtonWidget button2;
 
     public Inspiration(Screen parent) {
-        super(Text.literal("Config Screen"));
+        super(Text.translatable("smoothscroll.config.title"));
         this.parent = parent;
         this.tabManager = new TabManager(this::addDrawableChild, this::remove);
     }
@@ -48,7 +47,7 @@ public class Inspiration extends Screen {
                     }
                 }
                 // var entryList = new EntryListWidget<Entry<ClickableWidget>>(SmoothSc.mc, 200, 200, 10, 10);
-                var newTab = new CustomTab(Text.literal(cfgValue.getName()), widgets.toArray(new ClickableWidget[0]));
+                var newTab = new CustomTab(cfgValue.getDisplayName(), widgets.toArray(new ClickableWidget[0]));
                 tabs.add(newTab);
             }
         }
@@ -57,13 +56,13 @@ public class Inspiration extends Screen {
         this.addDrawableChild(tabNav);
         //this.addDrawableChild(ButtonWidget.builder(Text.literal("print"), button -> {SmoothSc.print(button.getHeight() + "" + button.getWidth());}).build());
         button1 = ButtonWidget.builder(
-            Text.literal("Save and exit"), button -> {
+            Text.translatable("smoothscroll.config.save"), button -> {
                 SmoothSc.cfg.getConfigForModifying().recursiveSaveTempValue();
                 SmoothSc.cfg.save();
                 this.close();
             }).build();
         button2 = ButtonWidget.builder(
-            Text.literal("Exit without saving"), button -> {
+            Text.translatable("smoothscroll.config.exit"), button -> {
                 this.close();
             }).build();
         this.addDrawableChild(button1);

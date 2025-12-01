@@ -24,8 +24,7 @@ public class CustomSlider extends SliderWidget {
     }
 
     private Text makeText() {
-        var a = String.format(entry.getUnformatted(), entry.getName(), "" + entry.tryTranslate(entry.enStep(entry.enMinMax(value))));
-        return Text.literal(a);
+        return Text.translatable(entry.getFormatKey(), entry.getDisplayName(), entry.tryTranslate(entry.enStep(entry.enMinMax(value))));
     }
 
 
