@@ -39,26 +39,26 @@ public class SmScCfg extends NewConfig {
             "To access config ingame, use the mod modmenu."
         ))).translatable("smoothscroll.config.notes").build(),
         new CfgValueBuilder("Hotbar", new ArrayList<CfgValue>(Arrays.asList(
-            new CfgValueBuilder("Smoothness", 20f).translatable("smoothscroll.config.hotbar.smoothness").minMax(0, 100).map(0, "smoothscroll.config.tooltip.off").map(100, "smoothscroll.config.tooltip.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
+            new CfgValueBuilder("Smoothness", 20f).translatable("smoothscroll.config.hotbar.smoothness").minMax(0, 100).map(0, "smoothscroll.config.value.off").map(100, "smoothscroll.config.value.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
             new CfgValueBuilder("Rollover", true).translatable("smoothscroll.config.hotbar.rollover").build()
         ))).translatable("smoothscroll.config.hotbar").build(),
         new CfgValueBuilder("Chat", new ArrayList<CfgValue>(Arrays.asList(
-            new CfgValueBuilder("Smoothness", 50f).translatable("smoothscroll.config.chat.smoothness").minMax(0, 100).map(0, "smoothscroll.config.tooltip.off").map(100, "smoothscroll.config.tooltip.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
-            new CfgValueBuilder("Opening Smoothness", 50f).translatable("smoothscroll.config.chat.opening_smoothness").minMax(0, 100).map(0, "smoothscroll.config.tooltip.off").map(100, "smoothscroll.config.tooltip.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
-            new CfgValueBuilder("Scrolling Speed", 0f).translatable("smoothscroll.config.chat.scrolling_speed").minMax(0, 100).step(1).map(0.0, "smoothscroll.config.tooltip.auto").format("smoothscroll.config.format.pixels").build(),
-            new CfgValueBuilder("Suggestion Smoothness", 50f).translatable("smoothscroll.config.chat.suggestion_smoothness").minMax(0, 100).map(0, "smoothscroll.config.tooltip.off").map(100, "smoothscroll.config.tooltip.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
-            new CfgValueBuilder("Suggestion Speed", 30f).translatable("smoothscroll.config.chat.suggestion_speed").minMax(0, 100).step(1).format("smoothscroll.config.format.pixels").map(0, "smoothscroll.config.tooltip.auto").build()
+            new CfgValueBuilder("Smoothness", 50f).translatable("smoothscroll.config.chat.smoothness").minMax(0, 100).map(0, "smoothscroll.config.value.off").map(100, "smoothscroll.config.value.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
+            new CfgValueBuilder("Opening Smoothness", 50f).translatable("smoothscroll.config.chat.opening_smoothness").minMax(0, 100).map(0, "smoothscroll.config.value.off").map(100, "smoothscroll.config.value.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
+            new CfgValueBuilder("Scrolling Speed", 0f).translatable("smoothscroll.config.chat.scrolling_speed").minMax(0, 100).step(1).map(0.0, "smoothscroll.config.value.auto").format("smoothscroll.config.format.pixels").build(),
+            new CfgValueBuilder("Suggestion Smoothness", 50f).translatable("smoothscroll.config.chat.suggestion_smoothness").minMax(0, 100).map(0, "smoothscroll.config.value.off").map(100, "smoothscroll.config.value.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
+            new CfgValueBuilder("Suggestion Speed", 30f).translatable("smoothscroll.config.chat.suggestion_speed").minMax(0, 100).step(1).format("smoothscroll.config.format.pixels").map(0, "smoothscroll.config.value.auto").build()
         ))).translatable("smoothscroll.config.chat").build(),
         new CfgValueBuilder("Creative Screen", new ArrayList<CfgValue>(Arrays.asList(
-            new CfgValueBuilder("Smoothness", 50f).translatable("smoothscroll.config.creative_screen.smoothness").minMax(0, 100).map(0, "smoothscroll.config.tooltip.off").map(100, "smoothscroll.config.tooltip.no_scrolling").step(1).format("smoothscroll.config.format.percent").build()
+            new CfgValueBuilder("Smoothness", 50f).translatable("smoothscroll.config.creative_screen.smoothness").minMax(0, 100).map(0, "smoothscroll.config.value.off").map(100, "smoothscroll.config.value.no_scrolling").step(1).format("smoothscroll.config.format.percent").build()
         ))).translatable("smoothscroll.config.creative_screen").build(),
         new CfgValueBuilder("Entry List", new ArrayList<CfgValue>(Arrays.asList(
-            new CfgValueBuilder("Smoothness", 50f).translatable("smoothscroll.config.entry_list.smoothness").minMax(0, 100).map(0, "smoothscroll.config.tooltip.off").map(100, "smoothscroll.config.tooltip.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
-            new CfgValueBuilder("Speed", 30f).translatable("smoothscroll.config.entry_list.speed").minMax(0, 100).step(1).format("smoothscroll.config.format.pixels").map(0, "smoothscroll.config.tooltip.auto").build()
+            new CfgValueBuilder("Smoothness", 50f).translatable("smoothscroll.config.entry_list.smoothness").minMax(0, 100).map(0, "smoothscroll.config.value.off").map(100, "smoothscroll.config.value.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
+            new CfgValueBuilder("Speed", 30f).translatable("smoothscroll.config.entry_list.speed").minMax(0, 100).step(1).format("smoothscroll.config.format.pixels").map(0, "smoothscroll.config.value.auto").build()
         ))).translatable("smoothscroll.config.entry_list").build(),
         new CfgValueBuilder("Text Input Field", new ArrayList<CfgValue>(Arrays.asList(
-            new CfgValueBuilder("Smoothness", 50f).translatable("smoothscroll.config.text_input.smoothness").minMax(0, 100).map(0, "smoothscroll.config.tooltip.off").map(100, "smoothscroll.config.tooltip.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
-            new CfgValueBuilder("Speed", 100f).translatable("smoothscroll.config.text_input.speed").minMax(0, 300).step(1).format("smoothscroll.config.format.pixels").map(0, "smoothscroll.config.tooltip.auto").build(),
+            new CfgValueBuilder("Smoothness", 50f).translatable("smoothscroll.config.text_input.smoothness").minMax(0, 100).map(0, "smoothscroll.config.value.off").map(100, "smoothscroll.config.value.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
+            new CfgValueBuilder("Speed", 100f).translatable("smoothscroll.config.text_input.speed").minMax(0, 300).step(1).format("smoothscroll.config.format.pixels").map(0, "smoothscroll.config.value.auto").build(),
             new CfgValueBuilder("Cursor Margin", 10f).translatable("smoothscroll.config.text_input.cursor_margin").minMax(0, 100).step(1).format("smoothscroll.config.format.percent").disableWhen(val -> {return !(boolean)val.get("..").get("Custom Cursor Update").temporaryValue;}).build(),
             new CfgValueBuilder("Custom Cursor Update", true).translatable("smoothscroll.config.text_input.custom_cursor_update").tooltip(Text.translatable("smoothscroll.config.tooltip.custom_cursor_update")).build()
         ))).translatable("smoothscroll.config.text_input").build(),
