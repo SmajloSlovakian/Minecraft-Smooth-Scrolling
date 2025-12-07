@@ -93,12 +93,12 @@ public class SmoothSc implements ClientModInitializer {
 		return context.getMatrices().peek().getPositionMatrix().getTranslation(new Vector3f(0,0,0));
 	}/* */
 	public static Vector2f vec2fAdd(Vector2f a, Vector2f b) {
-		return new Vector2f(a.getX() + b.getX(), a.getY() + b.getY());
+		return new Vector2f(a.x() + b.x(), a.y() + b.y());
 	}
 	public static Vector2f vec2fSub(Vector2f a, Vector2f b) {
-		return new Vector2f(a.getX() - b.getX(), a.getY() - b.getY());
+		return new Vector2f(a.x() - b.x(), a.y() - b.y());
 	}
 	public static Vector2f vec2fMul(Vector2f a, float b) {
-		return new Vector2f(a.getX() * b, a.getY() * b);
+		return new Vector2f(a.x() * b, a.y() * b);
 	}
 }

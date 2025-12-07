@@ -35,7 +35,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
     protected T handler;
 
     @Shadow
-    protected abstract void drawSlot(DrawContext context, Slot slot);
+    protected abstract void drawSlot(DrawContext context, Slot slot, int mouseX, int mouseY);
 
     @Unique
     private final Identifier backTex = Identifier.ofVanilla("textures/gui/container/creative_inventory/tab_items");
@@ -88,20 +88,20 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
             var tempSlot = new Slot(SmoothSc.getDelegatingInventory(this.handler), i, 9 + i % 9 * 18,
                     SmoothSc.getCreativeScrollOffset() > 0 ? 0 : 18 * 6);
 
-            this.drawSlotOverridden(context, tempSlot);
+            this.drawSlotOverridden(context, tempSlot, mx, my);
         }
         tryDisableMask(context);
     }
 
     @Unique
-    private void drawSlotOverridden(DrawContext context, Slot slot) {
+    private void drawSlotOverridden(DrawContext context, Slot slot, int mouseX, int mouseY) {
         this.drawingOverdrawnSlot = true;
-        this.drawSlot(context, slot);
+        this.drawSlot(context, slot, mouseX, mouseY);
         this.drawingOverdrawnSlot = false;
     }
 
     @Inject(method = "drawSlot", at = @At(value = "HEAD"))
-    private void drawItemY(DrawContext context, Slot slot, CallbackInfo ci) {
+    private void drawItemY(DrawContext context, Slot slot, int x, int y, CallbackInfo ci) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching
                 && isCaching)
             return;
@@ -130,7 +130,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> {
         tryDisableMask(context);
     }
 
-    @Inject(method = "renderMain", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlots(Lnet/minecraft/client/gui/DrawContext;)V"))
+    @Inject(method = "renderMain", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlots(Lnet/minecraft/client/gui/DrawContext;II)V"))
     private void renderMain1(DrawContext context, int mx, int my, float d, CallbackInfo ci) {
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching
                 && isCaching)

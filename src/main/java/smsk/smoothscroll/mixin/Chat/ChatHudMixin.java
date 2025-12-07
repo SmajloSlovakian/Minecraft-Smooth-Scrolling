@@ -22,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.ChatHudLine;
+import net.minecraft.client.gui.hud.ChatHud.Backend;
 import net.minecraft.client.util.math.Vector2f;
 import net.minecraft.text.OrderedText;
 import net.minecraft.util.math.ColorHelper;
@@ -47,7 +48,7 @@ public class ChatHudMixin {
     @Unique private boolean refreshing = false;
 
     @WrapMethod(method = "render")
-    private void renderWrap(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, Operation<Void> operation) {
+    private void renderWrap(Backend drawer, int windowHeight, int currentTick, boolean expanded, Operation<Void> operation) {
         smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
         // snap on less than half a pixel difference
@@ -59,13 +60,13 @@ public class ChatHudMixin {
         // mask height
         var shownLineCount = 0;
         for(int r = 0; r + scrolledLines < visibleMessages.size() && r < getVisibleLineCount(); r++) {
-            if (currentTick - visibleMessages.get(r).addedTime() < 200 || focused) shownLineCount++;
+            if (currentTick - visibleMessages.get(r).addedTime() < 200 || expanded) shownLineCount++;
         }
 
         targetMaskHeight = shownLineCount * getLineHeight();
         smoothMaskHeight = (smoothMaskHeight - targetMaskHeight) * (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + targetMaskHeight;
 
-        operation.call(context, currentTick, mouseX, mouseY, focused);
+        operation.call(drawer, windowHeight, currentTick, expanded);
     }
 
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;translate(FF)Lorg/joml/Matrix3x2f;", ordinal = 0))
@@ -76,7 +77,7 @@ public class ChatHudMixin {
         } else {
             smoothMtxTrans = SmoothSc.vec2fAdd(SmoothSc.vec2fMul(SmoothSc.vec2fSub(smoothMtxTrans, targetVec), (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration())), targetVec);
         }
-        return operation.call(matrix, (float) Math.round(smoothMtxTrans.getX()), (float) Math.round(smoothMtxTrans.getY()));
+        return operation.call(matrix, (float) Math.round(smoothMtxTrans.x()), (float) Math.round(smoothMtxTrans.y()));
     }
 
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(IIZILnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I"))

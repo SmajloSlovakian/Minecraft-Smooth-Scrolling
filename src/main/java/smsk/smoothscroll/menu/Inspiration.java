@@ -2,7 +2,6 @@ package smsk.smoothscroll.menu;
 
 import java.util.ArrayList;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tab.TabManager;
@@ -93,8 +92,8 @@ public class Inspiration extends Screen {
     }
 
     @Override
-    public void resize(MinecraftClient client, int width, int height) {
-        super.resize(client, width, height);
+    public void resize(int width, int height) {
+        super.resize(width, height);
         reposition();
     }
 
