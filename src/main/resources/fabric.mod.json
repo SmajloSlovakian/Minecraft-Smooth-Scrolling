@@ -18,9 +18,9 @@
 		"client": [
 			"smsk.smoothscroll.SmoothSc"
 		],
-        "modmenu": [
-            "smsk.smoothscroll.menu.ModMenuImpl"
-        ]
+		"modmenu": [
+			"smsk.smoothscroll.menu.ModMenuImpl"
+		]
 	},
 	"mixins": [
 		"smoothscroll.mixins.json"
@@ -30,7 +30,9 @@
 		"minecraft": ">=1.21.9",
 		"java": ">=21"
 	},
-	"suggests": {
-		"another-mod": "*"
+	"custom": {
+		"jade": {
+			"smoothScroll": true
+		}
 	}
 }
