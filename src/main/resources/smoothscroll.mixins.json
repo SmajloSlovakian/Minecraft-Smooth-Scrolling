@@ -6,8 +6,8 @@
 	"mixins": [],
 	"client": [
 		"Hotbar.HotbarMixin",
-
 		"Hotbar.MouseMixin",
+		"Chat.ChatHudMixin",
 		"Chat.SuggestionWindowMixin",
 		"CreativeScreen.CreativeScreenHandlerMixin",
 		"compat.CreativeScreenHandlerMixin_CC",

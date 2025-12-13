@@ -47,7 +47,7 @@ public class ChatHudMixin {
     @Unique private boolean translated = false;
     @Unique private boolean refreshing = false;
 
-    @WrapMethod(method = "render")
+    @WrapMethod(method = "Lnet/minecraft/client/gui/hud/ChatHud;render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V")
     private void renderWrap(Backend drawer, int windowHeight, int currentTick, boolean expanded, Operation<Void> operation) {
         smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
@@ -68,33 +68,25 @@ public class ChatHudMixin {
 
         operation.call(drawer, windowHeight, currentTick, expanded);
     }
+    
+    @WrapOperation(method = "Lnet/minecraft/client/gui/hud/ChatHud;render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(Lnet/minecraft/client/gui/hud/ChatHud$OpacityRule;Lnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I", ordinal = 0))
+    private int forVisibleLineWrap(ChatHud ch, @Coerce Object opacityRule, @Coerce Object consumer, Operation<Integer> operation, @Local Backend drawer) {
+        //enMask(context, windowHeight);
+        drawer.updatePose((pose) -> {
+            pose.translate(0, (int) Math.floor(getDrawOffset()));
+        });
+        //context.getMatrices().pushMatrix();
+        //context.getMatrices().translate(0, (int) Math.floor(getDrawOffset()));
 
-    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;translate(FF)Lorg/joml/Matrix3x2f;", ordinal = 0))
-    private Matrix3x2f matrixTranslateWrap(Matrix3x2fStack matrix, float x, float y, Operation<Matrix3x2f> operation) {
-        var targetVec = new Vector2f(x, y);
-        if (smoothMtxTrans == null) {
-            smoothMtxTrans = targetVec;
-        } else {
-            smoothMtxTrans = SmoothSc.vec2fAdd(SmoothSc.vec2fMul(SmoothSc.vec2fSub(smoothMtxTrans, targetVec), (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration())), targetVec);
-        }
-        return operation.call(matrix, (float) Math.round(smoothMtxTrans.x()), (float) Math.round(smoothMtxTrans.y()));
-    }
+        int ret = operation.call(ch, opacityRule, consumer);
 
-    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(IIZILnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I"))
-    private int forVisibleLineWrap(ChatHud ch, int visibleLineCount, int currentTick, boolean focused, int windowHeight, @Coerce Object consumer, Operation<Integer> operation, @Local DrawContext context) {
-        enMask(context, windowHeight);
-        context.getMatrices().pushMatrix();
-        context.getMatrices().translate(0, (int) Math.floor(getDrawOffset()));
-
-        int ret = operation.call(ch, visibleLineCount, currentTick, focused, windowHeight, consumer);
-
-        context.getMatrices().popMatrix();
-        if (SmScCfg.enableMaskDebug)
-            context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 255, 255, 0));
-        context.disableScissor();
+        //context.getMatrices().popMatrix();
+        //if (SmScCfg.enableMaskDebug)
+            //context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 255, 255, 0));
+        //context.disableScissor();
         return ret;
     }
-
+    
     @Unique
     private void enMask(DrawContext context, int chatYPos) {
         int maskTop = (int) Math.round(chatYPos - smoothMaskHeight);
@@ -112,7 +104,7 @@ public class ChatHudMixin {
         context.enableScissor(-10, maskTop, getWidth() + 999999, maskBottom);
         SmoothSc.preciseScissor = false;
     }
-
+    
     @WrapMethod(method = "scroll")
     private void scrollWrap(int amount, Operation<Void> operation) {
         // target + mousescrollamount * lineamount
@@ -133,10 +125,10 @@ public class ChatHudMixin {
         targetScrollPos = (float) newTarget;
     }
     
-    @ModifyVariable(method = "forEachVisibleLine", at = @At(value = "STORE"), ordinal = 7)
-    private int opacity(int p) {
+    @ModifyVariable(method = "forEachVisibleLine", at = @At(value = "STORE"), ordinal = 0)
+    private float opacity(float p) {
         if (SmScCfg.chatOpeningSmoothness == 0) return p;
-        return 0;
+        return 1;
     }
 
     @ModifyVariable(method = "addVisibleMessage", at = @At("STORE"), ordinal = 0)
@@ -145,6 +137,19 @@ public class ChatHudMixin {
         smoothScrollPos += ot.size();
         return ot;
     }
+
+/*
+    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;translate(FF)Lorg/joml/Matrix3x2f;", ordinal = 0))
+    private Matrix3x2f matrixTranslateWrap(Matrix3x2fStack matrix, float x, float y, Operation<Matrix3x2f> operation) {
+        var targetVec = new Vector2f(x, y);
+        if (smoothMtxTrans == null) {
+            smoothMtxTrans = targetVec;
+        } else {
+            smoothMtxTrans = SmoothSc.vec2fAdd(SmoothSc.vec2fMul(SmoothSc.vec2fSub(smoothMtxTrans, targetVec), (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration())), targetVec);
+        }
+        return operation.call(matrix, (float) Math.round(smoothMtxTrans.x()), (float) Math.round(smoothMtxTrans.y()));
+    }
+    
 
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 3)
     private int addLinesAbove(int i) {
@@ -166,6 +171,7 @@ public class ChatHudMixin {
     private int scrollbarSmooth(int u, @Local(ordinal = 4) int j, @Local(ordinal = 7) int m, @Local(ordinal = 13) int t) {
         return (int) (Math.round(smoothScrollPos) * t / j - m);
     }
+*/
 
 
     @Inject(method = "refresh", at = @At("HEAD"))
@@ -173,7 +179,6 @@ public class ChatHudMixin {
 
     @Inject(method = "refresh", at = @At("TAIL"))
     private void refreshT(CallbackInfo ci) {refreshing = false;}
-
     @Shadow
     private int getLineHeight() {return 0;}
 
