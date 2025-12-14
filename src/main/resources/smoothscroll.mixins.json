@@ -10,6 +10,7 @@
 		"Chat.ChatHudMixin",
 		"Chat.ChatHudMixin$HudAccessor",
 		"Chat.ChatHudMixin$InteractableAccessor",
+		"Chat.ChatHudMixin$ForwarderAccessor",
 		"Chat.SuggestionWindowMixin",
 		"CreativeScreen.CreativeScreenHandlerMixin",
 		"compat.CreativeScreenHandlerMixin_CC",

@@ -46,11 +46,12 @@ public class ChatHudMixin {
     @Unique private float smoothMaskHeight = 0;
     @Unique private float targetMaskHeight = 0;
     @Unique private Vector2f smoothMtxTrans = null;
-    @Unique private boolean translated = false;
     @Unique private boolean refreshing = false;
+    @Unique private static ChatHudMixin lastThis;
 
-    @WrapMethod(method = "Lnet/minecraft/client/gui/hud/ChatHud;render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V")
+    @WrapMethod(method = "render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V")
     private void renderWrap(Backend drawer, int windowHeight, int currentTick, boolean expanded, Operation<Void> operation) {
+        lastThis = this;
         smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
         // snap on less than half a pixel difference
@@ -70,9 +71,21 @@ public class ChatHudMixin {
 
         operation.call(drawer, windowHeight, currentTick, expanded);
     }
+
+    //lambda$render$0 (Consumer<Matrix3x2f>)
+    @WrapOperation(method = "method_75801", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2f;translate(FF)Lorg/joml/Matrix3x2f;"), remap = false)
+    private static Matrix3x2f matrixTranslateWrap(Matrix3x2f matrix, float x, float y, Operation<Matrix3x2f> operation) {
+        var targetVec = new Vector2f(x, y);
+        if (lastThis.smoothMtxTrans == null) {
+            lastThis.smoothMtxTrans = targetVec;
+        } else {
+            lastThis.smoothMtxTrans = SmoothSc.vec2fAdd(SmoothSc.vec2fMul(SmoothSc.vec2fSub(lastThis.smoothMtxTrans, targetVec), (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration())), targetVec);
+        }
+        return operation.call(matrix, (float) Math.round(lastThis.smoothMtxTrans.x()), (float) Math.round(lastThis.smoothMtxTrans.y()));
+    }
     
-    @WrapOperation(method = "Lnet/minecraft/client/gui/hud/ChatHud;render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(Lnet/minecraft/client/gui/hud/ChatHud$OpacityRule;Lnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I"))
-    private int forVisibleLineWrap(ChatHud ch, @Coerce Object opacityRule, @Coerce Object consumer, Operation<Integer> operation, @Local Backend drawer, @Local(ordinal = 4) int chatYPos) {
+    @WrapOperation(method = "render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(Lnet/minecraft/client/gui/hud/ChatHud$OpacityRule;Lnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I"))
+    private int forVisibleLineWrap(ChatHud ch, @Coerce Object opacityRule, @Coerce Object consumer, Operation<Integer> operation, @Local(argsOnly = true) Backend drawer, @Local(ordinal = 4) int chatYPos) {
         var transformationAccess = new TransformationAccess(drawer);
         enMask(transformationAccess, chatYPos);
         drawer.updatePose((pose) -> {
@@ -164,6 +177,15 @@ public class ChatHudMixin {
         targetScrollPos = scrolledLines;
     }
 
+    @ModifyVariable(method = "render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V", at = @At(value = "STORE"), ordinal = 9)
+    private int scrollbarVisibleLines(int p) {
+        return p - (Math.round(getDrawOffset()) == 0 ? 0 : 1);
+    }
+
+    @ModifyVariable(method = "render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V" ,at = @At(value = "STORE"), ordinal = 12)
+    private int scrollbarSmooth(int scrollbarY, @Local(ordinal = 2) int j, @Local(ordinal = 4) int m, @Local(ordinal = 11) int t) {
+        return (int) (Math.round(smoothScrollPos) * t / j - m);
+    }
 
     public class TransformationAccess {
         HudAccessor h;
@@ -233,32 +255,6 @@ public class ChatHudMixin {
         DrawnTextConsumer getDrawer();
     }
 
-
-/* lambda$render$0 (Consumer<Matrix3x2f>) for the pose transform
-
-    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;translate(FF)Lorg/joml/Matrix3x2f;", ordinal = 0))
-    private Matrix3x2f matrixTranslateWrap(Matrix3x2fStack matrix, float x, float y, Operation<Matrix3x2f> operation) {
-        var targetVec = new Vector2f(x, y);
-        if (smoothMtxTrans == null) {
-            smoothMtxTrans = targetVec;
-        } else {
-            smoothMtxTrans = SmoothSc.vec2fAdd(SmoothSc.vec2fMul(SmoothSc.vec2fSub(smoothMtxTrans, targetVec), (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration())), targetVec);
-        }
-        return operation.call(matrix, (float) Math.round(smoothMtxTrans.x()), (float) Math.round(smoothMtxTrans.y()));
-    }
-    
-    @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 10)
-    private int scrollbarVisibleLines(int p) {
-        return p - (Math.round(getDrawOffset()) == 0 ? 0 : 1);
-    }
-
-    @ModifyVariable(method = "render" ,at = @At(value = "STORE"), ordinal = 14)
-    private int scrollbarSmooth(int u, @Local(ordinal = 4) int j, @Local(ordinal = 7) int m, @Local(ordinal = 13) int t) {
-        return (int) (Math.round(smoothScrollPos) * t / j - m);
-    }
-*/
-
-
     @Inject(method = "refresh", at = @At("HEAD"))
     private void refreshH(CallbackInfo ci) {refreshing = true;}
 
@@ -268,10 +264,10 @@ public class ChatHudMixin {
     private int getLineHeight() {return 0;}
 
     @Shadow
-    public double getChatScale() {return 0;}
+    private double getChatScale() {return 0;}
 
     @Shadow
-    public int getWidth() {return 0;}
+    private int getWidth() {return 0;}
     
     @Shadow
     public int getVisibleLineCount() {return 0;}
