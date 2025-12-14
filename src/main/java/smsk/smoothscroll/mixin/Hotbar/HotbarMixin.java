@@ -112,7 +112,11 @@ public class HotbarMixin {
 	private void enableMask(DrawContext context) {
 		var x2 = context.getScaledWindowWidth() / 2 - 91;
 		var y2 = context.getScaledWindowHeight() - 22;
-		context.enableScissor((int) x2 - 1, (int) y2 - 1, (int) x2 + 182 + 1, (int) y2 + 22 + 1);
+		if (!SmScCfg.staticSelector) {
+			context.enableScissor((int) x2 - 1, (int) y2 - 1, (int) x2 + 182 + 1, (int) y2 + 22 + 1);
+		} else {
+			context.enableScissor((int) x2, (int) y2 - 1, (int) x2 + 182, (int) y2 + 22 + 1);
+		}
 		masked = true;
 	}
 

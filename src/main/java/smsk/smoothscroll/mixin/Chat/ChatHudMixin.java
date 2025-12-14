@@ -123,8 +123,10 @@ public class ChatHudMixin {
         }
 
         // this only affects text and the other only affects everything else... wtf mojank?
-        var a = transformationAccess.getTransformation().withScissor(-10, getWidth() + 999999, maskTop, maskBottom);
-        transformationAccess.setTransformation(a);
+        var a = transformationAccess.getTransformation();
+        if (a != null) {
+            transformationAccess.setTransformation(a.withScissor(-10, getWidth() + 999999, maskTop, maskBottom));
+        }
 
         var context = transformationAccess.getContext();
         if (context != null) {
@@ -192,22 +194,27 @@ public class ChatHudMixin {
         InteractableAccessor i;
         ForwarderAccessor f;
         TransformationAccess(Object obj) {
-            if (obj.getClass().getName().equals("net.minecraft.client.gui.hud.ChatHud$Interactable")) {
-                i = (InteractableAccessor) obj;
+            if (obj instanceof InteractableAccessor cast) {
+                i = cast;
                 return;
             }
-            if (obj.getClass().getName().equals("net.minecraft.client.gui.hud.ChatHud$Hud")){
-                h = (HudAccessor) obj;
+            if (obj instanceof HudAccessor cast) {
+                h = cast;
                 return;
             }
-            f = (ForwarderAccessor) obj;
+            if (obj instanceof ForwarderAccessor cast) {
+                f = cast;
+                return;
+            }
         }
         public DrawnTextConsumer.Transformation getTransformation() {
             if (i != null)
                 return i.getTransformation();
             if (h != null)
                 return h.getTransformation();
-            return f.getDrawer().getTransformation();
+            if (f != null)
+                return f.getDrawer().getTransformation();
+            return null;
         }
         public void setTransformation(DrawnTextConsumer.Transformation transformation) {
             if (i != null) {
@@ -218,7 +225,10 @@ public class ChatHudMixin {
                 h.setTransformation(transformation);
                 return;
             }
-            f.getDrawer().setTransformation(transformation);
+            if (f != null){
+                f.getDrawer().setTransformation(transformation);
+                return;
+            }
         }
         public DrawContext getContext() {
             if (i != null)
