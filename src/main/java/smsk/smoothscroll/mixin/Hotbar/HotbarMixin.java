@@ -1,5 +1,6 @@
 package smsk.smoothscroll.mixin.Hotbar;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
@@ -9,7 +10,10 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.SmoothSc;
@@ -31,16 +35,15 @@ public class HotbarMixin {
 	@Unique private boolean masked = false;
 	@Unique private float smoothSelectorPos = 0;
 
-	@WrapOperation(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
-	private void moveSelector(DrawContext context, RenderPipeline pipeline, Identifier texture, int x, int y, int width, int height, Operation<Void> operation) {
+	@WrapMethod(method = "renderHotbar")
+	private void renderHotbarWrap(DrawContext context, RenderTickCounter tickCounter, Operation<Void> operation) {
 		if (SmScCfg.hotbarSmoothness == 0) {
-			operation.call(context, pipeline, texture, x, y, width, height);
+			operation.call(context, tickCounter);
 			return;
 		}
 		PlayerInventory inv = SmoothSc.mc.player.getInventory();
 
-		var hotbarStart = x - inv.getSelectedSlot() * slotWidth;
-
+		rolloverSpace = SmScCfg.staticSelector ? 1 : 4;
 		var target = (inv.getSelectedSlot() - SmoothSc.hotbarRollover * slotCount) * slotWidth - SmoothSc.hotbarRollover * rolloverSpace;
 		smoothSelectorPos = (float) ((smoothSelectorPos - target) * Math.pow(SmScCfg.hotbarSmoothness, SmoothSc.getLastFrameDuration()) + target);
 		
@@ -52,8 +55,25 @@ public class HotbarMixin {
 			SmoothSc.hotbarRollover += 1;
 		}
 
-		masked = false;
-		
+		operation.call(context, tickCounter);
+	}
+
+	@WrapOperation(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/util/Identifier;IIII)V", ordinal = 1))
+	private void moveSelector(DrawContext context, RenderPipeline pipeline, Identifier texture, int x, int y, int width, int height, Operation<Void> operation) {
+		PlayerInventory inv = SmoothSc.mc.player.getInventory();
+		var hotbarStart = x - inv.getSelectedSlot() * slotWidth;
+
+		if (SmScCfg.staticSelector) {
+			context.getMatrices().pushMatrix();
+			context.getMatrices().translate(- (x - hotbarStart) + slotCount / 2 * slotWidth, 0);
+
+			operation.call(context, pipeline, texture, x, y, width, height);
+
+        	context.getMatrices().popMatrix();
+			return;
+		}
+
+
 		if (Math.round(smoothSelectorPos) < 0) {
 			enableMask(context);
 			context.getMatrices().pushMatrix();
@@ -83,6 +103,7 @@ public class HotbarMixin {
 		if (masked) {
 			if (SmScCfg.enableMaskDebug) context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 0, 255, 255));
 			context.disableScissor();
+			masked = false;
 		}
 	}
 
@@ -94,4 +115,81 @@ public class HotbarMixin {
 		context.enableScissor((int) x2 - 1, (int) y2 - 1, (int) x2 + 182 + 1, (int) y2 + 22 + 1);
 		masked = true;
 	}
+
+
+
+	@WrapOperation(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawGuiTexture(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/util/Identifier;IIII)V", ordinal = 0))
+	private void moveHotbar(DrawContext context, RenderPipeline pipeline, Identifier texture, int x, int y, int width, int height, Operation<Void> operation) {
+		if (!SmScCfg.staticSelector) {
+			operation.call(context, pipeline, texture, x, y, width, height);
+			return;
+		}
+		PlayerInventory inv = SmoothSc.mc.player.getInventory();
+		var hotbarStart = x - inv.getSelectedSlot() * slotWidth;
+		enableMask(context);
+		context.getMatrices().pushMatrix();
+		context.getMatrices().translate(-smoothSelectorPos + slotCount / 2 * slotWidth, 0);
+
+		operation.call(context, pipeline, texture, x, y, width, height);
+
+		context.getMatrices().popMatrix();
+
+		context.getMatrices().pushMatrix();
+		context.getMatrices().translate(-smoothSelectorPos + slotCount * slotWidth + rolloverSpace + slotCount / 2 * slotWidth, 0);
+
+		operation.call(context, pipeline, texture, x, y, width, height);
+
+		context.getMatrices().popMatrix();
+
+		context.getMatrices().pushMatrix();
+		context.getMatrices().translate(-smoothSelectorPos - slotCount * slotWidth - rolloverSpace + slotCount / 2 * slotWidth, 0);
+
+		operation.call(context, pipeline, texture, x, y, width, height);
+
+		context.getMatrices().popMatrix();
+		
+		if (masked) {
+			if (SmScCfg.enableMaskDebug) context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 0, 255, 255));
+			context.disableScissor();
+			masked = false;
+		}
+	}
+
+	@WrapOperation(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/InGameHud;renderHotbarItem(Lnet/minecraft/client/gui/DrawContext;IILnet/minecraft/client/render/RenderTickCounter;Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/item/ItemStack;I)V", ordinal = 0))
+	private void moveItems(InGameHud igh, DrawContext context, int x, int y, RenderTickCounter tickCounter, PlayerEntity player, ItemStack stack, int seed, Operation<Void> operation) {
+		if (!SmScCfg.staticSelector) {
+			operation.call(igh, context, x, y, tickCounter, player, stack, seed);
+			return;
+		}
+		PlayerInventory inv = SmoothSc.mc.player.getInventory();
+		var hotbarStart = x - inv.getSelectedSlot() * slotWidth;
+		enableMask(context);
+		context.getMatrices().pushMatrix();
+		context.getMatrices().translate(-smoothSelectorPos + slotCount / 2 * slotWidth, 0);
+
+		operation.call(igh, context, x, y, tickCounter, player, stack, seed);
+
+		context.getMatrices().popMatrix();
+
+		context.getMatrices().pushMatrix();
+		context.getMatrices().translate(-smoothSelectorPos + slotCount * slotWidth + rolloverSpace + slotCount / 2 * slotWidth, 0);
+
+		operation.call(igh, context, x, y, tickCounter, player, stack, seed);
+
+		context.getMatrices().popMatrix();
+
+		context.getMatrices().pushMatrix();
+		context.getMatrices().translate(-smoothSelectorPos - slotCount * slotWidth - rolloverSpace + slotCount / 2 * slotWidth, 0);
+
+		operation.call(igh, context, x, y, tickCounter, player, stack, seed);
+
+		context.getMatrices().popMatrix();
+
+		if (masked) {
+			if (SmScCfg.enableMaskDebug) context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 0, 255, 255));
+			context.disableScissor();
+			masked = false;
+		}
+	}
+
 }

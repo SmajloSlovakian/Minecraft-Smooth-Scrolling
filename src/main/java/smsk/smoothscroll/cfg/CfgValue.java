@@ -32,7 +32,11 @@ public class CfgValue {
     ClickableWidget myWidget;
     ButtonWidget myResetButton;
     Text tooltiptxt;
-    Map<Object, String> translationMap = new HashMap<>();
+    Map<Object, String> translationMap = new HashMap<>(){{
+        put(true, "options.on");
+        put(false, "options.off");
+    }};
+// {true: "options.on" false: "options.off"};
     String formatKey = "smoothscroll.config.format.default";
     String translationKey;
     Function<CfgValue, Boolean> disableWhen;

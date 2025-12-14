@@ -11,6 +11,7 @@
   "smoothscroll.config.hotbar": "Hotbar",
   "smoothscroll.config.hotbar.smoothness": "Smoothness",
   "smoothscroll.config.hotbar.rollover": "Rollover",
+  "smoothscroll.config.hotbar.static_selector": "Static Selector",
   "smoothscroll.config.chat": "Chat",
   "smoothscroll.config.chat.smoothness": "Smoothness",
   "smoothscroll.config.chat.opening_smoothness": "Opening Smoothness",
@@ -34,6 +35,7 @@
   "smoothscroll.config.value.no_scrolling": "No Scrolling",
   "smoothscroll.config.value.auto": "Auto",
   "smoothscroll.config.tooltip.custom_cursor_update": "Disable this if you're having problems when you move the cursor with arrows",
+  "smoothscroll.config.tooltip.hotbar_static_selector": "Moves the whole hotbar instead of the selector. This is experimental and the feature can be removed if it is hard to port.",
   "smoothscroll.config.format.percent": "%s: %s %%",
   "smoothscroll.config.format.pixels": "%s: %s px",
   "smoothscroll.config.format.default": "%s: %s"

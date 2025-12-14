@@ -7,10 +7,11 @@ import net.minecraft.text.Text;
 import smsk.smoothscroll.SmoothSc;
 
 public class SmScCfg extends NewConfig {
-    public final static float format = 2.41f;
+    public final static float format = 2.6f;
 
     public static float hotbarSmoothness;
     public static boolean hotbarRollover;
+    public static boolean staticSelector;
 
     public static float chatSmoothness;
     public static float chatOpeningSmoothness;
@@ -41,7 +42,8 @@ public class SmScCfg extends NewConfig {
 
         new CfgValueBuilder("Hotbar", new ArrayList<CfgValue>(Arrays.asList(
             new CfgValueBuilder("Smoothness", 20f).translatable("smoothscroll.config.hotbar.smoothness").minMax(0, 100).map(0.0, "smoothscroll.config.value.off").map(100.0, "smoothscroll.config.value.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
-            new CfgValueBuilder("Rollover", true).translatable("smoothscroll.config.hotbar.rollover").build()
+            new CfgValueBuilder("Rollover", true).translatable("smoothscroll.config.hotbar.rollover").build(),
+            new CfgValueBuilder("Static Selector", false).translatable("smoothscroll.config.hotbar.static_selector").tooltip(Text.translatable("smoothscroll.config.tooltip.hotbar_static_selector")).build()
         ))).translatable("smoothscroll.config.hotbar").build(),
 
         new CfgValueBuilder("Chat", new ArrayList<CfgValue>(Arrays.asList(
@@ -84,6 +86,7 @@ public class SmScCfg extends NewConfig {
     void intoVariables() {
         hotbarSmoothness = (float) root.get("Hotbar").get("Smoothness").getValue() / 100f;
         hotbarRollover = (boolean) root.get("Hotbar").get("Rollover").getValue();
+        staticSelector = (boolean) root.get("Hotbar").get("Static Selector").getValue();
 
         chatSmoothness = (float) root.get("Chat").get("Smoothness").getValue() / 100f;
         chatOpeningSmoothness = (float) root.get("Chat").get("Opening Smoothness").getValue() / 100f;
