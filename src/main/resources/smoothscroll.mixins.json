@@ -8,6 +8,8 @@
 		"Hotbar.HotbarMixin",
 		"Hotbar.MouseMixin",
 		"Chat.ChatHudMixin",
+		"Chat.ChatHudMixin$HudAccessor",
+		"Chat.ChatHudMixin$InteractableAccessor",
 		"Chat.SuggestionWindowMixin",
 		"CreativeScreen.CreativeScreenHandlerMixin",
 		"compat.CreativeScreenHandlerMixin_CC",

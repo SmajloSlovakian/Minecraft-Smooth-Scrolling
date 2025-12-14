@@ -13,12 +13,14 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import net.minecraft.client.font.DrawnTextConsumer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.ChatHudLine;
@@ -69,9 +71,10 @@ public class ChatHudMixin {
         operation.call(drawer, windowHeight, currentTick, expanded);
     }
     
-    @WrapOperation(method = "Lnet/minecraft/client/gui/hud/ChatHud;render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(Lnet/minecraft/client/gui/hud/ChatHud$OpacityRule;Lnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I", ordinal = 0))
-    private int forVisibleLineWrap(ChatHud ch, @Coerce Object opacityRule, @Coerce Object consumer, Operation<Integer> operation, @Local Backend drawer) {
-        //enMask(context, windowHeight);
+    @WrapOperation(method = "Lnet/minecraft/client/gui/hud/ChatHud;render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(Lnet/minecraft/client/gui/hud/ChatHud$OpacityRule;Lnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I"))
+    private int forVisibleLineWrap(ChatHud ch, @Coerce Object opacityRule, @Coerce Object consumer, Operation<Integer> operation, @Local Backend drawer, @Local(ordinal = 4) int chatYPos) {
+        var transformationAccess = new TransformationAccess(drawer);
+        enMask(transformationAccess, chatYPos);
         drawer.updatePose((pose) -> {
             pose.translate(0, (int) Math.floor(getDrawOffset()));
         });
@@ -81,14 +84,20 @@ public class ChatHudMixin {
         int ret = operation.call(ch, opacityRule, consumer);
 
         //context.getMatrices().popMatrix();
-        //if (SmScCfg.enableMaskDebug)
-            //context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 255, 255, 0));
-        //context.disableScissor();
+        drawer.updatePose((pose) -> {
+            pose.translate(0, -(int) Math.floor(getDrawOffset()));
+        });
+        var context = transformationAccess.getContext();
+        if (context != null) {
+            //if (SmScCfg.enableMaskDebug)
+                //context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 255, 255, 0));
+            context.disableScissor();
+        }
         return ret;
     }
     
     @Unique
-    private void enMask(DrawContext context, int chatYPos) {
+    private void enMask(TransformationAccess transformationAccess, int chatYPos) {
         int maskTop = (int) Math.round(chatYPos - smoothMaskHeight);
         int maskBottom = chatYPos;
 
@@ -100,9 +109,15 @@ public class ChatHudMixin {
             maskBottom += 2;
         }
 
-        SmoothSc.preciseScissor = true;
-        context.enableScissor(-10, maskTop, getWidth() + 999999, maskBottom);
-        SmoothSc.preciseScissor = false;
+        // this only affects text and the other only affects everything else... wtf mojank?
+        var a = transformationAccess.getTransformation().withScissor(-10, getWidth() + 999999, maskTop, maskBottom);
+        transformationAccess.setTransformation(a);
+
+        var context = transformationAccess.getContext();
+        if (context != null) {
+            context.enableScissor(-10, maskTop, getWidth() + 999999, maskBottom);
+        }
+
     }
     
     @WrapMethod(method = "scroll")
@@ -138,7 +153,89 @@ public class ChatHudMixin {
         return ot;
     }
 
-/*
+    @ModifyVariable(method = "forEachVisibleLine", at = @At("STORE"), ordinal = 0)
+    private int addLinesAbove(int i) {
+        return (int) Math.ceil(Math.round(smoothMaskHeight) / (float) getLineHeight()) + (Math.round(getDrawOffset()) == 0 ? 0 : 1);
+    }
+    
+    @WrapMethod(method = "resetScroll")
+    private void resetScrollWrap(Operation<Void> operation) {
+        operation.call();
+        targetScrollPos = scrolledLines;
+    }
+
+
+    public class TransformationAccess {
+        HudAccessor h;
+        InteractableAccessor i;
+        ForwarderAccessor f;
+        TransformationAccess(Object obj) {
+            if (obj.getClass().getName().equals("net.minecraft.client.gui.hud.ChatHud$Interactable")) {
+                i = (InteractableAccessor) obj;
+                return;
+            }
+            if (obj.getClass().getName().equals("net.minecraft.client.gui.hud.ChatHud$Hud")){
+                h = (HudAccessor) obj;
+                return;
+            }
+            f = (ForwarderAccessor) obj;
+        }
+        public DrawnTextConsumer.Transformation getTransformation() {
+            if (i != null)
+                return i.getTransformation();
+            if (h != null)
+                return h.getTransformation();
+            return f.getDrawer().getTransformation();
+        }
+        public void setTransformation(DrawnTextConsumer.Transformation transformation) {
+            if (i != null) {
+                i.setTransformation(transformation);
+                return;
+            }
+            if (h != null){
+                h.setTransformation(transformation);
+                return;
+            }
+            f.getDrawer().setTransformation(transformation);
+        }
+        public DrawContext getContext() {
+            if (i != null)
+                return i.getContext();
+            if (h != null)
+                return h.getContext();
+            return null;
+        }
+    }
+
+    @Mixin(targets = "net.minecraft.client.gui.hud.ChatHud$Hud")
+    public interface HudAccessor {
+        @Accessor("transformation")
+        DrawnTextConsumer.Transformation getTransformation();
+        @Accessor("transformation")
+        void setTransformation(DrawnTextConsumer.Transformation transformation);
+        @Accessor("context")
+        DrawContext getContext();
+    }
+
+    @Mixin(targets = "net.minecraft.client.gui.hud.ChatHud$Interactable")
+    public interface InteractableAccessor {
+        @Accessor("transformation")
+        DrawnTextConsumer.Transformation getTransformation();
+        @Accessor("transformation")
+        void setTransformation(DrawnTextConsumer.Transformation transformation);
+        @Accessor("context")
+        DrawContext getContext();
+    }
+
+    @Mixin(targets = "net.minecraft.client.gui.hud.ChatHud$Forwarder")
+    public interface ForwarderAccessor {
+        @Accessor("drawer")
+        DrawnTextConsumer getDrawer();
+    }
+
+
+/* lambda$render$0 (Consumer<Matrix3x2f>) for the pose transform
+
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;translate(FF)Lorg/joml/Matrix3x2f;", ordinal = 0))
     private Matrix3x2f matrixTranslateWrap(Matrix3x2fStack matrix, float x, float y, Operation<Matrix3x2f> operation) {
         var targetVec = new Vector2f(x, y);
@@ -150,18 +247,6 @@ public class ChatHudMixin {
         return operation.call(matrix, (float) Math.round(smoothMtxTrans.x()), (float) Math.round(smoothMtxTrans.y()));
     }
     
-
-    @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 3)
-    private int addLinesAbove(int i) {
-        return (int) Math.ceil(Math.round(smoothMaskHeight) / (float) getLineHeight()) + (Math.round(getDrawOffset()) == 0 ? 0 : 1);
-    }
-
-    @WrapMethod(method = "resetScroll")
-    private void resetScrollWrap(Operation<Void> operation) {
-        operation.call();
-        targetScrollPos = scrolledLines;
-    }
-
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 10)
     private int scrollbarVisibleLines(int p) {
         return p - (Math.round(getDrawOffset()) == 0 ? 0 : 1);
