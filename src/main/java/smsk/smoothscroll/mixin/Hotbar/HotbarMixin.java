@@ -128,8 +128,6 @@ public class HotbarMixin {
 			operation.call(context, pipeline, texture, x, y, width, height);
 			return;
 		}
-		PlayerInventory inv = SmoothSc.mc.player.getInventory();
-		var hotbarStart = x - inv.getSelectedSlot() * slotWidth;
 		enableMask(context);
 		context.getMatrices().pushMatrix();
 		context.getMatrices().translate(-smoothSelectorPos + slotCount / 2 * slotWidth, 0);
@@ -165,8 +163,6 @@ public class HotbarMixin {
 			operation.call(igh, context, x, y, tickCounter, player, stack, seed);
 			return;
 		}
-		PlayerInventory inv = SmoothSc.mc.player.getInventory();
-		var hotbarStart = x - inv.getSelectedSlot() * slotWidth;
 		enableMask(context);
 		context.getMatrices().pushMatrix();
 		context.getMatrices().translate(-smoothSelectorPos + slotCount / 2 * slotWidth, 0);

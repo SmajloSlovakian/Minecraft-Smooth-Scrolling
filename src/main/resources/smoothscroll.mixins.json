@@ -21,7 +21,8 @@
 		"PreciseScissor.DrawContextMixin",
 		"PreciseScissor.ScreenRectMixin",
 		"Widgets.ScrollableWidgetMixin",
-		"Widgets.TextFieldWidgetMixin"
+		"Widgets.TextFieldWidgetMixin",
+		"Miscellaneous.TransformationMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

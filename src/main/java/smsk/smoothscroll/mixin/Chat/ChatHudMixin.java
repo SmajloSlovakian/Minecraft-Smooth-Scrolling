@@ -100,12 +100,7 @@ public class ChatHudMixin {
         drawer.updatePose((pose) -> {
             pose.translate(0, -(int) Math.floor(getDrawOffset()));
         });
-        var context = transformationAccess.getContext();
-        if (context != null) {
-            //if (SmScCfg.enableMaskDebug)
-                //context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 255, 255, 0));
-            context.disableScissor();
-        }
+        deMask(transformationAccess);
         return ret;
     }
     
@@ -130,7 +125,21 @@ public class ChatHudMixin {
 
         var context = transformationAccess.getContext();
         if (context != null) {
+            //if (SmScCfg.enableMaskDebug)
+                //context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 255, 255, 0));
             context.enableScissor(-10, maskTop, getWidth() + 999999, maskBottom);
+        }
+    }
+    @Unique
+    private void deMask(TransformationAccess transformationAccess) {
+        var a = transformationAccess.getTransformation();
+        if (a != null) {
+            transformationAccess.setTransformation(a.withScissor(null));
+        }
+
+        var context = transformationAccess.getContext();
+        if (context != null) {
+            context.disableScissor();
         }
 
     }
