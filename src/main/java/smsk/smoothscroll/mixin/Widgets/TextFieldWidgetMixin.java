@@ -35,7 +35,12 @@ public class TextFieldWidgetMixin {
     @Unique private float targetScrollPos = 0;
     @Unique private float prevCursorPixel = 0;
 
+    // mouseScrolled == method_25401
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        targetScrollPos = (float) MathHelper.clamp(targetScrollPos - (verticalAmount + horizontalAmount) * SmScCfg.textAmount, 0, textRenderer.getWidth(text));
+        return true;
+    }
+    public boolean method_25401(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         targetScrollPos = (float) MathHelper.clamp(targetScrollPos - (verticalAmount + horizontalAmount) * SmScCfg.textAmount, 0, textRenderer.getWidth(text));
         return true;
     }
