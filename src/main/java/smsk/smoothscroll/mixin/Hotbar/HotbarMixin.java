@@ -37,10 +37,6 @@ public class HotbarMixin {
 
 	@WrapMethod(method = "renderHotbar")
 	private void renderHotbarWrap(DrawContext context, RenderTickCounter tickCounter, Operation<Void> operation) {
-		if (SmScCfg.hotbarSmoothness == 0) {
-			operation.call(context, tickCounter);
-			return;
-		}
 		PlayerInventory inv = SmoothSc.mc.player.getInventory();
 
 		rolloverSpace = SmScCfg.staticSelector ? 1 : 4;
