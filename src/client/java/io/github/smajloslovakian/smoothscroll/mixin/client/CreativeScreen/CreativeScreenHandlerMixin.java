@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
+// TODO document priority
 @Mixin(value = ItemPickerMenu.class, priority = 1001)
 public class CreativeScreenHandlerMixin {
 
@@ -23,7 +24,7 @@ public class CreativeScreenHandlerMixin {
         return (row);
     }
 
-    @Inject(method = "scrollTo", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/SimpleContainer;setStack(ILnet/minecraft/world/item/ItemStack;)V"))
+    @Inject(method = "scrollTo", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/SimpleContainer;setItem(ILnet/minecraft/world/item/ItemStack;)V"))
     private void itemCount(CallbackInfo ci) {
         SmoothSc.creativeScreenItemCount += 1;
     }

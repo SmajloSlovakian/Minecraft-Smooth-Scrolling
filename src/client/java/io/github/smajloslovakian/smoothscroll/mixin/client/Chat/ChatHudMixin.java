@@ -70,7 +70,7 @@ public class ChatHudMixin {
     }
 
     //lambda$render$0 (Consumer<Matrix3x2f>)
-    @WrapOperation(method = "method_75801", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2f;translate(FF)Lorg/joml/Matrix3x2f;"), remap = false)
+    @WrapOperation(method = "lambda$render$0", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2f;translate(FF)Lorg/joml/Matrix3x2f;"), remap = false)
     private static Matrix3x2f matrixTranslateWrap(Matrix3x2f matrix, float x, float y, Operation<Matrix3x2f> operation) {
         var targetVec = new UVPair(x, y);
         if (lastThis.smoothMtxTrans == null) {

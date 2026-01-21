@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"plugin": "io.github.smajloslovakian.smoothscroll.mixin.client.SmoothScMixinPlugin",
+	"plugin": "io.github.smajloslovakian.smoothscroll.mixin.client.MixinPlugin",
 	"package": "io.github.smajloslovakian.smoothscroll.mixin.client",
 	"compatibilityLevel": "JAVA_25",
 	"client": [

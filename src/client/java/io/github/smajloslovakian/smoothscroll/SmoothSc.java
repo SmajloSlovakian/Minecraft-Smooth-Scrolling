@@ -73,7 +73,7 @@ public class SmoothSc implements ClientModInitializer {
 	}
 
 	public static Container getDelegatingInventory(AbstractContainerMenu handler) {
-		return null; // TODO redo condensed creative inventory compatibility
+		return DelegatingInventory.itemStackBased(creativeSH.items::get); // TODO redo condensed creative inventory compatibility
 		/*return isCondensedInventoryLoaded
 				? CondensedInventoryCompat.of(handler)
 				: DelegatingInventory.itemStackBased(creativeSH.items::get);*/
