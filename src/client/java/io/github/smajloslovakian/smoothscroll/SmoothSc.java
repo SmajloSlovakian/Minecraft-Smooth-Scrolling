@@ -25,12 +25,6 @@ public class SmoothSc implements ClientModInitializer {
 	public static boolean isSmoothScrollingRefurbishedLoaded;
 	public static boolean isCondensedInventoryLoaded;
 
-	public static float creativeScreenScrollOffset = 0;
-	public static int creativeScreenItemCount = 0;
-	public static ItemPickerMenu creativeSH;
-	public static boolean creativeScreenScrollMixin = true;
-	public static int creativeScreenPrevRow = 0;
-
 	public static int hotbarRollover = 0;
 	public static boolean preciseScissor = false;
 
@@ -72,18 +66,6 @@ public class SmoothSc implements ClientModInitializer {
 		context.drawString(mc.font, s + "", x, y, ARGB.color(255, 0, 255, 255), true);
 	}
 
-	public static Container getDelegatingInventory(AbstractContainerMenu handler) {
-		return DelegatingInventory.itemStackBased(creativeSH.items::get); // TODO redo condensed creative inventory compatibility
-		/*return isCondensedInventoryLoaded
-				? CondensedInventoryCompat.of(handler)
-				: DelegatingInventory.itemStackBased(creativeSH.items::get);*/
-	}
-	public static int getCreativeDrawOffset() {
-        return Math.round(SmoothSc.creativeScreenScrollOffset) - Math.round(SmoothSc.creativeScreenScrollOffset) / 18 * 18;
-	}
-	public static int getCreativeScrollOffset() {
-		return Math.round(SmoothSc.creativeScreenScrollOffset);
-	}
 
 	public static void drawHotbarRolloverMirror(GuiGraphics context, Identifier texture, int x, int hotbarWidth, int offset, int y, int width, int height) {
 		context.blitSprite(RenderPipelines.GUI_TEXTURED, texture, x + hotbarWidth + offset, y, width, height);

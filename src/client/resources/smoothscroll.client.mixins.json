@@ -11,17 +11,15 @@
 		"Chat.ChatHudMixin$InteractableAccessor",
 		"Chat.ChatHudMixin$ForwarderAccessor",
 		"Chat.SuggestionWindowMixin",
-		"CreativeScreen.CreativeScreenHandlerMixin",
-		"compat.CreativeScreenHandlerMixin_CC",
-		"CreativeScreen.CreativeScreenMixin",
-		"CreativeScreen.HandledScreenMixin",
-		"CreativeScreen.MinecraftClientMixin",
-		"CreativeScreen.CreativeScreenHandlerAccessor",
+		"CreativeScreen.CreativeModeInventoryScreenMixin",
+		"CreativeScreen.ItemPickerMenuMixin",
+		"CreativeScreen.ItemPickerMenuAccessor",
 		"PreciseScissor.DrawContextMixin",
 		"PreciseScissor.ScreenRectMixin",
 		"Widgets.ScrollableWidgetMixin",
 		"Widgets.TextFieldWidgetMixin",
-		"Miscellaneous.TransformationMixin"
+		"Miscellaneous.TransformationMixin",
+		"Miscellaneous.MinecraftClientMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

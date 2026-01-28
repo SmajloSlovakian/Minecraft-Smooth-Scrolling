@@ -39,10 +39,6 @@ public class TextFieldWidgetMixin {
         targetScrollPos = (float) Mth.clamp(targetScrollPos - (verticalAmount + horizontalAmount) * SmScCfg.textAmount, 0, font.width(value));
         return true;
     }
-    public boolean method_25401(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        targetScrollPos = (float) Mth.clamp(targetScrollPos - (verticalAmount + horizontalAmount) * SmScCfg.textAmount, 0, font.width(value));
-        return true;
-    }
 
     @WrapMethod(method = "renderWidget")
     private void renderWidgetWrap(GuiGraphics context, int mouseX, int mouseY, float deltaTicks, Operation<Void> operation) {
@@ -75,7 +71,8 @@ public class TextFieldWidgetMixin {
         if (displayPos + visibleString.length() >= value.length()) {
             return visibleString;
         }
-        
+
+        // TODO this patch is kinda unsafe and buggy,
         var firstCharWidth = font.width(visibleString.charAt(0) + "");
         var additionalChars = font.plainSubstrByWidth(value.substring(displayPos + visibleString.length()), firstCharWidth);
         //var additionalChars = textRenderer.trimToWidth(text.substring(firstCharacterIndex + visibleString.length()), (int) Math.ceil(-getDrawOffset()));

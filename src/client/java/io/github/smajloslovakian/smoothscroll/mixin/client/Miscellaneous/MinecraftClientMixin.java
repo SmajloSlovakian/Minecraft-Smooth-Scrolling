@@ -1,4 +1,4 @@
-package io.github.smajloslovakian.smoothscroll.mixin.client.CreativeScreen;
+package io.github.smajloslovakian.smoothscroll.mixin.client.Miscellaneous;
 
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.client.Minecraft;
@@ -15,14 +15,14 @@ import io.github.smajloslovakian.smoothscroll.SmoothSc;
 
 @Mixin(Minecraft.class)
 public class MinecraftClientMixin {
-    @Inject(method = "setScreen", at = @At("TAIL"))
+    /*@Inject(method = "setScreen", at = @At("TAIL"))
     private void setScreenT(@Nullable Screen s, CallbackInfo ci) {
         try {
             var sh = ((ItemPickerMenu) ((MenuAccess<?>) s).getMenu());
             if (sh != null) SmoothSc.creativeSH = sh;
         } catch (Exception ignored) {}
         SmoothSc.creativeScreenScrollOffset = 0;
-    }
+    }/* */
 
     @Inject(method = "reloadResourcePacks", at = @At("HEAD"))
     private void onResReload(CallbackInfoReturnable<CompletableFuture<Void>> cir) {
