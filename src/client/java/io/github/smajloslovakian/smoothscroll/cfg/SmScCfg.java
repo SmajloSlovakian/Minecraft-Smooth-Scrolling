@@ -151,6 +151,9 @@ public class SmScCfg extends NewConfig {
         // verbose than i already am
 
         var prevFormat = (float) root.get("Format").getValue();
+        if (prevFormat > format) {
+            throw new RuntimeException("Incompatible config file format");
+        }
         if (prevFormat < 2.4) {
             var merged = root.get("Hotbar");
             var raw = rawRoot.get("Hotbar");
