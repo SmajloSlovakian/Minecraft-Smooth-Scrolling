@@ -12,8 +12,6 @@ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen.It
 
 @Mixin(ItemPickerMenu.class)
 abstract class ItemPickerMenuMixin {
-    @Unique
-    private boolean mouseAbove = false;
 
     @WrapMethod(method = "scrollTo")
     private void scrollToWrap(float scrollOffs, Operation<Void> operation) {
@@ -23,8 +21,6 @@ abstract class ItemPickerMenuMixin {
 
     @WrapMethod(method = "getRowIndexForScroll")
     protected int getRowIndexForScroll(float scrollOffs, Operation<Integer> operation) {
-        //return (int) Math.max(0, operation.call(scrollOffs) - 0.5);
-        SmoothSc.printt("row", Math.max((int)((double)(scrollOffs * (float)this.calculateRowCount())), 0), scrollOffs);
         return Math.max((int)((double)(scrollOffs * (float)this.calculateRowCount())), 0);
     }
     @Shadow protected abstract int calculateRowCount();

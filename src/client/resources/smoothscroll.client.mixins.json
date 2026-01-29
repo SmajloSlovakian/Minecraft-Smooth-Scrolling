@@ -14,6 +14,7 @@
 		"CreativeScreen.CreativeModeInventoryScreenMixin",
 		"CreativeScreen.ItemPickerMenuMixin",
 		"CreativeScreen.ItemPickerMenuAccessor",
+		"CreativeScreen.AbstractContainerScreenMixin",
 		"PreciseScissor.DrawContextMixin",
 		"PreciseScissor.ScreenRectMixin",
 		"Widgets.ScrollableWidgetMixin",
