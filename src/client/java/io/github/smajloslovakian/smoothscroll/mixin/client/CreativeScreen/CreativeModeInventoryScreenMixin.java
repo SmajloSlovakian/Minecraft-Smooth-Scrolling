@@ -1,16 +1,9 @@
 package io.github.smajloslovakian.smoothscroll.mixin.client.CreativeScreen;
 
-import org.joml.Vector4i;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.At.Shift;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -19,15 +12,12 @@ import com.mojang.blaze3d.pipeline.RenderPipeline;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen.ItemPickerMenu;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.CreativeModeTab;
@@ -36,17 +26,17 @@ import io.github.smajloslovakian.smoothscroll.CreativeModeInventoryScreenDuck;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
-// TODO check compatibility with: item borders, flow, bedrockify
+// TODO check compatibility with: item borders, flow, item highlighter, bedrockify
 
-@Mixin(CreativeModeInventoryScreen.class)
+@Mixin(value = CreativeModeInventoryScreen.class)
 public abstract class CreativeModeInventoryScreenMixin extends AbstractContainerScreen<ItemPickerMenu> implements CreativeModeInventoryScreenDuck {
 
     @Unique private boolean mouseInBounds = true;
     @Unique private int slotSize = 18;
     @Unique private int rowOffset = 0; // this offsets, from which row to pull items from and populate slots, it also counter-affects drawoffset
-    @Unique private float scrollAmount = 30;
     @Unique private float smoothScrollOffs = 0; // counted in proportion
     @Shadow float scrollOffs; // this is the target
+    @Shadow static CreativeModeTab selectedTab;
 
     @WrapOperation(method = "renderBg", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIII)V"))
     private void renderBgWrap(GuiGraphics graphics, RenderPipeline renderPipeline, Identifier texture, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight, Operation<Void> operation, @Local(name = "ym") int ym, @Local(name = "xm") int xm) {
@@ -81,7 +71,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         var iwidth = 162;
         var iheight = 90;
 
-        mouseInBounds = xm > ix && xm < ix + iwidth && ym > iy && ym < iy + iheight;
+        mouseInBounds = xm >= ix && xm < ix + iwidth && ym >= iy && ym < iy + iheight;
 
         var yOffset = -(scrollOffsToPixels(smoothScrollOffs) % (slotSize * 5));
 
@@ -111,12 +101,14 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         graphics.disableScissor();
     }
 
-    @Unique private int itemCounter = 0;
     @Unique private int scrollItemCount = 45;
+    @Unique private int itemCounter = scrollItemCount;
     @Override
     protected void renderSlots(GuiGraphics graphics, int mouseX, int mouseY) {
-        itemCounter = 0;
-        enMask(graphics);
+        if (selectedTab.canScroll()) {
+            itemCounter = 0;
+            enMask(graphics);
+        }
         super.renderSlots(graphics, mouseX, mouseY);
     }
 
@@ -139,7 +131,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         }
 
         var pixelscroll = scrollOffsToPixels(prevScroll);
-        pixelscroll -= scrollAmount * scrollY;
+        pixelscroll -= SmScCfg.creativeScreenAmount * scrollY;
         scrollOffs = Math.clamp(pixelsToScrollOffs(pixelscroll), 0, 1);
         
         return ret;
@@ -149,16 +141,22 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         var offset = mouseInBounds ? - Math.round(getDrawOffset()) : 0;
         super.renderContents(graphics, mouseX, mouseY + offset, a);
     }
-    @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+    @WrapMethod(method = "mouseClicked")
+    public boolean mouseClickedWrap(MouseButtonEvent event, boolean doubleClick, Operation<Boolean> operation) {
         var offset = mouseInBounds ? - Math.round(getDrawOffset()) : 0;
-        return super.mouseClicked(new MouseButtonEvent(event.x(), event.y() + offset, event.buttonInfo()), doubleClick);
+        return operation.call(new MouseButtonEvent(event.x(), event.y() + offset, event.buttonInfo()), doubleClick);
     }
-    @Override
-    public boolean mouseReleased(final MouseButtonEvent event) {
+    @WrapMethod(method = "mouseReleased")
+    public boolean mouseReleasedWrap(MouseButtonEvent event, Operation<Boolean> operation) {
         var offset = mouseInBounds ? - Math.round(getDrawOffset()) : 0;
-        return super.mouseReleased(new MouseButtonEvent(event.x(), event.y() + offset, event.buttonInfo()));
+        return operation.call(new MouseButtonEvent(event.x(), event.y() + offset, event.buttonInfo()));
     }
+    @WrapMethod(method = "selectTab")
+    public void selectTabWrap(CreativeModeTab tab, Operation<Void> operation) {
+        smoothScrollOffs = 0;
+        operation.call(tab);
+    }
+    
 
 
 
@@ -167,6 +165,9 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
 
     @Unique
     private float getDrawOffset() {
+        if (!selectedTab.canScroll()) {
+            return 0;
+        }
         return -scrollOffsToPixels(smoothScrollOffs) % slotSize + slotSize * rowOffset;
     }
     @Unique
@@ -194,72 +195,12 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         //graphics.fill(0, 0, 10000, 10000, ARGB.color(50, 255, 0, 255));
         graphics.disableScissor();
     }
-
-
-
-
-
-
-
-
-
-
+    @Override
+    public boolean isMouseInbounds() {
+        return mouseInBounds;
+    }
 
     public CreativeModeInventoryScreenMixin(ItemPickerMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
     }
-    /*
-    @Shadow
-    private static CreativeModeTab selectedTab;
-
-    public void renderContents(GuiGraphics context, int mx, int my, float d) {
-        super.renderContents(context, mx, my, d);
-    }
-
-    @Inject(method = "selectTab", at = @At("TAIL"))
-    private void setSelectedTabT(CreativeModeTab group, CallbackInfo ci) {
-        SmoothSc.creativeScreenScrollOffset = 0;
-    }
-
-    @Inject(method = "renderBg", at = @At(value = "INVOKE", shift = Shift.AFTER, target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIII)V"))
-    private void drawBackground(GuiGraphics context, float delta, int mouseX, int mouseY, CallbackInfo ci) {
-        if (SmoothSc.getCreativeScrollOffset() == 0 || SmScCfg.creativeScreenSmoothness == 0 || SmoothSc.creativeSH == null) return;
-
-        if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching
-                && isCaching)
-            return;
-        
-        SmoothSc.creativeScreenScrollOffset = (float) ((SmoothSc.creativeScreenScrollOffset)
-                * Math.pow(SmScCfg.creativeScreenSmoothness, SmoothSc.getLastFrameDuration()));
-
-        SmoothSc.creativeScreenScrollMixin = false;
-        SmoothSc.creativeSH.scrollTo(((CreativeScreenHandlerAccessor) SmoothSc.creativeSH)
-                .getPos(SmoothSc.creativeScreenPrevRow - SmoothSc.getCreativeScrollOffset() / 18));
-        SmoothSc.creativeScreenScrollMixin = true;
-
-        int posx = Math.round(context.guiWidth() / 2f) - 90;
-        int posy = context.guiHeight() / 2 - 51;
-        int width = 162;
-        int height = 90;
-        int u = 8;
-        int v = 17;
-
-
-        //context.drawText(SmoothSc.mc.textRenderer, mouseX + " - " + mouseY, 10, 10, ColorHelper.getArgb(255, 0, 255, 255), true);
-        //context.fill(0, 0, 1920, 1080, ColorHelper.getArgb(50, 255, 128, 0));
-        context.enableScissor(posx, posy + 1, posx + width, posy + height - 1);
-        context.blit(RenderPipelines.GUI_TEXTURED, selectedTab.getBackgroundTexture(), posx, 
-            posy + SmoothSc.getCreativeDrawOffset(),
-                u, v, width, height, 256, 256);
-        context.blit(RenderPipelines.GUI_TEXTURED, selectedTab.getBackgroundTexture(), posx,
-            (int) (posy + SmoothSc.getCreativeDrawOffset() - height * Math.signum(SmoothSc.getCreativeScrollOffset())),
-                u, v, width, height, 256, 256);
-
-        if (SmScCfg.enableMaskDebug)
-            context.fill(-100, -100, context.guiWidth(), context.guiHeight(), ARGB.color(50, 255, 255, 0));
-        
-        context.disableScissor();
-    }
-
-    */
 }

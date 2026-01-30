@@ -23,7 +23,7 @@ public class SmoothSc implements ClientModInitializer {
 
 	public static SmScCfg cfg;
 	public static boolean isSmoothScrollingRefurbishedLoaded;
-	public static boolean isCondensedInventoryLoaded;
+	//public static boolean isCondensedInventoryLoaded;
 
 	public static int hotbarRollover = 0;
 	public static boolean preciseScissor = false;
@@ -32,9 +32,9 @@ public class SmoothSc implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		isSmoothScrollingRefurbishedLoaded = FabricLoader.getInstance().isModLoaded("smoothscrollingrefurbished");
-		isCondensedInventoryLoaded = FabricLoader.getInstance().isModLoaded("condensed_creative");
-		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/y_offset", 0);
-		FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/item_count", 0);
+		//isCondensedInventoryLoaded = FabricLoader.getInstance().isModLoaded("condensed_creative");
+		//FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/y_offset", 0);
+		//FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/item_count", 0);
 
 		cfg = new SmScCfg();
 	}
@@ -66,14 +66,6 @@ public class SmoothSc implements ClientModInitializer {
 		context.drawString(mc.font, s + "", x, y, ARGB.color(255, 0, 255, 255), true);
 	}
 
-
-	public static void drawHotbarRolloverMirror(GuiGraphics context, Identifier texture, int x, int hotbarWidth, int offset, int y, int width, int height) {
-		context.blitSprite(RenderPipelines.GUI_TEXTURED, texture, x + hotbarWidth + offset, y, width, height);
-	}
-	/*
-	public static Vector3f getMatrixTranslate(DrawContext context) {
-		return context.getMatrices().peek().getPositionMatrix().getTranslation(new Vector3f(0,0,0));
-	}/* */
 	public static UVPair vec2fAdd(UVPair a, UVPair b) {
 		return new UVPair(a.u() + b.u(), a.v() + b.v());
 	}

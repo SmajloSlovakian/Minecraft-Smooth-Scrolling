@@ -1,7 +1,6 @@
 package io.github.smajloslovakian.smoothscroll.mixin.client.CreativeScreen;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -15,15 +14,25 @@ public class AbstractContainerScreenMixin {
 
     @WrapMethod(method = "renderSlotHighlightBack")
     private void renderHighlightBackWrap(GuiGraphics graphics, Operation<Void> operation) {
-        ((CreativeModeInventoryScreenDuck)this).enMask(graphics);
+        var a = ((CreativeModeInventoryScreenDuck)this);
+        if (!a.isMouseInbounds()) {
+            operation.call(graphics);
+            return;
+        }
+        a.enMask(graphics);
         operation.call(graphics);
-        ((CreativeModeInventoryScreenDuck)this).deMask(graphics);
+        a.deMask(graphics);
     }
 
     @WrapMethod(method = "renderSlotHighlightFront")
     private void renderHighlightFrontWrap(GuiGraphics graphics, Operation<Void> operation) {
-        ((CreativeModeInventoryScreenDuck)this).enMask(graphics);
+        var a = ((CreativeModeInventoryScreenDuck)this);
+        if (!a.isMouseInbounds()) {
+            operation.call(graphics);
+            return;
+        }
+        a.enMask(graphics);
         operation.call(graphics);
-        ((CreativeModeInventoryScreenDuck)this).deMask(graphics);
+        a.deMask(graphics);
     }
 }

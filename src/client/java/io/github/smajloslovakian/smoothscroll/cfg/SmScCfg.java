@@ -6,7 +6,7 @@ import net.minecraft.network.chat.Component;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 
 public class SmScCfg extends NewConfig {
-    public final static float format = 2.6f;
+    public final static float format = 2.7f;
 
     public static float hotbarSmoothness;
     public static boolean hotbarRollover;
@@ -20,6 +20,7 @@ public class SmScCfg extends NewConfig {
     public static float suggestionWindowAmount;
 
     public static float creativeScreenSmoothness;
+    public static float creativeScreenAmount;
 
     public static float entryListSmoothness;
     public static double entryListAmount;
@@ -54,7 +55,8 @@ public class SmScCfg extends NewConfig {
         ))).translatable("smoothscroll.config.chat").build(),
 
         new CfgValueBuilder("Creative Screen", new ArrayList<CfgValue>(Arrays.asList(
-            new CfgValueBuilder("Smoothness", 50f).translatable("smoothscroll.config.creative_screen.smoothness").minMax(0, 100).map(0.0, "smoothscroll.config.value.off").map(100.0, "smoothscroll.config.value.no_scrolling").step(1).format("smoothscroll.config.format.percent").build()
+            new CfgValueBuilder("Smoothness", 50f).translatable("smoothscroll.config.creative_screen.smoothness").minMax(0, 100).map(0.0, "smoothscroll.config.value.off").map(100.0, "smoothscroll.config.value.no_scrolling").step(1).format("smoothscroll.config.format.percent").build(),
+            new CfgValueBuilder("Speed", 30f).translatable("smoothscroll.config.creative_screen.speed").minMax(0, 100).map(0.0, "smoothscroll.config.value.auto").step(1).format("smoothscroll.config.format.pixels").build()
         ))).translatable("smoothscroll.config.creative_screen").build(),
 
         new CfgValueBuilder("Entry List", new ArrayList<CfgValue>(Arrays.asList(
@@ -94,6 +96,7 @@ public class SmScCfg extends NewConfig {
         suggestionWindowAmount = (float) root.get("Chat").get("Suggestion Speed").getValue();
 
         creativeScreenSmoothness = (float) root.get("Creative Screen").get("Smoothness").getValue() / 100f;
+        creativeScreenAmount = (float) root.get("Creative Screen").get("Speed").getValue();
 
         entryListSmoothness = (float) root.get("Entry List").get("Smoothness").getValue() / 100f;
         entryListAmount = (float) root.get("Entry List").get("Speed").getValue();
