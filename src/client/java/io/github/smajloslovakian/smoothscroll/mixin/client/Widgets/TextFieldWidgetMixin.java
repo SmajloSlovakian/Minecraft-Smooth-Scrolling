@@ -68,11 +68,10 @@ public class TextFieldWidgetMixin {
 
     @ModifyVariable(method = "renderWidget", at = @At(value = "STORE"), ordinal = 0)
     private String addCharacters(String visibleString) {
-        if (displayPos + visibleString.length() >= value.length()) {
+        if (displayPos + visibleString.length() >= value.length() || visibleString.length() == 0) {
             return visibleString;
         }
 
-        // TODO this patch is kinda unsafe and buggy,
         var firstCharWidth = font.width(visibleString.charAt(0) + "");
         var additionalChars = font.plainSubstrByWidth(value.substring(displayPos + visibleString.length()), firstCharWidth);
         //var additionalChars = textRenderer.trimToWidth(text.substring(firstCharacterIndex + visibleString.length()), (int) Math.ceil(-getDrawOffset()));
