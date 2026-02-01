@@ -18,6 +18,7 @@ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen.It
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.CreativeModeTab;
@@ -69,7 +70,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         var iu = u + 8;
         var iv = v + 17;
         var iwidth = 162;
-        var iheight = 90;
+        var iheight = 90;/* */
 
         mouseInBounds = xm >= ix && xm < ix + iwidth && ym >= iy && ym < iy + iheight;
 
@@ -79,9 +80,17 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
 
         graphics.enableScissor(ix, iy + 1, ix + iwidth, iy + iheight - 1);
         graphics.pose().pushMatrix();
+        //graphics.pose().translate(8, 17);
         graphics.pose().translate(0, yOffset);
-        operation.call(graphics, renderPipeline, texture, ix, iy, iu, iv, iwidth, iheight, textureWidth, textureHeight);
-        operation.call(graphics, renderPipeline, texture, ix, iy + slotSize * 5, iu, iv, iwidth, iheight, textureWidth, textureHeight);
+        operation.call(graphics, renderPipeline, texture, x, y, u, v, width, height, textureWidth, textureHeight);
+        graphics.pose().translate(0, slotSize * 5);
+        if (SmScCfg.creativeUseScissorTexture) {
+            graphics.enableScissor(ix, iy + 1, ix + iwidth, iy + iheight - 1);
+            operation.call(graphics, renderPipeline, texture, x, y, u, v, width, height, textureWidth, textureHeight);
+            graphics.disableScissor();
+        } else {
+            operation.call(graphics, renderPipeline, texture, x, iy, u, iv, width, iheight, textureWidth, textureHeight);
+        }
         graphics.pose().popMatrix();
 
 

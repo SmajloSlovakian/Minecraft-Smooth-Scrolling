@@ -14,25 +14,27 @@ public class AbstractContainerScreenMixin {
 
     @WrapMethod(method = "renderSlotHighlightBack")
     private void renderHighlightBackWrap(GuiGraphics graphics, Operation<Void> operation) {
-        var a = ((CreativeModeInventoryScreenDuck)this);
-        if (!a.isMouseInbounds()) {
+        if (this instanceof CreativeModeInventoryScreenDuck a) {
+            if (!a.isMouseInbounds()) {
+                operation.call(graphics);
+                return;
+            }
+            a.enMask(graphics);
             operation.call(graphics);
-            return;
+            a.deMask(graphics);
         }
-        a.enMask(graphics);
-        operation.call(graphics);
-        a.deMask(graphics);
     }
 
     @WrapMethod(method = "renderSlotHighlightFront")
     private void renderHighlightFrontWrap(GuiGraphics graphics, Operation<Void> operation) {
-        var a = ((CreativeModeInventoryScreenDuck)this);
-        if (!a.isMouseInbounds()) {
+        if (this instanceof CreativeModeInventoryScreenDuck a) {
+            if (!a.isMouseInbounds()) {
+                operation.call(graphics);
+                return;
+            }
+            a.enMask(graphics);
             operation.call(graphics);
-            return;
+            a.deMask(graphics);
         }
-        a.enMask(graphics);
-        operation.call(graphics);
-        a.deMask(graphics);
     }
 }

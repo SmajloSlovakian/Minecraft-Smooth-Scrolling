@@ -21,6 +21,8 @@
   "smoothscroll.config.creative_screen": "Creative Screen",
   "smoothscroll.config.creative_screen.smoothness": "Smoothness",
   "smoothscroll.config.creative_screen.speed": "Speed",
+  "smoothscroll.config.creative_screen.compat_mode": "Pack Compatibility Mode",
+  "smoothscroll.config.creative_screen.compat_mode.tooltip": "Improves compatibility with some resource packs at the cost of some small visual corruption.",
   "smoothscroll.config.entry_list": "Entry List",
   "smoothscroll.config.entry_list.smoothness": "Smoothness",
   "smoothscroll.config.entry_list.speed": "Speed",
