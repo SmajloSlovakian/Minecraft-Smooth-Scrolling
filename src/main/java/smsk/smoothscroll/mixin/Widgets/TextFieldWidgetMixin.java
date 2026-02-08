@@ -73,7 +73,7 @@ public class TextFieldWidgetMixin {
 
     @ModifyVariable(method = "renderWidget", at = @At(value = "STORE"), ordinal = 0)
     private String addCharacters(String visibleString) {
-        if (firstCharacterIndex + visibleString.length() >= text.length()) {
+        if (firstCharacterIndex + visibleString.length() >= text.length() || visibleString.length() == 0) {
             return visibleString;
         }
         
