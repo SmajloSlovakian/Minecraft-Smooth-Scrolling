@@ -135,7 +135,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
     private boolean mouseScrolledWrap(double x, double y, double scrollX, double scrollY, Operation<Boolean> operation) {
         var prevScroll = scrollOffs;
         var ret = operation.call(x, y, scrollX, scrollY);
-        if (scrollOffs == prevScroll) {
+        if (scrollOffs == prevScroll || SmScCfg.creativeScreenAmount == 0) {
             return ret;
         }
 

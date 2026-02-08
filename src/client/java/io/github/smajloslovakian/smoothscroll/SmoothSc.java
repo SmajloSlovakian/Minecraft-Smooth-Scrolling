@@ -26,7 +26,6 @@ public class SmoothSc implements ClientModInitializer {
 	//public static boolean isCondensedInventoryLoaded;
 
 	public static int hotbarRollover = 0;
-	public static boolean preciseScissor = false;
 
 
 	@Override
