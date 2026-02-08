@@ -14,9 +14,9 @@ import io.github.smajloslovakian.smoothscroll.SmoothSc;
 @Mixin(GuiGraphics.class)
 public class DrawContextMixin {
     
-    //@Redirect(method = "setScissor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getScaleFactor()D"))
+    /*//@Redirect(method = "setScissor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getScaleFactor()D"))
     private double windowScale(Window w) {
         if (!SmoothSc.preciseScissor) return w.getGuiScale();
         return 1;
-    }
+    }*/
 }

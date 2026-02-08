@@ -11,8 +11,8 @@ import io.github.smajloslovakian.smoothscroll.SmoothSc;
 public class ScreenRectMixin {
 
     //@Redirect(method = "transform", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/MathHelper;floor(F)I"))
-    private int windowScale(float val) {
+    /*private int windowScale(float val) {
         if (!SmoothSc.preciseScissor) return Mth.floor(val);
         return Mth.floor(val * SmoothSc.mc.getWindow().getGuiScale());
-    }
+    }*/
 }
