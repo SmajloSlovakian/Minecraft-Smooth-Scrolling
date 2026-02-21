@@ -17,7 +17,7 @@ import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
 @Mixin(AbstractScrollArea.class)
-public class ScrollableWidgetMixin extends AbstractWidget {
+public class AbstractScrollAreaMixin extends AbstractWidget {
     @Shadow private double scrollAmount; // scroll position - number of pixels scrolled down (up < down)
 
     @Unique private double smoothScrollPos;
@@ -83,13 +83,9 @@ public class ScrollableWidgetMixin extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput builder) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'appendClickableNarrations'");
     }
 
     @Override
     public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'renderWidget'");
     }
 }

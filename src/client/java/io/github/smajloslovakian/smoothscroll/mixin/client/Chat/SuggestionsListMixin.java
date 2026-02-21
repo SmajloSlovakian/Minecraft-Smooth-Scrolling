@@ -23,7 +23,7 @@ import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
 @Mixin(SuggestionsList.class)
-public class SuggestionWindowMixin {
+public class SuggestionsListMixin {
     @Final @Shadow private List<Suggestion> suggestionList;
     @Final @Shadow private Rect2i rect;
     @Shadow private int offset; // scroll position - index of the uppermost line (up < down)
@@ -35,11 +35,7 @@ public class SuggestionWindowMixin {
     @Unique private boolean translated = false;
 
     @WrapMethod(method = "render")
-    private void renderH(GuiGraphics context, int mouseX, int mouseY, Operation<Void> operation) {
-        if (SmScCfg.suggestionWindowSmoothness == 0) {
-            operation.call(context, mouseX, mouseY);
-            return;
-        }
+    private void renderWrap(GuiGraphics graphics, int mouseX, int mouseY, Operation<Void> operation) {
 
         smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.suggestionWindowSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
@@ -49,44 +45,44 @@ public class SuggestionWindowMixin {
 
         offset = (int) Math.floor(smoothScrollPos);
 
-        operation.call(context, mouseX, (int) Math.floor(mouseY - (int) Math.floor(getDrawOffset())));
+
+        operation.call(graphics, mouseX, (int) Math.floor(mouseY - (int) Math.floor(getDrawOffset())));
         
-        tryUntranslate(context);
+        tryUntranslate(graphics);
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Ljava/util/List;get(I)Ljava/lang/Object;", ordinal = 0))
-    private void translate(GuiGraphics context, int mouseX, int mouseY, CallbackInfo ci) {
-        if (SmScCfg.suggestionWindowSmoothness == 0) return;
+    private void translate(GuiGraphics graphics, int mouseX, int mouseY, CallbackInfo ci) {
         if (translated) return;
-        context.enableScissor(0, rect.getY(), context.guiWidth(), rect.getY() + rect.getHeight());
-        context.pose().pushMatrix();
-        context.pose().translate(0, (int) Math.floor(getDrawOffset()));
+        graphics.enableScissor(0, rect.getY(), graphics.guiWidth(), rect.getY() + rect.getHeight());
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(0, (int) Math.floor(getDrawOffset()));
         translated = true;
     }
     @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 0)
-    private Message unTranslate(Message a, @Local GuiGraphics context) {
-        tryUntranslate(context);
+    private Message unTranslate(Message a, @Local GuiGraphics graphics) {
+        tryUntranslate(graphics);
         return a;
     }
 
-    private void tryUntranslate(GuiGraphics context) {
+    private void tryUntranslate(GuiGraphics graphics) {
         if (translated) {
-            context.pose().popMatrix();
+            graphics.pose().popMatrix();
             if (SmScCfg.enableMaskDebug)
-                context.fill(-100, -100, context.guiWidth(), context.guiHeight(), ARGB.color(50, 255, 255, 0));
-            context.disableScissor();
+                graphics.fill(-100, -100, graphics.guiWidth(), graphics.guiHeight(), ARGB.color(50, 255, 255, 0));
+            graphics.disableScissor();
         }
         translated = false;
     }
 
 
     @WrapMethod(method = "mouseScrolled")
-    private boolean mScroll(double am, Operation<Boolean> operation) {
-        if (SmScCfg.suggestionWindowSmoothness == 0) return operation.call(am);
+    private boolean mouseScrolledWrap(double scroll, Operation<Boolean> operation) {
+        if (SmScCfg.suggestionWindowAmount == 0) return operation.call(scroll);
 
         var indexBefore = offset;
 
-        var newTarget = targetScrollPos - am * (SmScCfg.suggestionWindowAmount != 0 ? SmScCfg.suggestionWindowAmount / lineHeight : 1);
+        var newTarget = targetScrollPos - scroll * (SmScCfg.suggestionWindowAmount != 0 ? SmScCfg.suggestionWindowAmount / lineHeight : 1);
         offset = (int) Math.ceil(newTarget);
 
 
@@ -112,11 +108,7 @@ public class SuggestionWindowMixin {
 
     //this shouldn't touch the scroll amount, it is called when scrolling by keyboard-selecting
     @WrapMethod(method = "cycle")
-    private void scroll(int off, Operation<Void> operation) {
-        if (SmScCfg.suggestionWindowSmoothness == 0) {
-            operation.call();
-            return;
-        }
+    private void cycleWrap(int off, Operation<Void> operation) {
 
         var indexBefore = offset;
         offset = (int) Math.floor(targetScrollPos);
@@ -127,10 +119,15 @@ public class SuggestionWindowMixin {
         offset = indexBefore;
     }
 
+    @WrapMethod(method = "mouseClicked")
+    public boolean mouseClickedWrap(int x, int y, Operation<Boolean> operation) { // TODO fix this further, clicking above the window selects the first visible and clicking on the last visible doesn't do anything
+        return operation.call(x, y - (int) Math.round(getDrawOffset()));
+    }
+
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 2)
-    private int addLineUnder(int i) {
-        if (SmScCfg.suggestionWindowSmoothness == 0 || getDrawOffset() == 0) return i;
-        return i + 1;
+    private int addLineUnder(int limit) {
+        if (getDrawOffset() == 0) return limit;
+        return limit + 1;
     }
 
     @Unique

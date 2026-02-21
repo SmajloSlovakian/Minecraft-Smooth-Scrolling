@@ -22,7 +22,7 @@ import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
 @Mixin(EditBox.class)
-public class TextFieldWidgetMixin {
+public class EditBoxMixin {
 
     @Shadow @Final private Font font;
     @Shadow private int displayPos;
@@ -34,69 +34,68 @@ public class TextFieldWidgetMixin {
     @Unique private float targetScrollPos = 0;
     @Unique private float prevCursorPixel = 0;
 
-    // mouseScrolled == method_25401
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         targetScrollPos = (float) Mth.clamp(targetScrollPos - (verticalAmount + horizontalAmount) * SmScCfg.textAmount, 0, font.width(value));
         return true;
     }
 
     @WrapMethod(method = "renderWidget")
-    private void renderWidgetWrap(GuiGraphics context, int mouseX, int mouseY, float deltaTicks, Operation<Void> operation) {
+    private void renderWidgetWrap(GuiGraphics graphics, int mouseX, int mouseY, float deltaTicks, Operation<Void> operation) {
         smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.textSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
         displayPos = font.plainSubstrByWidth(value, Math.round(smoothScrollPos)).length();
 
-        context.enableScissor(textX, textY - 10, textX + getInnerWidth(), textY + 10);
-        context.pose().pushMatrix();
-        context.pose().translate(getDrawOffset(), 0);
-        operation.call(context, mouseX, mouseY, deltaTicks);
-        context.pose().popMatrix();
+        graphics.enableScissor(textX, textY - 10, textX + getInnerWidth(), textY + 10);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(getDrawOffset(), 0);
+        operation.call(graphics, mouseX, mouseY, deltaTicks);
+        graphics.pose().popMatrix();
         if (SmScCfg.enableMaskDebug)
-            context.fill(-100, -100, context.guiWidth(), context.guiHeight(), ARGB.color(50, 0, 255, 255));
-        context.disableScissor();
+            graphics.fill(-100, -100, graphics.guiWidth(), graphics.guiHeight(), ARGB.color(50, 0, 255, 255));
+        graphics.disableScissor();
     }
 
     @WrapOperation(method = "renderWidget", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V", ordinal = 0))
-    private void drawBackground(GuiGraphics context, RenderPipeline pipeline, Identifier sprite, int x, int y, int width, int height, Operation<Void> operation) {
-        context.pose().popMatrix(); // TODO somehow remove this code duplication
-        context.disableScissor();
-        operation.call(context, pipeline, sprite, x, y, width, height);
-        context.enableScissor(textX, textY - 10, textX + getInnerWidth(), textY + 10);
-        context.pose().pushMatrix();
-        context.pose().translate(getDrawOffset(), 0);
+    private void drawBackground(GuiGraphics graphics, RenderPipeline renderPipeline, Identifier location, int x, int y, int width, int height, Operation<Void> operation) {
+        graphics.pose().popMatrix(); // TODO somehow remove this code duplication
+        graphics.disableScissor();
+        operation.call(graphics, renderPipeline, location, x, y, width, height);
+        graphics.enableScissor(textX, textY - 10, textX + getInnerWidth(), textY + 10);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(getDrawOffset(), 0);
     }
 
-    @ModifyVariable(method = "renderWidget", at = @At(value = "STORE"), ordinal = 0)
-    private String addCharacters(String visibleString) {
-        if (displayPos + visibleString.length() >= value.length() || visibleString.length() == 0) {
-            return visibleString;
+    @ModifyVariable(method = "renderWidget", at = @At(value = "STORE"), name = "displayed")
+    private String addCharacters(String displayed) {
+        if (displayPos + displayed.length() >= value.length() || displayed.length() == 0) {
+            return displayed;
         }
 
-        var firstCharWidth = font.width(visibleString.charAt(0) + "");
-        var additionalChars = font.plainSubstrByWidth(value.substring(displayPos + visibleString.length()), firstCharWidth);
+        var firstCharWidth = font.width(displayed.charAt(0) + "");
+        var additionalChars = font.plainSubstrByWidth(value.substring(displayPos + displayed.length()), firstCharWidth);
         //var additionalChars = textRenderer.trimToWidth(text.substring(firstCharacterIndex + visibleString.length()), (int) Math.ceil(-getDrawOffset()));
-        var totalLen = displayPos + visibleString.length() + additionalChars.length();
+        var totalLen = displayPos + displayed.length() + additionalChars.length();
         if (value.length() > totalLen) {
             additionalChars += value.charAt(totalLen);
         }
         
-        return visibleString + additionalChars;
+        return displayed + additionalChars;
     }
 
     @WrapMethod(method = "findClickedPositionInText")
-    private int calculateCursorPosWrap(MouseButtonEvent click, Operation<Integer> operation) {
-        return operation.call(new MouseButtonEvent(click.x() - getDrawOffset(), click.y(), click.buttonInfo()));
+    private int findClickedPositionInTextWrap(MouseButtonEvent event, Operation<Integer> operation) {
+        return operation.call(new MouseButtonEvent(event.x() - getDrawOffset(), event.y(), event.buttonInfo()));
     }
 
     @WrapMethod(method = "scrollTo")
-    private void updateFirstCharacterIndexWrap(int cursor, Operation<Void> operation) {
+    private void scrollToWrap(int pos, Operation<Void> operation) {
         if (!SmScCfg.textCustomUpdate) {
-            operation.call(cursor);
+            operation.call(pos);
             targetScrollPos = font.width(value.substring(0, displayPos));
             return;
         }
 
-        var cursorPixel = font.width(value.substring(0, cursor));
+        var cursorPixel = font.width(value.substring(0, pos));
         var margin = SmScCfg.textMargin / 100 * getInnerWidth();
 
         if (SmScCfg.textMargin > 50) {
