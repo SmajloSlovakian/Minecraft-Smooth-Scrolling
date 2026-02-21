@@ -18,7 +18,7 @@
 		"PreciseScissor.DrawContextMixin",
 		"PreciseScissor.ScreenRectMixin",
 		"Widgets.AbstractScrollAreaMixin",
-		"Widgets.TextFieldWidgetMixin",
+		"Widgets.EditBoxMixin",
 		"Miscellaneous.TransformationMixin",
 		"Miscellaneous.MinecraftClientMixin"
 	],

@@ -77,7 +77,7 @@ public class AbstractScrollAreaMixin extends AbstractWidget {
 
 
 
-    public ScrollableWidgetMixin() {
+    public AbstractScrollAreaMixin() {
         super(0, 0, 0, 0, null);
     }
 
