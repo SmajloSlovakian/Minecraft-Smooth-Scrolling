@@ -45,13 +45,11 @@ public class ChatHudMixin {
     @Unique private float targetScrollPos = scrolledLines;
     @Unique private float smoothMaskHeight = 0;
     @Unique private float targetMaskHeight = 0;
-    @Unique private Vector2f smoothMtxTrans = null;
+    @Unique private float smoothChatBottom = -69696969;
     @Unique private boolean refreshing = false;
-    @Unique private static ChatHudMixin lastThis;
 
-    @WrapMethod(method = "render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V")
-    private void renderWrap(Backend drawer, int windowHeight, int currentTick, boolean expanded, Operation<Void> operation) {
-        lastThis = this;
+    @Inject(method = "render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V", at = @At("HEAD")) // for getting the modified currenttick/focused, this has to be an inject - chat peak feature compatibility
+    private void renderWrap(Backend drawer, int windowHeight, int currentTick, boolean expanded, CallbackInfo ci) {
         smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
         // snap on less than half a pixel difference
@@ -68,20 +66,15 @@ public class ChatHudMixin {
 
         targetMaskHeight = shownLineCount * getLineHeight();
         smoothMaskHeight = (smoothMaskHeight - targetMaskHeight) * (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + targetMaskHeight;
-
-        operation.call(drawer, windowHeight, currentTick, expanded);
     }
 
-    //lambda$render$0 (Consumer<Matrix3x2f>)
-    @WrapOperation(method = "method_75801", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2f;translate(FF)Lorg/joml/Matrix3x2f;"), remap = false)
-    private static Matrix3x2f matrixTranslateWrap(Matrix3x2f matrix, float x, float y, Operation<Matrix3x2f> operation) {
-        var targetVec = new Vector2f(x, y);
-        if (lastThis.smoothMtxTrans == null) {
-            lastThis.smoothMtxTrans = targetVec;
-        } else {
-            lastThis.smoothMtxTrans = SmoothSc.vec2fAdd(SmoothSc.vec2fMul(SmoothSc.vec2fSub(lastThis.smoothMtxTrans, targetVec), (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration())), targetVec);
+    @ModifyVariable(method = "render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V", at = @At("STORE"), ordinal = 4)
+    int modifyYPos(int chatBottom) {
+        if (smoothChatBottom == -69696969) {
+            smoothChatBottom = chatBottom;
         }
-        return operation.call(matrix, (float) Math.round(lastThis.smoothMtxTrans.x()), (float) Math.round(lastThis.smoothMtxTrans.y()));
+        smoothChatBottom = (smoothChatBottom - chatBottom) * (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + chatBottom;
+        return (int) Math.round(smoothChatBottom);
     }
     
     @WrapOperation(method = "render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(Lnet/minecraft/client/gui/hud/ChatHud$OpacityRule;Lnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I"))
