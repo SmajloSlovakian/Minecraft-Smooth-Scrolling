@@ -1,0 +1,28 @@
+{
+	"required": true,
+	"plugin": "io.github.smajloslovakian.smoothscroll.mixin.client.MixinPlugin",
+	"package": "io.github.smajloslovakian.smoothscroll.mixin.client",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"Hotbar.GuiMixin",
+		"Hotbar.MouseHandlerMixin",
+		"Chat.ChatComponentMixin",
+		"Chat.ChatComponentMixin$HudAccessor",
+		"Chat.ChatComponentMixin$InteractableAccessor",
+		"Chat.ChatComponentMixin$ForwarderAccessor",
+		"Chat.SuggestionsListMixin",
+		"CreativeScreen.CreativeModeInventoryScreenMixin",
+		"CreativeScreen.ItemPickerMenuMixin",
+		"CreativeScreen.ItemPickerMenuAccessor",
+		"CreativeScreen.AbstractContainerScreenMixin",
+		"PreciseScissor.DrawContextMixin",
+		"PreciseScissor.ScreenRectMixin",
+		"Widgets.AbstractScrollAreaMixin",
+		"Widgets.EditBoxMixin",
+		"Miscellaneous.TransformationMixin",
+		"Miscellaneous.MinecraftClientMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

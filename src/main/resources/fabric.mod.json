@@ -2,10 +2,10 @@
 	"schemaVersion": 1,
 	"id": "smoothscroll",
 	"version": "${version}",
-	"name": "Smooth Scroll",
-	"description": "Makes scrolling much more smooth",
+	"name": "Smooth Scrolling",
+	"description": "Adds smooth scrolling to various elements",
 	"authors": [
-		"SlovakSmileSK"
+		"Smajslo"
 	],
 	"contact": {
 		"homepage": "https://modrinth.com/mod/smooth-scroll",
@@ -13,22 +13,29 @@
 	},
 	"license": "gpl-3.0",
 	"icon": "assets/smoothscroll/icon.png",
-	"environment": "client",
+	"environment": "*",
 	"entrypoints": {
+		"main": [
+			"io.github.smajloslovakian.smoothscroll.SmoothScrolling"
+		],
 		"client": [
-			"smsk.smoothscroll.SmoothSc"
+			"io.github.smajloslovakian.smoothscroll.SmoothSc"
 		],
 		"modmenu": [
-			"smsk.smoothscroll.menu.ModMenuImpl"
+			"io.github.smajloslovakian.smoothscroll.menu.ModMenuImpl"
 		]
 	},
 	"mixins": [
-		"smoothscroll.mixins.json"
+		"smoothscroll.mixins.json",
+		{
+			"config": "smoothscroll.client.mixins.json",
+			"environment": "client"
+		}
 	],
 	"depends": {
-		"fabricloader": ">=0.14.21",
-		"minecraft": ">=1.21.11",
-		"java": ">=21"
+		"fabricloader": "${fabric_dependency}",
+		"minecraft": "${minecraft_dependency}",
+		"java": "${java_dependency}"
 	},
 	"custom": {
 		"jade": {
