@@ -46,8 +46,8 @@ public class ChatHudMixin {
     @Unique private boolean translated = false;
     @Unique private boolean refreshing = false;
 
-    @WrapMethod(method = "render")
-    private void renderWrap(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, Operation<Void> operation) {
+    @Inject(method = "render", at = @At("HEAD")) // for getting the modified currenttick/focused, this has to be an inject - chat peak feature compatibility
+    private void renderWrap(DrawContext context, int currentTick, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
         smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
         // snap on less than half a pixel difference
@@ -55,6 +55,7 @@ public class ChatHudMixin {
             smoothScrollPos = targetScrollPos;
         
         scrolledLines = (int) Math.floor(smoothScrollPos);
+
         
         // mask height
         var shownLineCount = 0;
@@ -64,8 +65,6 @@ public class ChatHudMixin {
 
         targetMaskHeight = shownLineCount * getLineHeight();
         smoothMaskHeight = (smoothMaskHeight - targetMaskHeight) * (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + targetMaskHeight;
-
-        operation.call(context, currentTick, mouseX, mouseY, focused);
     }
 
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix3x2fStack;translate(FF)Lorg/joml/Matrix3x2f;", ordinal = 0))
