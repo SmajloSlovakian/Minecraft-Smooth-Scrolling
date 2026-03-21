@@ -1,7 +1,7 @@
 package io.github.smajloslovakian.smoothscroll.mixin.client.Chat;
 
 import java.util.List;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.CommandSuggestions.SuggestionsList;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.util.ARGB;
@@ -34,8 +34,8 @@ public class SuggestionsListMixin {
     @Unique private float targetScrollPos = offset;
     @Unique private boolean translated = false;
 
-    @WrapMethod(method = "render")
-    private void renderWrap(GuiGraphics graphics, int mouseX, int mouseY, Operation<Void> operation) {
+    @WrapMethod(method = "extractRenderState")
+    private void extractRenderStateWrap(GuiGraphicsExtractor graphics, int mouseX, int mouseY, Operation<Void> operation) {
 
         smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.suggestionWindowSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
@@ -51,21 +51,21 @@ public class SuggestionsListMixin {
         tryUntranslate(graphics);
     }
 
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Ljava/util/List;get(I)Ljava/lang/Object;", ordinal = 0))
-    private void translate(GuiGraphics graphics, int mouseX, int mouseY, CallbackInfo ci) {
+    @Inject(method = "extractRenderState", at = @At(value = "INVOKE", target = "Ljava/util/List;get(I)Ljava/lang/Object;", ordinal = 0))
+    private void translate(GuiGraphicsExtractor graphics, int mouseX, int mouseY, CallbackInfo ci) {
         if (translated) return;
         graphics.enableScissor(0, rect.getY(), graphics.guiWidth(), rect.getY() + rect.getHeight());
         graphics.pose().pushMatrix();
         graphics.pose().translate(0, (int) Math.floor(getDrawOffset()));
         translated = true;
     }
-    @ModifyVariable(method = "render", at = @At(value = "STORE"), ordinal = 0)
-    private Message unTranslate(Message a, @Local GuiGraphics graphics) {
+    @ModifyVariable(method = "extractRenderState", at = @At(value = "STORE"), ordinal = 0)
+    private Message unTranslate(Message a, @Local GuiGraphicsExtractor graphics) {
         tryUntranslate(graphics);
         return a;
     }
 
-    private void tryUntranslate(GuiGraphics graphics) {
+    private void tryUntranslate(GuiGraphicsExtractor graphics) {
         if (translated) {
             graphics.pose().popMatrix();
             if (SmScCfg.enableMaskDebug)
@@ -124,7 +124,7 @@ public class SuggestionsListMixin {
         return operation.call(x, y - (int) Math.round(getDrawOffset()));
     }
 
-    @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 2)
+    @ModifyVariable(method = "extractRenderState", at = @At("STORE"), ordinal = 2)
     private int addLineUnder(int limit) {
         if (getDrawOffset() == 0) return limit;
         return limit + 1;

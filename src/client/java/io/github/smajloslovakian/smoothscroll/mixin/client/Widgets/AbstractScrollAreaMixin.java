@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractScrollArea;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -23,7 +23,6 @@ public class AbstractScrollAreaMixin extends AbstractWidget {
     @Unique private double smoothScrollPos;
     @Unique private double targetScrollPos;
 
-    @Unique private boolean updateScActive = false; // this makes the mod know, when things aren't working as expected and lets the user scroll non-smoothly
     @Unique private boolean noSetScrollT = false;
 
     @Inject(method = "setScrollAmount", at = @At("TAIL"))
@@ -33,11 +32,11 @@ public class AbstractScrollAreaMixin extends AbstractWidget {
         smoothScrollPos = scrollAmount;
     }
 
-    @Inject(method = "renderScrollbar", at = @At("HEAD"), require = 0)
-    private void updateScroll(GuiGraphics dc, int mx, int my, CallbackInfo ci) {
+    @Inject(method = "extractScrollbar", at = @At("HEAD"))
+    private void updateScroll(GuiGraphicsExtractor dc, int mx, int my, CallbackInfo ci) {
         if (SmScCfg.entryListSmoothness == 0) return;
-        updateScActive = true;
 
+        //SmoothSc.printt(smoothScrollPos, targetScrollPos, scrollAmount);
 
         smoothScrollPos = (smoothScrollPos - targetScrollPos) * Math.pow(SmScCfg.entryListSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
         scrollAmount = Math.round(smoothScrollPos);
@@ -51,6 +50,7 @@ public class AbstractScrollAreaMixin extends AbstractWidget {
 
     @WrapMethod(method = "mouseScrolled")
     private boolean mouseScrolledWrap(double mouseX, double mouseY, double hA, double vA, Operation<Boolean> operation) {
+        SmoothSc.print("ALLALALA");
         noSetScrollT = true;
         var prevScrollPos = scrollAmount;
         if (SmScCfg.entryListSmoothness != 0) {
@@ -86,6 +86,6 @@ public class AbstractScrollAreaMixin extends AbstractWidget {
     }
 
     @Override
-    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
     }
 }

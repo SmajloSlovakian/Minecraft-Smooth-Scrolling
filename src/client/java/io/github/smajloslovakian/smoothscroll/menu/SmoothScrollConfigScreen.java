@@ -1,7 +1,8 @@
 package io.github.smajloslovakian.smoothscroll.menu;
 
 import java.util.ArrayList;
-import net.minecraft.client.gui.GuiGraphics;
+
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.tabs.TabManager;
@@ -102,8 +103,8 @@ public class SmoothScrollConfigScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         SmoothSc.cfg.getConfigForModifying().refreshDisableRecursive();
-        super.render(context, mouseX, mouseY, delta);
+        super.extractRenderState(graphics, mouseX, mouseY, delta);
     }
 }

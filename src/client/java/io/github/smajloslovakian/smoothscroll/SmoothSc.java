@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen.ItemPickerMenu;
 import net.minecraft.client.model.geom.builders.UVPair;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -24,8 +24,6 @@ public class SmoothSc implements ClientModInitializer {
 	public static SmScCfg cfg;
 	public static boolean isSmoothScrollingRefurbishedLoaded;
 	//public static boolean isCondensedInventoryLoaded;
-
-	public static int hotbarRollover = 0;
 
 
 	@Override
@@ -61,8 +59,8 @@ public class SmoothSc implements ClientModInitializer {
 	public static float getLastFrameDuration() {
 		return mc.getDeltaTracker().getGameTimeDeltaTicks();
 	}
-	public static void debugTextDraw(GuiGraphics context, Object s, int x, int y) {
-		context.drawString(mc.font, s + "", x, y, ARGB.color(255, 0, 255, 255), true);
+	public static void debugTextDraw(GuiGraphicsExtractor graphics, Object s, int x, int y) {
+		graphics.text(mc.font, s + "", x, y, ARGB.color(255, 0, 255, 255), true);
 	}
 
 	public static UVPair vec2fAdd(UVPair a, UVPair b) {

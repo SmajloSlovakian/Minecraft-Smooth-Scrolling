@@ -6,7 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
@@ -15,8 +15,10 @@ import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
+import io.github.smajloslovakian.smoothscroll.duck.GuiDuck;
 
 // TODO figure out if bedrockify prio is still needed
 /*
@@ -26,36 +28,37 @@ import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
  */
 
 @Mixin(value = Gui.class, priority = 999)
-public class GuiMixin { // TODO redo so that smooth selector cannot be left of hotbar - let mirror take the place sooner
+public class GuiMixin implements GuiDuck {
 
 	@Unique private int slotWidth = 20;
 	@Unique private int slotCount = 9;
 	@Unique private int rolloverSpace = 4;
 
 	@Unique private boolean masked = false;
-	@Unique private float smoothSelectorPos = 0;
+	@Unique private float smoothSelectorPos = 0; // pixels to the right of hotbar start
+	@Unique private int rollover = 0;
 
-	@WrapMethod(method = "renderItemHotbar")
-	private void renderHotbarWrap(GuiGraphics graphics, DeltaTracker deltaTracker, Operation<Void> operation) {
+	@WrapMethod(method = "extractItemHotbar")
+	private void extractHotbarWrap(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, Operation<Void> operation) {
 		Inventory inv = SmoothSc.mc.player.getInventory();
 
 		rolloverSpace = SmScCfg.staticSelector ? 1 : 4;
-		var target = (inv.getSelectedSlot() - SmoothSc.hotbarRollover * slotCount) * slotWidth - SmoothSc.hotbarRollover * rolloverSpace;
+		var target = (inv.getSelectedSlot() - rollover * slotCount) * slotWidth - rollover * rolloverSpace;
 		smoothSelectorPos = (float) ((smoothSelectorPos - target) * Math.pow(SmScCfg.hotbarSmoothness, SmoothSc.getLastFrameDuration()) + target);
 		
-		if (Math.round(smoothSelectorPos) <  rolloverSpace - (slotWidth / 2)) {
+		if (smoothSelectorPos < 0) {
 			smoothSelectorPos += slotCount * slotWidth + rolloverSpace;
-			SmoothSc.hotbarRollover -= 1;
-		} else if (Math.round(smoothSelectorPos) > rolloverSpace - (slotWidth / 2) + slotWidth * slotCount) {
+			rollover -= 1;
+		} else if (smoothSelectorPos > rolloverSpace * 2 + slotWidth * slotCount) {
 			smoothSelectorPos -= slotCount * slotWidth + rolloverSpace;
-			SmoothSc.hotbarRollover += 1;
+			rollover += 1;
 		}
 
 		operation.call(graphics, deltaTracker);
 	}
 
-	@WrapOperation(method = "renderItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V", ordinal = 1))
-	private void moveSelector(GuiGraphics graphics, RenderPipeline pipeline, Identifier location, int x, int y, int width, int height, Operation<Void> operation) {
+	@WrapOperation(method = "extractItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V", ordinal = 1))
+	private void moveSelector(GuiGraphicsExtractor graphics, RenderPipeline pipeline, Identifier location, int x, int y, int width, int height, Operation<Void> operation) {
 		Inventory inv = SmoothSc.mc.player.getInventory();
 		var hotbarStart = x - inv.getSelectedSlot() * slotWidth;
 
@@ -69,17 +72,7 @@ public class GuiMixin { // TODO redo so that smooth selector cannot be left of h
 			return;
 		}
 
-
-		if (Math.round(smoothSelectorPos) < 0) {
-			enableMask(graphics);
-			graphics.pose().pushMatrix();
-			graphics.pose().translate(smoothSelectorPos - (x - hotbarStart) + slotCount * slotWidth + rolloverSpace, 0);
-
-			operation.call(graphics, pipeline, location, x, y, width, height);
-
-        	graphics.pose().popMatrix();
-
-		} else if (Math.round(smoothSelectorPos) > slotWidth * 8) {
+		if (Math.round(smoothSelectorPos) > slotWidth * 8) {
 			enableMask(graphics);
 			graphics.pose().pushMatrix();
 			graphics.pose().translate(smoothSelectorPos - (x - hotbarStart) - slotCount * slotWidth - rolloverSpace, 0);
@@ -103,9 +96,8 @@ public class GuiMixin { // TODO redo so that smooth selector cannot be left of h
 		}
 	}
 
-
 	@Unique
-	private void enableMask(GuiGraphics context) {
+	private void enableMask(GuiGraphicsExtractor context) {
 		var x2 = context.guiWidth() / 2 - 91;
 		var y2 = context.guiHeight() - 22;
 		if (!SmScCfg.staticSelector) {
@@ -116,35 +108,38 @@ public class GuiMixin { // TODO redo so that smooth selector cannot be left of h
 		masked = true;
 	}
 
+	@WrapOperation(method = "extractItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V", ordinal = 0))
+	private void moveHotbar(GuiGraphicsExtractor graphics, RenderPipeline pipeline, Identifier location, int x, int y, int width, int height, Operation<Void> operation) {
+		moveWholeHotbar(graphics, () -> operation.call(graphics, pipeline, location, x, y, width, height));
+	}
 
+	@WrapOperation(method = "extractItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;extractSlot(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IILnet/minecraft/client/DeltaTracker;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;I)V", ordinal = 0))
+	private void moveItems(Gui gui, GuiGraphicsExtractor graphics, int x, int y, DeltaTracker deltaTracker, Player player, ItemStack itemStack, int seed, Operation<Void> operation) {
+		moveWholeHotbar(graphics, () -> operation.call(gui, graphics, x, y, deltaTracker, player, itemStack, seed));
+	}
 
-	@WrapOperation(method = "renderItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V", ordinal = 0))
-	private void moveHotbar(GuiGraphics graphics, RenderPipeline pipeline, Identifier location, int x, int y, int width, int height, Operation<Void> operation) {
+	@Unique
+	private void moveWholeHotbar(GuiGraphicsExtractor graphics, Runnable draw) {
 		if (!SmScCfg.staticSelector) {
-			operation.call(graphics, pipeline, location, x, y, width, height);
+			draw.run();
 			return;
 		}
 		enableMask(graphics);
 		graphics.pose().pushMatrix();
 		graphics.pose().translate(-smoothSelectorPos + slotCount / 2 * slotWidth, 0);
 
-		operation.call(graphics, pipeline, location, x, y, width, height);
+		draw.run();
+
+		if (smoothSelectorPos > slotCount / 2 * slotWidth) {
+			graphics.pose().translate(+(slotCount * slotWidth + rolloverSpace), 0);
+		} else {
+			graphics.pose().translate(-(slotCount * slotWidth + rolloverSpace), 0);
+		}
+
+		draw.run();
 
 		graphics.pose().popMatrix();
 
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(-smoothSelectorPos + slotCount * slotWidth + rolloverSpace + slotCount / 2 * slotWidth, 0);
-
-		operation.call(graphics, pipeline, location, x, y, width, height);
-
-		graphics.pose().popMatrix();
-
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(-smoothSelectorPos - slotCount * slotWidth - rolloverSpace + slotCount / 2 * slotWidth, 0);
-
-		operation.call(graphics, pipeline, location, x, y, width, height);
-
-		graphics.pose().popMatrix();
 		
 		if (masked) {
 			if (SmScCfg.enableMaskDebug) graphics.fill(-100, -100, graphics.guiWidth(), graphics.guiHeight(), ARGB.color(50, 0, 255, 255));
@@ -153,39 +148,13 @@ public class GuiMixin { // TODO redo so that smooth selector cannot be left of h
 		}
 	}
 
-	@WrapOperation(method = "renderItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;renderSlot(Lnet/minecraft/client/gui/GuiGraphics;IILnet/minecraft/client/DeltaTracker;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;I)V", ordinal = 0))
-	private void moveItems(Gui gui, GuiGraphics graphics, int x, int y, DeltaTracker deltaTracker, Player player, ItemStack itemStack, int seed, Operation<Void> operation) {
-		if (!SmScCfg.staticSelector) {
-			operation.call(gui, graphics, x, y, deltaTracker, player, itemStack, seed);
-			return;
-		}
-		enableMask(graphics);
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(-smoothSelectorPos + slotCount / 2 * slotWidth, 0);
-
-		operation.call(gui, graphics, x, y, deltaTracker, player, itemStack, seed);
-
-		graphics.pose().popMatrix();
-
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(-smoothSelectorPos + slotCount * slotWidth + rolloverSpace + slotCount / 2 * slotWidth, 0);
-
-		operation.call(gui, graphics, x, y, deltaTracker, player, itemStack, seed);
-
-		graphics.pose().popMatrix();
-
-		graphics.pose().pushMatrix();
-		graphics.pose().translate(-smoothSelectorPos - slotCount * slotWidth - rolloverSpace + slotCount / 2 * slotWidth, 0);
-
-		operation.call(gui, graphics, x, y, deltaTracker, player, itemStack, seed);
-
-		graphics.pose().popMatrix();
-
-		if (masked) {
-			if (SmScCfg.enableMaskDebug) graphics.fill(-100, -100, graphics.guiWidth(), graphics.guiHeight(), ARGB.color(50, 0, 255, 255));
-			graphics.disableScissor();
-			masked = false;
-		}
+	@Override
+	public void increaseRollover() {
+		rollover++;
 	}
 
+	@Override
+	public void decreaseRollover() {
+		rollover--;
+	}
 }

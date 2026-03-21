@@ -2,7 +2,7 @@ package io.github.smajloslovakian.smoothscroll.mixin.client.Chat;
 
 import java.util.List;
 import net.minecraft.client.gui.ActiveTextCollector;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.components.ChatComponent.ChatGraphicsAccess;
 import net.minecraft.client.gui.components.ChatComponent.DisplayMode;
@@ -33,7 +33,7 @@ import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 @Mixin(value = ChatComponent.class, priority = 1001)
 public class ChatComponentMixin {
 
-    private final String renderMethodSignature = "render(Lnet/minecraft/client/gui/components/ChatComponent$ChatGraphicsAccess;IILnet/minecraft/client/gui/components/ChatComponent$DisplayMode;)V";
+    private final String renderMethodSignature = "extractRenderState(Lnet/minecraft/client/gui/components/ChatComponent$ChatGraphicsAccess;IILnet/minecraft/client/gui/components/ChatComponent$DisplayMode;)V";
 
     @Shadow private int chatScrollbarPos;
     @Final @Shadow private List<GuiMessage.Line> trimmedMessages;
@@ -45,9 +45,9 @@ public class ChatComponentMixin {
     @Unique private float smoothChatBottom = -69696969;
     @Unique private boolean refreshing = false;
 
-
-    @WrapMethod(method = renderMethodSignature)
-    private void renderWrap(ChatGraphicsAccess graphics, int screenHeight, int ticks, DisplayMode displayMode, Operation<Void> operation) {
+    // this has to be an inject, so that modifyvariable on parameters affects us
+    @Inject(method = renderMethodSignature, at = @At("HEAD"))
+    private void renderWrap(ChatGraphicsAccess graphics, int screenHeight, int ticks, DisplayMode displayMode, CallbackInfo ci) {
         smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
         // snap on less than half a pixel difference
@@ -64,8 +64,6 @@ public class ChatComponentMixin {
 
         targetMaskHeight = shownLineCount * getLineHeight();
         smoothMaskHeight = (smoothMaskHeight - targetMaskHeight) * (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + targetMaskHeight;
-
-        operation.call(graphics, screenHeight, ticks, displayMode);
     }
 
     @ModifyVariable(method = renderMethodSignature, at = @At("STORE"), name = "chatBottom")
@@ -232,7 +230,7 @@ public class ChatComponentMixin {
                 return;
             }
         }
-        public GuiGraphics getContext() {
+        public GuiGraphicsExtractor getContext() {
             if (i != null)
                 return i.getContext();
             if (h != null)
@@ -248,7 +246,7 @@ public class ChatComponentMixin {
         @Accessor("parameters")
         void setTransformation(ActiveTextCollector.Parameters transformation);
         @Accessor("graphics")
-        GuiGraphics getContext();
+        GuiGraphicsExtractor getContext();
     }
 
     @Mixin(targets = "net.minecraft.client.gui.components.ChatComponent$DrawingFocusedGraphicsAccess")
@@ -258,7 +256,7 @@ public class ChatComponentMixin {
         @Accessor("parameters")
         void setTransformation(ActiveTextCollector.Parameters transformation);
         @Accessor("graphics")
-        GuiGraphics getContext();
+        GuiGraphicsExtractor getContext();
     }
 
     @Mixin(targets = "net.minecraft.client.gui.components.ChatComponent$ClickableTextOnlyGraphicsAccess")

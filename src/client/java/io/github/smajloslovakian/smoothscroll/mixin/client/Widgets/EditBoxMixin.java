@@ -12,9 +12,11 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
@@ -22,8 +24,7 @@ import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
 @Mixin(EditBox.class)
-public class EditBoxMixin {
-
+public abstract class EditBoxMixin extends AbstractWidget {
     @Shadow @Final private Font font;
     @Shadow private int displayPos;
     @Shadow private String value;
@@ -34,13 +35,14 @@ public class EditBoxMixin {
     @Unique private float targetScrollPos = 0;
     @Unique private float prevCursorPixel = 0;
 
+    @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         targetScrollPos = (float) Mth.clamp(targetScrollPos - (verticalAmount + horizontalAmount) * SmScCfg.textAmount, 0, font.width(value));
         return true;
     }
 
-    @WrapMethod(method = "renderWidget")
-    private void renderWidgetWrap(GuiGraphics graphics, int mouseX, int mouseY, float deltaTicks, Operation<Void> operation) {
+    @WrapMethod(method = "extractWidgetRenderState")
+    private void renderWidgetWrap(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float deltaTicks, Operation<Void> operation) {
         smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.textSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
         displayPos = font.plainSubstrByWidth(value, Math.round(smoothScrollPos)).length();
@@ -55,8 +57,8 @@ public class EditBoxMixin {
         graphics.disableScissor();
     }
 
-    @WrapOperation(method = "renderWidget", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V", ordinal = 0))
-    private void drawBackground(GuiGraphics graphics, RenderPipeline renderPipeline, Identifier location, int x, int y, int width, int height, Operation<Void> operation) {
+    @WrapOperation(method = "extractWidgetRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V", ordinal = 0))
+    private void drawBackground(GuiGraphicsExtractor graphics, RenderPipeline renderPipeline, Identifier location, int x, int y, int width, int height, Operation<Void> operation) {
         graphics.pose().popMatrix(); // TODO somehow remove this code duplication
         graphics.disableScissor();
         operation.call(graphics, renderPipeline, location, x, y, width, height);
@@ -65,7 +67,7 @@ public class EditBoxMixin {
         graphics.pose().translate(getDrawOffset(), 0);
     }
 
-    @ModifyVariable(method = "renderWidget", at = @At(value = "STORE"), name = "displayed")
+    @ModifyVariable(method = "extractWidgetRenderState", at = @At(value = "STORE"), name = "displayed")
     private String addCharacters(String displayed) {
         if (displayPos + displayed.length() >= value.length() || displayed.length() == 0) {
             return displayed;
@@ -121,4 +123,8 @@ public class EditBoxMixin {
     }
 
     @Shadow private int getInnerWidth() {return 0;}
+    
+    public EditBoxMixin(int x, int y, int width, int height, Component message) {
+        super(x, y, width, height, message);
+    }
 }

@@ -16,6 +16,7 @@ public class TransformationMixin {
     @Shadow Matrix3x2fc pose;
     @Shadow float opacity;
 
+    // TODO document why this is needed
     @WrapMethod(method = "withScissor")
     private Parameters withScissorWrap(ScreenRectangle scissor, Operation<Parameters> operation) {
         if (scissor == null) {

@@ -8,6 +8,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
+import io.github.smajloslovakian.smoothscroll.duck.GuiDuck;
 
 @Mixin(MouseHandler.class)
 public class MouseHandlerMixin {
@@ -17,6 +18,7 @@ public class MouseHandlerMixin {
         if (SmoothSc.mc.player == null) return;
 
         var oldSlot = SmoothSc.mc.player.getInventory().getSelectedSlot();
+        var guiDuck = (GuiDuck)(Object)SmoothSc.mc.gui;
 
         operation.call(handle, xoffset, yoffset);
         
@@ -29,11 +31,11 @@ public class MouseHandlerMixin {
         // vertical < 0 -> Slot Increases (Right)
         if (yoffset > 0) { // Scrolling Left
             if (newSlot > oldSlot) { // Wrapped (e.g. 0 -> 8)
-                SmoothSc.hotbarRollover += 1; // TODO use duck interface
+                guiDuck.increaseRollover();
             }
         } else if (yoffset < 0) { // Scrolling Right
             if (newSlot < oldSlot) { // Wrapped (e.g. 8 -> 0)
-                SmoothSc.hotbarRollover -= 1;
+                guiDuck.decreaseRollover();
             }
         }
     }

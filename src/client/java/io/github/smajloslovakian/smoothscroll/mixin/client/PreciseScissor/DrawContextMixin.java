@@ -8,10 +8,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.Window;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 
-@Mixin(GuiGraphics.class)
+@Mixin(GuiGraphicsExtractor.class)
 public class DrawContextMixin {
     
     /*//@Redirect(method = "setScissor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getScaleFactor()D"))

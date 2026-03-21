@@ -11,7 +11,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen.ItemPickerMenu;
@@ -23,8 +23,9 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import io.github.smajloslovakian.smoothscroll.CreativeModeInventoryScreenDuck;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
+import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
+import io.github.smajloslovakian.smoothscroll.duck.CreativeModeInventoryScreenDuck;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
 // TODO check compatibility with: item borders, flow, item highlighter, bedrockify
@@ -39,9 +40,8 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
     @Shadow float scrollOffs; // this is the target
     @Shadow static CreativeModeTab selectedTab;
 
-    @WrapOperation(method = "renderBg", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIII)V"))
-    private void renderBgWrap(GuiGraphics graphics, RenderPipeline renderPipeline, Identifier texture, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight, Operation<Void> operation, @Local(name = "ym") int ym, @Local(name = "xm") int xm) {
-
+    @WrapOperation(method = "extractBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIII)V"))
+    private void drawBackgroundWrap(GuiGraphicsExtractor graphics, RenderPipeline renderPipeline, Identifier texture, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight, Operation<Void> operation, @Local(name = "mouseY") int mouseY, @Local(name = "mouseX") int mouseX) {
         operation.call(graphics, renderPipeline, texture, x, y, u, v, width, height, textureWidth, textureHeight);
 
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching)
@@ -50,7 +50,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         //SmoothSc.print(scrollOffs);
         smoothScrollOffs = (smoothScrollOffs - scrollOffs) * (float) Math.pow(SmScCfg.creativeScreenSmoothness, SmoothSc.getLastFrameDuration()) + scrollOffs;
 
-        if (ym - y > 60) {
+        if (mouseY - y > 60) {
             rowOffset = 1;
         }
         else {
@@ -72,7 +72,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         var iwidth = 162;
         var iheight = 90;/* */
 
-        mouseInBounds = xm >= ix && xm < ix + iwidth && ym >= iy && ym < iy + iheight;
+        mouseInBounds = mouseX >= ix && mouseX < ix + iwidth && mouseY >= iy && mouseY < iy + iheight;
 
         var yOffset = -(scrollOffsToPixels(smoothScrollOffs) % (slotSize * 5));
 
@@ -102,7 +102,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
             // TODO slot-based rendering of items may be more accurate
             //var tempSlot = new Slot(this.menu, i, 9 + i % 9 * 18, 0);
             ItemStack item = menu.items.get(i);
-            graphics.renderItem(item, x + 9 + i % 9 * slotSize, y + 6 * slotSize - rowOffset * 6 * slotSize);
+            graphics.item(item, x + 9 + i % 9 * slotSize, y + 6 * slotSize - rowOffset * 6 * slotSize);
         }
         graphics.pose().popMatrix();
 
@@ -113,17 +113,17 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
     @Unique private int scrollItemCount = 45;
     @Unique private int itemCounter = scrollItemCount;
     @Override
-    protected void renderSlots(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void extractSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (selectedTab.canScroll()) {
             itemCounter = 0;
             enMask(graphics);
         }
-        super.renderSlots(graphics, mouseX, mouseY);
+        super.extractSlots(graphics, mouseX, mouseY);
     }
 
     @Override
-    protected void renderSlot(GuiGraphics graphics, Slot slot, int mouseX, int mouseY) {
-        super.renderSlot(graphics, slot, mouseX, mouseY);
+    protected void extractSlot(GuiGraphicsExtractor graphics, Slot slot, int mouseX, int mouseY) {
+        super.extractSlot(graphics, slot, mouseX, mouseY);
 
         itemCounter++;
         if (itemCounter == scrollItemCount) {
@@ -146,9 +146,9 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         return ret;
     }
     @Override
-    public void renderContents(final GuiGraphics graphics, final int mouseX, final int mouseY, final float a) {
+    public void extractContents(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float a) {
         var offset = mouseInBounds ? - Math.round(getDrawOffset()) : 0;
-        super.renderContents(graphics, mouseX, mouseY + offset, a);
+        super.extractContents(graphics, mouseX, mouseY + offset, a);
     }
     @WrapMethod(method = "mouseClicked")
     public boolean mouseClickedWrap(MouseButtonEvent event, boolean doubleClick, Operation<Boolean> operation) {
@@ -192,13 +192,13 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         return ((ItemPickerMenuAccessor)menu).getCalculatedRowCount();
     }
     @Override
-    public void enMask(GuiGraphics graphics) {
+    public void enMask(GuiGraphicsExtractor graphics) {
         graphics.enableScissor(8, 18, 170, 106);
         graphics.pose().pushMatrix();
         graphics.pose().translate(0, getDrawOffset());
     }
     @Override
-    public void deMask(GuiGraphics graphics) {
+    public void deMask(GuiGraphicsExtractor graphics) {
         graphics.pose().popMatrix();
 
         //graphics.fill(0, 0, 10000, 10000, ARGB.color(50, 255, 0, 255));

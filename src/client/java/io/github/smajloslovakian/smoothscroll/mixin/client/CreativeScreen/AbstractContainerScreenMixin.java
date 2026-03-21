@@ -5,15 +5,15 @@ import org.spongepowered.asm.mixin.Mixin;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 
-import io.github.smajloslovakian.smoothscroll.CreativeModeInventoryScreenDuck;
-import net.minecraft.client.gui.GuiGraphics;
+import io.github.smajloslovakian.smoothscroll.duck.CreativeModeInventoryScreenDuck;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 
 @Mixin(AbstractContainerScreen.class)
 public class AbstractContainerScreenMixin {
 
-    @WrapMethod(method = "renderSlotHighlightBack")
-    private void renderHighlightBackWrap(GuiGraphics graphics, Operation<Void> operation) {
+    @WrapMethod(method = "extractSlotHighlightBack")
+    private void extractSlotHighlightBackWrap(GuiGraphicsExtractor graphics, Operation<Void> operation) {
         if (this instanceof CreativeModeInventoryScreenDuck a) {
             if (!a.isMouseInbounds()) {
                 operation.call(graphics);
@@ -25,8 +25,8 @@ public class AbstractContainerScreenMixin {
         }
     }
 
-    @WrapMethod(method = "renderSlotHighlightFront")
-    private void renderHighlightFrontWrap(GuiGraphics graphics, Operation<Void> operation) {
+    @WrapMethod(method = "extractSlotHighlightFront")
+    private void extractSlotHighlightFrontWrap(GuiGraphicsExtractor graphics, Operation<Void> operation) {
         if (this instanceof CreativeModeInventoryScreenDuck a) {
             if (!a.isMouseInbounds()) {
                 operation.call(graphics);
