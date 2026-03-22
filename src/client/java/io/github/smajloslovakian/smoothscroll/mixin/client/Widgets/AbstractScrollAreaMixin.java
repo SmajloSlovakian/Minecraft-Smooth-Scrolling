@@ -12,12 +12,11 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractScrollArea;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
 @Mixin(AbstractScrollArea.class)
-public class AbstractScrollAreaMixin extends AbstractWidget {
+public abstract class AbstractScrollAreaMixin extends AbstractWidget {
     @Shadow private double scrollAmount; // scroll position - number of pixels scrolled down (up < down)
 
     @Unique private double smoothScrollPos;
@@ -50,7 +49,6 @@ public class AbstractScrollAreaMixin extends AbstractWidget {
 
     @WrapMethod(method = "mouseScrolled")
     private boolean mouseScrolledWrap(double mouseX, double mouseY, double hA, double vA, Operation<Boolean> operation) {
-        SmoothSc.print("ALLALALA");
         noSetScrollT = true;
         var prevScrollPos = scrollAmount;
         if (SmScCfg.entryListSmoothness != 0) {
@@ -72,20 +70,7 @@ public class AbstractScrollAreaMixin extends AbstractWidget {
     @Shadow
     public void setScrollAmount(double sc) {}
 
-
-
-
-
-
     public AbstractScrollAreaMixin() {
         super(0, 0, 0, 0, null);
-    }
-
-    @Override
-    protected void updateWidgetNarration(NarrationElementOutput builder) {
-    }
-
-    @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
     }
 }

@@ -15,7 +15,10 @@ public class MouseHandlerMixin {
 
     @WrapMethod(method = "onScroll")
     private void onScrollWrap(long handle, double xoffset, double yoffset, Operation<Void> operation) {
-        if (SmoothSc.mc.player == null) return;
+        if (SmoothSc.mc.player == null) {
+            operation.call(handle, xoffset, yoffset);
+            return;
+        }
 
         var oldSlot = SmoothSc.mc.player.getInventory().getSelectedSlot();
         var guiDuck = (GuiDuck)(Object)SmoothSc.mc.gui;
