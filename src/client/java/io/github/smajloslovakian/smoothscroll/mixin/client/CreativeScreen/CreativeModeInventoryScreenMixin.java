@@ -1,5 +1,6 @@
 package io.github.smajloslovakian.smoothscroll.mixin.client.CreativeScreen;
 
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -18,7 +19,7 @@ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen.It
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.ARGB;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.CreativeModeTab;
@@ -26,7 +27,6 @@ import net.minecraft.world.item.ItemStack;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 import io.github.smajloslovakian.smoothscroll.duck.CreativeModeInventoryScreenDuck;
-import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
 // TODO check compatibility with: item borders, flow, item highlighter, bedrockify
 
@@ -39,6 +39,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
     @Unique private float smoothScrollOffs = 0; // counted in proportion
     @Shadow float scrollOffs; // this is the target
     @Shadow static CreativeModeTab selectedTab;
+    @Shadow private static @Final SimpleContainer CONTAINER;
 
     @WrapOperation(method = "extractBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIII)V"))
     private void drawBackgroundWrap(GuiGraphicsExtractor graphics, RenderPipeline renderPipeline, Identifier texture, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight, Operation<Void> operation, @Local(name = "mouseY") int mouseY, @Local(name = "mouseX") int mouseX) {
@@ -47,16 +48,26 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching)
             return;
 
+        // test item count in tabs
+        /*while (menu.items.size() > 45) {
+            SmoothSc.print("LALLALALA");
+            menu.items.remove(0);
+        }/* */
+
         //SmoothSc.print(scrollOffs);
         smoothScrollOffs = (smoothScrollOffs - scrollOffs) * (float) Math.pow(SmScCfg.creativeScreenSmoothness, SmoothSc.getLastFrameDuration()) + scrollOffs;
 
-        if (mouseY - y > 60) {
-            rowOffset = 1;
+        float rowCount = calculateRowCount();
+        if (rowCount != 0) {
+            if (mouseY - y > 60) {
+                rowOffset = 1;
+            }
+            else {
+                rowOffset = 0;
+            }
+            rowCount = rowOffset / rowCount;
         }
-        else {
-            rowOffset = 0;
-        }
-        menu.scrollTo(smoothScrollOffs + rowOffset / (float) calculateRowCount());
+        menu.scrollTo(smoothScrollOffs + rowCount);
         
         // background rendering
         //graphics.fill(x, y, x+1, y+1, ARGB.color(255, 0, 255, 255));
@@ -93,15 +104,16 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         }
         graphics.pose().popMatrix();
 
-
         graphics.pose().pushMatrix();
         graphics.pose().translate(0, getDrawOffset());
         var currRow = (int)(double)(smoothScrollOffs * calculateRowCount());
         var fromIndex = (currRow + 5 - rowOffset * 5) * 9;
         for (int i = fromIndex; i >= 0 && i < menu.items.size() && i < fromIndex + 9; i++) {
             // TODO slot-based rendering of items may be more accurate
-            //var tempSlot = new Slot(this.menu, i, 9 + i % 9 * 18, 0);
+            //var tempSlot = new Slot(CONTAINER, 0, 9 + i % 9 * 18, 0);;
             ItemStack item = menu.items.get(i);
+            //tempSlot.set(item);
+            //extractSlot(graphics, tempSlot, mouseX, mouseY);
             graphics.item(item, x + 9 + i % 9 * slotSize, y + 6 * slotSize - rowOffset * 6 * slotSize);
         }
         graphics.pose().popMatrix();
