@@ -20,8 +20,9 @@ public class AbstractContainerScreenMixin {
                 return;
             }
             a.enMask(graphics);
-            operation.call(graphics);
             a.deMask(graphics);
+        } else {
+            operation.call(graphics);
         }
     }
 
@@ -35,6 +36,8 @@ public class AbstractContainerScreenMixin {
             a.enMask(graphics);
             operation.call(graphics);
             a.deMask(graphics);
+        } else {
+            operation.call(graphics);
         }
     }
 }
