@@ -14,12 +14,9 @@ public class AbstractContainerScreenMixin {
 
     @WrapMethod(method = "extractSlotHighlightBack")
     private void extractSlotHighlightBackWrap(GuiGraphicsExtractor graphics, Operation<Void> operation) {
-        if (this instanceof CreativeModeInventoryScreenDuck a) {
-            if (!a.isMouseInbounds()) {
-                operation.call(graphics);
-                return;
-            }
+        if (this instanceof CreativeModeInventoryScreenDuck a && a.isMouseInbounds() && a.canScroll()) {
             a.enMask(graphics);
+            operation.call(graphics);
             a.deMask(graphics);
         } else {
             operation.call(graphics);
@@ -28,11 +25,7 @@ public class AbstractContainerScreenMixin {
 
     @WrapMethod(method = "extractSlotHighlightFront")
     private void extractSlotHighlightFrontWrap(GuiGraphicsExtractor graphics, Operation<Void> operation) {
-        if (this instanceof CreativeModeInventoryScreenDuck a) {
-            if (!a.isMouseInbounds()) {
-                operation.call(graphics);
-                return;
-            }
+        if (this instanceof CreativeModeInventoryScreenDuck a && a.isMouseInbounds() && a.canScroll()) {
             a.enMask(graphics);
             operation.call(graphics);
             a.deMask(graphics);

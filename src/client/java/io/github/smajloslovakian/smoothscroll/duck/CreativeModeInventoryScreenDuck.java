@@ -6,4 +6,5 @@ public interface CreativeModeInventoryScreenDuck {
     void enMask(GuiGraphicsExtractor graphics);
     void deMask(GuiGraphicsExtractor graphics);
     boolean isMouseInbounds();
+    boolean canScroll();
 }

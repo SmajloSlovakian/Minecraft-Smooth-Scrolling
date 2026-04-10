@@ -28,7 +28,7 @@ import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 import io.github.smajloslovakian.smoothscroll.duck.CreativeModeInventoryScreenDuck;
 
-// TODO check compatibility with: item borders, flow, item highlighter, bedrockify
+// TODO check compatibility with: item borders, flow, bedrockify
 
 @Mixin(value = CreativeModeInventoryScreen.class)
 public abstract class CreativeModeInventoryScreenMixin extends AbstractContainerScreen<ItemPickerMenu> implements CreativeModeInventoryScreenDuck {
@@ -219,6 +219,10 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
     @Override
     public boolean isMouseInbounds() {
         return mouseInBounds;
+    }
+    @Override
+    public boolean canScroll() {
+        return selectedTab.canScroll();
     }
 
     public CreativeModeInventoryScreenMixin(ItemPickerMenu menu, Inventory inventory, Component title) {
