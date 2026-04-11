@@ -5,5 +5,6 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 public interface CreativeModeInventoryScreenDuck {
     void enMask(GuiGraphicsExtractor graphics);
     void deMask(GuiGraphicsExtractor graphics);
+    boolean isSelectedTabScrollable();
     boolean isMouseInbounds();
 }

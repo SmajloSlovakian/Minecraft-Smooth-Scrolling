@@ -220,6 +220,10 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
     public boolean isMouseInbounds() {
         return mouseInBounds;
     }
+    @Override
+    public boolean isSelectedTabScrollable() {
+        return selectedTab.canScroll();
+    }
 
     public CreativeModeInventoryScreenMixin(ItemPickerMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
