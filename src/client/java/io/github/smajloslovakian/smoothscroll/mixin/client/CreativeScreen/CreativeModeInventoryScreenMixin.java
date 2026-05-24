@@ -28,7 +28,7 @@ import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 import io.github.smajloslovakian.smoothscroll.duck.CreativeModeInventoryScreenDuck;
 
-// TODO check compatibility with: item borders, flow, bedrockify
+// TODO check compatibility with: item borders, flow
 
 @Mixin(value = CreativeModeInventoryScreen.class)
 public abstract class CreativeModeInventoryScreenMixin extends AbstractContainerScreen<ItemPickerMenu> implements CreativeModeInventoryScreenDuck {
