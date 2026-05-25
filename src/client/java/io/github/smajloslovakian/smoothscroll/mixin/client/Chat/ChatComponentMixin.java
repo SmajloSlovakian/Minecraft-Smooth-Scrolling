@@ -38,17 +38,19 @@ public class ChatComponentMixin {
     @Shadow private int chatScrollbarPos;
     @Final @Shadow private List<GuiMessage.Line> trimmedMessages;
 
-    @Unique private float smoothScrollPos = chatScrollbarPos;
-    @Unique private float targetScrollPos = chatScrollbarPos;
-    @Unique private float smoothMaskHeight = 0;
-    @Unique private float targetMaskHeight = 0;
-    @Unique private float smoothChatBottom = -69696969;
+    // everything in lines for better float precision sync
+    @Unique private double smoothScrollPos = chatScrollbarPos;
+    @Unique private double targetScrollPos = chatScrollbarPos;
+    @Unique private double smoothMaskHeight = 0;
+    @Unique private double targetMaskHeight = 0;
+    @Unique private double smoothChatBottom = -69696969;
+
     @Unique private boolean refreshing = false;
 
     // this has to be an inject, so that modifyvariable on parameters affects us
     @Inject(method = renderMethodSignature, at = @At("HEAD"))
     private void renderWrap(ChatGraphicsAccess graphics, int screenHeight, int ticks, DisplayMode displayMode, CallbackInfo ci) {
-        smoothScrollPos = (smoothScrollPos - targetScrollPos) * (float) Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
+        smoothScrollPos = (smoothScrollPos - targetScrollPos) * Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
         // snap on less than half a pixel difference
         if (Math.abs(smoothScrollPos - targetScrollPos) < 1f / getLineHeight() / 2)
@@ -58,21 +60,21 @@ public class ChatComponentMixin {
         
         // mask height
         var shownLineCount = 0;
-        for(int r = 0; r + chatScrollbarPos < trimmedMessages.size() && r < getLinesPerPage(); r++) {
+        for(int r = 0; r < trimmedMessages.size() && r < getLinesPerPage(); r++) {
             if (ticks - trimmedMessages.get(r).addedTime() < 200 || displayMode.foreground) shownLineCount++;
         }
-
-        targetMaskHeight = shownLineCount * getLineHeight();
-        smoothMaskHeight = (smoothMaskHeight - targetMaskHeight) * (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + targetMaskHeight;
+        
+        targetMaskHeight = shownLineCount;
+        smoothMaskHeight = (smoothMaskHeight - targetMaskHeight) * Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + targetMaskHeight;
     }
 
     @ModifyVariable(method = renderMethodSignature, at = @At("STORE"), name = "chatBottom")
     int modifyYPos(int chatBottom) {
         if (smoothChatBottom == -69696969) {
-            smoothChatBottom = chatBottom;
+            smoothChatBottom = chatBottom / (double) getLineHeight();
         }
-        smoothChatBottom = (smoothChatBottom - chatBottom) * (float) Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + chatBottom;
-        return (int) Math.round(smoothChatBottom);
+        smoothChatBottom = (smoothChatBottom - chatBottom / (double) getLineHeight()) * Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + chatBottom / (double) getLineHeight();
+        return (int) Math.round(smoothChatBottom * getLineHeight());
     }
     
     @WrapOperation(method = renderMethodSignature, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/ChatComponent;forEachLine(Lnet/minecraft/client/gui/components/ChatComponent$AlphaCalculator;Lnet/minecraft/client/gui/components/ChatComponent$LineConsumer;)I"))
@@ -97,12 +99,12 @@ public class ChatComponentMixin {
     
     @Unique
     private void enMask(TransformationAccess transformationAccess, int chatBottom) {
-        int maskTop = (int) Math.round(chatBottom - smoothMaskHeight);
-        int maskBottom = chatBottom;
+        int maskTop = (int) Math.round((smoothChatBottom - smoothMaskHeight) * getLineHeight());
+        int maskBottom = (int) Math.round(smoothChatBottom * getLineHeight());
 
         // this lets underlined text, diacritics and stuff overflow two pixels above or under chat
-        if (smoothScrollPos == targetScrollPos && Math.round(getDrawOffset()) == 0 && Math.round(smoothMaskHeight) != 0) {
-            if (Math.round(smoothMaskHeight) == targetMaskHeight) {
+        if (smoothScrollPos == targetScrollPos && Math.round(getDrawOffset()) == 0 && Math.round(smoothMaskHeight * getLineHeight()) != 0) {
+            if (Math.round(smoothMaskHeight * getLineHeight()) == targetMaskHeight * getLineHeight()) {
                 maskTop -= 2;
             }
             maskBottom += 2;
@@ -152,7 +154,7 @@ public class ChatComponentMixin {
             newTarget = 0;
         }
 
-        targetScrollPos = (float) newTarget;
+        targetScrollPos = newTarget;
     }
     
     @ModifyVariable(method = "forEachLine", at = @At(value = "STORE"), name = "alpha")
@@ -170,7 +172,7 @@ public class ChatComponentMixin {
 
     @ModifyVariable(method = "forEachLine", at = @At("STORE"), name = "perPage")
     private int addLinesAbove(int perPage) {
-        return (int) Math.ceil(Math.round(smoothMaskHeight) / (float) getLineHeight()) + (Math.round(getDrawOffset()) == 0 ? 0 : 1);
+        return (int) Math.ceil(Math.round(smoothMaskHeight * getLineHeight()) / (double) getLineHeight()) + (Math.round(getDrawOffset()) == 0 ? 0 : 1);
     }
     
     @WrapMethod(method = "resetChatScroll")
@@ -286,7 +288,7 @@ public class ChatComponentMixin {
     public boolean isChatFocused() {return false;}
 
     @Unique
-    private float getDrawOffset() {
+    private double getDrawOffset() {
         return -(chatScrollbarPos - smoothScrollPos) * getLineHeight();
     }
 }
