@@ -82,7 +82,7 @@ public class ChatComponentMixin {
         var transformationAccess = new TransformationAccess(graphics);
         enMask(transformationAccess, chatBottom);
         graphics.updatePose((pose) -> {
-            pose.translate(0, (int) Math.floor(getDrawOffset()));
+            pose.translate(0, (float) getDrawOffset());
         });
         //context.getMatrices().pushMatrix();
         //context.getMatrices().translate(0, (int) Math.floor(getDrawOffset()));
@@ -91,7 +91,7 @@ public class ChatComponentMixin {
 
         //context.getMatrices().popMatrix();
         graphics.updatePose((pose) -> {
-            pose.translate(0, -(int) Math.floor(getDrawOffset()));
+            pose.translate(0, -(float) getDrawOffset());
         });
         deMask(transformationAccess);
         return ret;
@@ -113,14 +113,14 @@ public class ChatComponentMixin {
         // this only affects text and the other only affects everything else... wtf mojank?
         var a = transformationAccess.getTransformation();
         if (a != null) {
-            transformationAccess.setTransformation(a.withScissor(-10, getWidth() + 999999, maskTop, maskBottom));
+            transformationAccess.setTransformation(a.withScissor(-10, getWidth() + 1000, maskTop, maskBottom));
         }
 
         var context = transformationAccess.getContext();
         if (context != null) {
             //if (SmScCfg.enableMaskDebug)
                 //context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 255, 255, 0));
-            context.enableScissor(-10, maskTop, getWidth() + 999999, maskBottom);
+            context.enableScissor(-10, maskTop, getWidth() + 1000, maskBottom);
         }
     }
     @Unique
