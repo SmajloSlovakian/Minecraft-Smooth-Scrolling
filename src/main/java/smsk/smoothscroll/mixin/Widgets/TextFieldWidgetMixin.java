@@ -45,13 +45,6 @@ public abstract class TextFieldWidgetMixin extends ClickableWidget {
         targetScrollPos = (float) MathHelper.clamp(targetScrollPos - (verticalAmount + horizontalAmount) * SmScCfg.textAmount, 0, textRenderer.getWidth(text));
         return true;
     }
-    public boolean method_25401(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if (!isHovered()) {
-            return false;
-        }
-        targetScrollPos = (float) MathHelper.clamp(targetScrollPos - (verticalAmount + horizontalAmount) * SmScCfg.textAmount, 0, textRenderer.getWidth(text));
-        return true;
-    }
 
     @WrapMethod(method = "renderWidget")
     private void renderWidgetWrap(DrawContext context, int mouseX, int mouseY, float deltaTicks, Operation<Void> operation) {
