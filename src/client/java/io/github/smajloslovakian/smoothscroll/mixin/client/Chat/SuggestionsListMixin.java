@@ -3,7 +3,6 @@ package io.github.smajloslovakian.smoothscroll.mixin.client.Chat;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.CommandSuggestions.SuggestionsList;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.util.ARGB;
 import org.spongepowered.asm.mixin.Final;

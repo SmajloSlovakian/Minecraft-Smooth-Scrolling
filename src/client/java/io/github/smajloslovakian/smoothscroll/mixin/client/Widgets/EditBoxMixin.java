@@ -37,6 +37,10 @@ public abstract class EditBoxMixin extends AbstractWidget {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        // safety net - vanilla checks for hovering before calling this function, mods occasionally do not
+        if (!isHovered()) {
+            return false;
+        }
         targetScrollPos = (float) Mth.clamp(targetScrollPos - (verticalAmount + horizontalAmount) * SmScCfg.textAmount, 0, font.width(value));
         return true;
     }
