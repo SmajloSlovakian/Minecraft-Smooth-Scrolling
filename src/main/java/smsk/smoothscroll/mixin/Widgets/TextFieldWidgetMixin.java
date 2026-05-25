@@ -15,7 +15,9 @@ import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
@@ -23,7 +25,7 @@ import smsk.smoothscroll.SmoothSc;
 import smsk.smoothscroll.cfg.SmScCfg;
 
 @Mixin(TextFieldWidget.class)
-public class TextFieldWidgetMixin {
+public abstract class TextFieldWidgetMixin extends ClickableWidget {
 
     @Shadow @Final private TextRenderer textRenderer;
     @Shadow private int firstCharacterIndex;
@@ -37,10 +39,16 @@ public class TextFieldWidgetMixin {
 
     // mouseScrolled == method_25401
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (!isHovered()) {
+            return false;
+        }
         targetScrollPos = (float) MathHelper.clamp(targetScrollPos - (verticalAmount + horizontalAmount) * SmScCfg.textAmount, 0, textRenderer.getWidth(text));
         return true;
     }
     public boolean method_25401(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (!isHovered()) {
+            return false;
+        }
         targetScrollPos = (float) MathHelper.clamp(targetScrollPos - (verticalAmount + horizontalAmount) * SmScCfg.textAmount, 0, textRenderer.getWidth(text));
         return true;
     }
@@ -127,4 +135,8 @@ public class TextFieldWidgetMixin {
     }
 
     @Shadow private int getInnerWidth() {return 0;}
+
+    public TextFieldWidgetMixin(int x, int y, int width, int height, Text message) {
+        super(x, y, width, height, message);
+    }
 }
