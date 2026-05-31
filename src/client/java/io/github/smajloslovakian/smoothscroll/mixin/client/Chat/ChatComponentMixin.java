@@ -2,11 +2,13 @@ package io.github.smajloslovakian.smoothscroll.mixin.client.Chat;
 
 import java.util.List;
 import net.minecraft.client.gui.ActiveTextCollector;
+import net.minecraft.client.gui.ActiveTextCollector.Parameters;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.components.ChatComponent.ChatGraphicsAccess;
 import net.minecraft.client.gui.components.ChatComponent.DisplayMode;
 import net.minecraft.client.multiplayer.chat.GuiMessage;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.FormattedCharSequence;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -17,13 +19,13 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
+import io.github.smajloslovakian.smoothscroll.TransformationAccess;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
 /*
@@ -79,8 +81,9 @@ public class ChatComponentMixin {
     
     @WrapOperation(method = renderMethodSignature, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/ChatComponent;forEachLine(Lnet/minecraft/client/gui/components/ChatComponent$AlphaCalculator;Lnet/minecraft/client/gui/components/ChatComponent$LineConsumer;)I"))
     private int forVisibleLineWrap(ChatComponent ch, @Coerce Object alphaCalculator, @Coerce Object lineConsumer, Operation<Integer> operation, @Local(argsOnly = true) ChatGraphicsAccess graphics, @Local(name = "chatBottom") int chatBottom) {
-        var transformationAccess = new TransformationAccess(graphics);
-        enMask(transformationAccess, chatBottom);
+        if (graphics instanceof TransformationAccess transformationAccess) {
+            enMask(transformationAccess, chatBottom);
+        }
         graphics.updatePose((pose) -> {
             pose.translate(0, (float) getDrawOffset());
         });
@@ -93,7 +96,9 @@ public class ChatComponentMixin {
         graphics.updatePose((pose) -> {
             pose.translate(0, -(float) getDrawOffset());
         });
-        deMask(transformationAccess);
+        if (graphics instanceof TransformationAccess transformationAccess) {
+            deMask(transformationAccess);
+        }
         return ret;
     }
     
@@ -118,10 +123,10 @@ public class ChatComponentMixin {
 
         var context = transformationAccess.getContext();
         if (context != null) {
-            //if (SmScCfg.enableMaskDebug)
-                //context.fill(-100, -100, context.getScaledWindowWidth(), context.getScaledWindowHeight(), ColorHelper.getArgb(50, 255, 255, 0));
             context.enableScissor(-10, maskTop, getWidth() + 1000, maskBottom);
         }
+        if (SmScCfg.enableMaskDebug)
+            context.fill(-100, -100, context.guiWidth(), context.guiHeight(), ARGB.color(50, 255, 255, 0));
     }
     @Unique
     private void deMask(TransformationAccess transformationAccess) {
@@ -191,80 +196,46 @@ public class ChatComponentMixin {
         return (int) Math.round(smoothScrollPos * chatHeight / total - chatBottom);
     }
 
-    public class TransformationAccess {
-        HudAccessor h;
-        InteractableAccessor i;
-        ForwarderAccessor f;
-        TransformationAccess(Object obj) {
-            if (obj instanceof InteractableAccessor cast) {
-                i = cast;
-                return;
-            }
-            if (obj instanceof HudAccessor cast) {
-                h = cast;
-                return;
-            }
-            if (obj instanceof ForwarderAccessor cast) {
-                f = cast;
-                return;
-            }
-        }
-        public ActiveTextCollector.Parameters getTransformation() {
-            if (i != null)
-                return i.getTransformation();
-            if (h != null)
-                return h.getTransformation();
-            if (f != null)
-                return f.getDrawer().defaultParameters();
-            return null;
-        }
-        public void setTransformation(ActiveTextCollector.Parameters transformation) {
-            if (i != null) {
-                i.setTransformation(transformation);
-                return;
-            }
-            if (h != null){
-                h.setTransformation(transformation);
-                return;
-            }
-            if (f != null){
-                f.getDrawer().defaultParameters(transformation);
-                return;
-            }
-        }
-        public GuiGraphicsExtractor getContext() {
-            if (i != null)
-                return i.getContext();
-            if (h != null)
-                return h.getContext();
-            return null;
-        }
-    }
-
     @Mixin(targets = "net.minecraft.client.gui.components.ChatComponent$DrawingBackgroundGraphicsAccess")
-    public interface HudAccessor {
-        @Accessor("parameters")
-        ActiveTextCollector.Parameters getTransformation();
-        @Accessor("parameters")
-        void setTransformation(ActiveTextCollector.Parameters transformation);
-        @Accessor("graphics")
-        GuiGraphicsExtractor getContext();
+    public static class DrawingBackgroundGraphicsAccessMixin implements TransformationAccess {
+        @Shadow @Final GuiGraphicsExtractor graphics;
+        @Shadow ActiveTextCollector.Parameters parameters;
+
+        @Override
+        public Parameters getTransformation() {
+            return parameters;
+        }
+
+        @Override
+        public void setTransformation(Parameters transformation) {
+            parameters = transformation;
+        }
+
+        @Override
+        public GuiGraphicsExtractor getContext() {
+            return graphics;
+        }
     }
 
     @Mixin(targets = "net.minecraft.client.gui.components.ChatComponent$DrawingFocusedGraphicsAccess")
-    public interface InteractableAccessor {
-        @Accessor("parameters")
-        ActiveTextCollector.Parameters getTransformation();
-        @Accessor("parameters")
-        void setTransformation(ActiveTextCollector.Parameters transformation);
-        @Accessor("graphics")
-        GuiGraphicsExtractor getContext();
-    }
+    public static class DrawingFocusedGraphicsAccessMixin implements TransformationAccess {
+        @Shadow @Final GuiGraphicsExtractor graphics;
+        @Shadow ActiveTextCollector.Parameters parameters;
+        
+        @Override
+        public Parameters getTransformation() {
+            return parameters;
+        }
 
-    @Mixin(targets = "net.minecraft.client.gui.components.ChatComponent$ClickableTextOnlyGraphicsAccess")
-    public interface ForwarderAccessor {
-        @Accessor("output")
-        ActiveTextCollector getDrawer();
+        @Override
+        public void setTransformation(Parameters transformation) {
+            parameters = transformation;
+        }
+
+        @Override
+        public GuiGraphicsExtractor getContext() {
+            return graphics;
+        }
     }
 
     @Inject(method = "refreshTrimmedMessages", at = @At("HEAD"))
