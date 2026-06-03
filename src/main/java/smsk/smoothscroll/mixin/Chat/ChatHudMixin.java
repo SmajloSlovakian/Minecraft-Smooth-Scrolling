@@ -7,13 +7,10 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 
-import org.joml.Matrix3x2f;
-import org.joml.Matrix3x2fStack;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -25,10 +22,9 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.ChatHudLine;
 import net.minecraft.client.gui.hud.ChatHud.Backend;
-import net.minecraft.client.util.math.Vector2f;
 import net.minecraft.text.OrderedText;
-import net.minecraft.util.math.ColorHelper;
 import smsk.smoothscroll.SmoothSc;
+import smsk.smoothscroll.TransformationAccess;
 import smsk.smoothscroll.cfg.SmScCfg;
 
 /*
@@ -79,8 +75,9 @@ public class ChatHudMixin {
     
     @WrapOperation(method = "render(Lnet/minecraft/client/gui/hud/ChatHud$Backend;IIZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;forEachVisibleLine(Lnet/minecraft/client/gui/hud/ChatHud$OpacityRule;Lnet/minecraft/client/gui/hud/ChatHud$LineConsumer;)I"))
     private int forVisibleLineWrap(ChatHud ch, @Coerce Object opacityRule, @Coerce Object consumer, Operation<Integer> operation, @Local(argsOnly = true) Backend drawer, @Local(ordinal = 4) int chatYPos) {
-        var transformationAccess = new TransformationAccess(drawer);
-        enMask(transformationAccess, chatYPos);
+        if (drawer instanceof TransformationAccess transformationAccess) {
+            enMask(transformationAccess, chatYPos);
+        }
         drawer.updatePose((pose) -> {
             pose.translate(0, (int) Math.floor(getDrawOffset()));
         });
@@ -93,7 +90,9 @@ public class ChatHudMixin {
         drawer.updatePose((pose) -> {
             pose.translate(0, -(int) Math.floor(getDrawOffset()));
         });
-        deMask(transformationAccess);
+        if (drawer instanceof TransformationAccess transformationAccess) {
+            deMask(transformationAccess);
+        }
         return ret;
     }
     
@@ -191,80 +190,46 @@ public class ChatHudMixin {
         return (int) (Math.round(smoothScrollPos) * t / j - m);
     }
 
-    public class TransformationAccess {
-        HudAccessor h;
-        InteractableAccessor i;
-        ForwarderAccessor f;
-        TransformationAccess(Object obj) {
-            if (obj instanceof InteractableAccessor cast) {
-                i = cast;
-                return;
-            }
-            if (obj instanceof HudAccessor cast) {
-                h = cast;
-                return;
-            }
-            if (obj instanceof ForwarderAccessor cast) {
-                f = cast;
-                return;
-            }
-        }
-        public DrawnTextConsumer.Transformation getTransformation() {
-            if (i != null)
-                return i.getTransformation();
-            if (h != null)
-                return h.getTransformation();
-            if (f != null)
-                return f.getDrawer().getTransformation();
-            return null;
-        }
-        public void setTransformation(DrawnTextConsumer.Transformation transformation) {
-            if (i != null) {
-                i.setTransformation(transformation);
-                return;
-            }
-            if (h != null){
-                h.setTransformation(transformation);
-                return;
-            }
-            if (f != null){
-                f.getDrawer().setTransformation(transformation);
-                return;
-            }
-        }
-        public DrawContext getContext() {
-            if (i != null)
-                return i.getContext();
-            if (h != null)
-                return h.getContext();
-            return null;
-        }
-    }
-
     @Mixin(targets = "net.minecraft.client.gui.hud.ChatHud$Hud")
-    public interface HudAccessor {
-        @Accessor("transformation")
-        DrawnTextConsumer.Transformation getTransformation();
-        @Accessor("transformation")
-        void setTransformation(DrawnTextConsumer.Transformation transformation);
-        @Accessor("context")
-        DrawContext getContext();
+    public static class HudMixin implements TransformationAccess {
+        @Shadow @Final DrawContext context;
+        @Shadow DrawnTextConsumer.Transformation transformation;
+
+        @Override
+        public DrawnTextConsumer.Transformation getTransformation() {
+            return transformation;
+        }
+
+        @Override
+        public void setTransformation(DrawnTextConsumer.Transformation newtransformation) {
+            transformation = newtransformation;
+        }
+
+        @Override
+        public DrawContext getContext() {
+            return context;
+        }
     }
 
     @Mixin(targets = "net.minecraft.client.gui.hud.ChatHud$Interactable")
-    public interface InteractableAccessor {
-        @Accessor("transformation")
-        DrawnTextConsumer.Transformation getTransformation();
-        @Accessor("transformation")
-        void setTransformation(DrawnTextConsumer.Transformation transformation);
-        @Accessor("context")
-        DrawContext getContext();
-    }
+    public static class InteractableMixin implements TransformationAccess {
+        @Shadow @Final DrawContext context;
+        @Shadow DrawnTextConsumer.Transformation transformation;
 
-    @Mixin(targets = "net.minecraft.client.gui.hud.ChatHud$Forwarder")
-    public interface ForwarderAccessor {
-        @Accessor("drawer")
-        DrawnTextConsumer getDrawer();
+        @Override
+        public DrawnTextConsumer.Transformation getTransformation() {
+            return transformation;
+        }
+
+        @Override
+        public void setTransformation(DrawnTextConsumer.Transformation newtransformation) {
+            transformation = newtransformation;
+        }
+
+        @Override
+        public DrawContext getContext() {
+            return context;
+        }
     }
 
     @Inject(method = "refresh", at = @At("HEAD"))
