@@ -143,7 +143,7 @@ public class SuggestionsListMixin {
         return operation.call(rect, x, (int) Math.floor(y + getDrawOffset()));
     }
 
-    boolean align_pixels = false;
+    boolean align_pixels = true;
     @Unique
     private float getDrawOffset() {
         var ret = (offset - smoothScrollPos) * lineHeight;

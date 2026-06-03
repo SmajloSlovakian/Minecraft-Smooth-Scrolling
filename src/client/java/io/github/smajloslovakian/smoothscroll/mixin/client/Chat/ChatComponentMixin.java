@@ -71,12 +71,16 @@ public class ChatComponentMixin {
     }
 
     @ModifyVariable(method = renderMethodSignature, at = @At("STORE"), name = "chatBottom")
-    int modifyYPos(int chatBottom) {
+    int modifyYPos(int chatBottom, @Local(argsOnly = true) ChatGraphicsAccess graphics) {
         if (smoothChatBottom == -69696969) {
             smoothChatBottom = chatBottom / (double) getLineHeight();
         }
         smoothChatBottom = (smoothChatBottom - chatBottom / (double) getLineHeight()) * Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + chatBottom / (double) getLineHeight();
-        return (int) Math.round(smoothChatBottom * getLineHeight());
+        //return (int) Math.round(smoothChatBottom * getLineHeight());
+        graphics.updatePose((pose) -> {
+            pose.translate(0, (float) smoothChatBottom * getLineHeight());
+        });
+        return 0;
     }
     
     @WrapOperation(method = renderMethodSignature, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/ChatComponent;forEachLine(Lnet/minecraft/client/gui/components/ChatComponent$AlphaCalculator;Lnet/minecraft/client/gui/components/ChatComponent$LineConsumer;)I"))
@@ -104,8 +108,8 @@ public class ChatComponentMixin {
     
     @Unique
     private void enMask(TransformationAccess transformationAccess, int chatBottom) {
-        int maskTop = (int) Math.round((smoothChatBottom - smoothMaskHeight) * getLineHeight());
-        int maskBottom = (int) Math.round(smoothChatBottom * getLineHeight());
+        int maskTop = (int) Math.round((/*smoothChatBottom*/ - smoothMaskHeight) * getLineHeight());
+        int maskBottom = 0;//(int) Math.round(smoothChatBottom * getLineHeight());
 
         // this lets underlined text, diacritics and stuff overflow two pixels above or under chat
         if (smoothScrollPos == targetScrollPos && Math.round(getDrawOffset()) == 0 && Math.round(smoothMaskHeight * getLineHeight()) != 0) {
@@ -126,7 +130,7 @@ public class ChatComponentMixin {
             context.enableScissor(-10, maskTop, getWidth() + 1000, maskBottom);
         }
         if (SmScCfg.enableMaskDebug)
-            context.fill(-100, -100, context.guiWidth(), context.guiHeight(), ARGB.color(50, 255, 255, 0));
+            context.fill(-10000, -10000, context.guiWidth(), context.guiHeight(), ARGB.color(50, 255, 255, 0));
     }
     @Unique
     private void deMask(TransformationAccess transformationAccess) {
