@@ -49,13 +49,16 @@ public class ChatComponentMixin {
 
     @Unique private boolean refreshing = false;
 
+    @Unique private double epsilon = 1d / 10;
+
     // this has to be an inject, so that modifyvariable on parameters affects us
     @Inject(method = renderMethodSignature, at = @At("HEAD"))
     private void renderWrap(ChatGraphicsAccess graphics, int screenHeight, int ticks, DisplayMode displayMode, CallbackInfo ci) {
         smoothScrollPos = (smoothScrollPos - targetScrollPos) * Math.pow(SmScCfg.chatSmoothness, SmoothSc.getLastFrameDuration()) + targetScrollPos;
 
-        // snap on less than half a pixel difference
-        if (Math.abs(smoothScrollPos - targetScrollPos) < 1f / getLineHeight() / 2)
+        // ~~snap on less than half a pixel difference~~
+        // snap when there is a low enough scroll offset
+        if (Math.abs(smoothScrollPos - targetScrollPos) * getLineHeight() < epsilon)
             smoothScrollPos = targetScrollPos;
         
         chatScrollbarPos = (int) Math.floor(smoothScrollPos);
@@ -68,6 +71,10 @@ public class ChatComponentMixin {
         
         targetMaskHeight = shownLineCount;
         smoothMaskHeight = (smoothMaskHeight - targetMaskHeight) * Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + targetMaskHeight;
+
+        if (Math.abs((smoothMaskHeight - targetMaskHeight) * getLineHeight()) < epsilon) {
+            smoothMaskHeight = targetMaskHeight;
+        }
     }
 
     @ModifyVariable(method = renderMethodSignature, at = @At("STORE"), name = "chatBottom")
@@ -112,8 +119,8 @@ public class ChatComponentMixin {
         int maskBottom = 0;//(int) Math.round(smoothChatBottom * getLineHeight());
 
         // this lets underlined text, diacritics and stuff overflow two pixels above or under chat
-        if (smoothScrollPos == targetScrollPos && Math.round(getDrawOffset()) == 0 && Math.round(smoothMaskHeight * getLineHeight()) != 0) {
-            if (Math.round(smoothMaskHeight * getLineHeight()) == targetMaskHeight * getLineHeight()) {
+        if (smoothScrollPos == targetScrollPos && getDrawOffset() == 0 && smoothMaskHeight != 0) {
+            if (Math.abs(smoothMaskHeight - targetMaskHeight) * getLineHeight() < epsilon) {
                 maskTop -= 2;
             }
             maskBottom += 2;
@@ -181,7 +188,7 @@ public class ChatComponentMixin {
 
     @ModifyVariable(method = "forEachLine", at = @At("STORE"), name = "perPage")
     private int addLinesAbove(int perPage) {
-        return (int) Math.ceil(Math.round(smoothMaskHeight * getLineHeight()) / (double) getLineHeight()) + (Math.round(getDrawOffset()) == 0 ? 0 : 1);
+        return (int) Math.ceil(smoothMaskHeight + getDrawOffset() / getLineHeight());// + (getDrawOffset() == 0 ? 0 : 1);
     }
     
     @WrapMethod(method = "resetChatScroll")
@@ -192,7 +199,7 @@ public class ChatComponentMixin {
 
     @ModifyVariable(method = renderMethodSignature, at = @At(value = "STORE"), name = "count")
     private int scrollbarVisibleLines(int count) {
-        return count - (Math.round(getDrawOffset()) == 0 ? 0 : 1);
+        return count - (getDrawOffset() == 0 ? 0 : 1);
     }
 
     @ModifyVariable(method = renderMethodSignature, at = @At(value = "STORE"), name = "y")
