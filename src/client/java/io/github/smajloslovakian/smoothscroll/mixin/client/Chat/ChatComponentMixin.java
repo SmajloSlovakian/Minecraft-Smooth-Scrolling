@@ -78,15 +78,18 @@ public class ChatComponentMixin {
     }
 
     @ModifyVariable(method = renderMethodSignature, at = @At("STORE"), name = "chatBottom")
-    int modifyYPos(int chatBottom, @Local(argsOnly = true) ChatGraphicsAccess graphics) {
+    int modifyYPos(int chatBottom, @Local(argsOnly = true) ChatGraphicsAccess graphics, @Local(name = "scale") float scale) {
         if (smoothChatBottom == -69696969) {
             smoothChatBottom = chatBottom / (double) getLineHeight();
         }
         smoothChatBottom = (smoothChatBottom - chatBottom / (double) getLineHeight()) * Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + chatBottom / (double) getLineHeight();
         //return (int) Math.round(smoothChatBottom * getLineHeight());
+        //SmoothSc.printt(smoothChatBottom, chatBottom, smoothChatBottom * getLineHeight(), chatBottom / (double) getLineHeight(), getLineHeight());
+        //graphics.fill(0, 0, 10, 10, ARGB.color(50, 255, 0, 0));
         graphics.updatePose((pose) -> {
-            pose.translate(0, (float) smoothChatBottom * getLineHeight());
+            pose.translate(0, (float) smoothChatBottom * getLineHeight() * scale);
         });
+        //graphics.fill(0, 0, 10, 10, ARGB.color(50, 0, 255, 0));
         return 0;
     }
     
