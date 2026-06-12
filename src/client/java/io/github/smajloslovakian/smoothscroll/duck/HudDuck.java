@@ -1,6 +1,6 @@
 package io.github.smajloslovakian.smoothscroll.duck;
 
-public interface GuiDuck {
+public interface HudDuck {
     void increaseRollover();
     void decreaseRollover();
 } 

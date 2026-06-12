@@ -5,8 +5,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.Hud;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.At;
 
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
-import io.github.smajloslovakian.smoothscroll.duck.GuiDuck;
+import io.github.smajloslovakian.smoothscroll.duck.HudDuck;
 
 // TODO figure out if bedrockify prio is still needed
 /*
@@ -27,8 +27,8 @@ import io.github.smajloslovakian.smoothscroll.duck.GuiDuck;
  * >-999999999: to apply wrapoperation after raised mod (fix for the underside of raised hotbar selector with "PATCH" option)
  */
 
-@Mixin(value = Gui.class, priority = 999)
-public class GuiMixin implements GuiDuck {
+@Mixin(value = Hud.class, priority = 999)
+public class HudMixin implements HudDuck {
 
 	@Unique private int slotWidth = 20;
 	@Unique private int slotCount = 9;
@@ -113,9 +113,9 @@ public class GuiMixin implements GuiDuck {
 		moveWholeHotbar(graphics, () -> operation.call(graphics, pipeline, location, x, y, width, height));
 	}
 
-	@WrapOperation(method = "extractItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;extractSlot(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IILnet/minecraft/client/DeltaTracker;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;I)V", ordinal = 0))
-	private void moveItems(Gui gui, GuiGraphicsExtractor graphics, int x, int y, DeltaTracker deltaTracker, Player player, ItemStack itemStack, int seed, Operation<Void> operation) {
-		moveWholeHotbar(graphics, () -> operation.call(gui, graphics, x, y, deltaTracker, player, itemStack, seed));
+	@WrapOperation(method = "extractItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Hud;extractSlot(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IILnet/minecraft/client/DeltaTracker;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;I)V", ordinal = 0))
+	private void moveItems(Hud hud, GuiGraphicsExtractor graphics, int x, int y, DeltaTracker deltaTracker, Player player, ItemStack itemStack, int seed, Operation<Void> operation) {
+		moveWholeHotbar(graphics, () -> operation.call(hud, graphics, x, y, deltaTracker, player, itemStack, seed));
 	}
 
 	@Unique

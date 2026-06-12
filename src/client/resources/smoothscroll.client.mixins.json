@@ -4,7 +4,7 @@
 	"package": "io.github.smajloslovakian.smoothscroll.mixin.client",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"Hotbar.GuiMixin",
+		"Hotbar.HudMixin",
 		"Hotbar.MouseHandlerMixin",
 		"Chat.ChatComponentMixin",
 		"Chat.ChatComponentMixin$DrawingBackgroundGraphicsAccessMixin",
@@ -19,7 +19,8 @@
 		"Widgets.AbstractScrollAreaMixin",
 		"Widgets.EditBoxMixin",
 		"Miscellaneous.TransformationMixin",
-		"Miscellaneous.MinecraftClientMixin"
+		"Miscellaneous.MinecraftClientMixin",
+		"Miscellaneous.RenderPassMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

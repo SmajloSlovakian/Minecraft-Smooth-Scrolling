@@ -51,7 +51,7 @@ public class SmoothScrollConfigScreen extends Screen {
             }
         }
 
-        this.tabNav = TabNavigationBar.builder(this.tabManager, this.width).addTabs(tabs.toArray(new CustomTab[0])).build();
+        this.tabNav = TabNavigationBar.builder(this.tabManager, 0, 0, this.width, 15).build();
         this.addRenderableWidget(tabNav);
         //this.addDrawableChild(ButtonWidget.builder(Text.literal("print"), button -> {SmoothSc.print(button.getHeight() + "" + button.getWidth());}).build());
         button1 = Button.builder(
@@ -67,8 +67,8 @@ public class SmoothScrollConfigScreen extends Screen {
         this.addRenderableWidget(button1);
         this.addRenderableWidget(button2);
         this.tabNav.selectTab(0, false);
-        this.tabNav.updateWidth(this.width);
-        this.tabNav.arrangeElements();
+        //this.tabNav.updateWidth(this.width);
+        //this.tabNav.arrangeElements();
         reposition();
     }
 
@@ -99,7 +99,7 @@ public class SmoothScrollConfigScreen extends Screen {
 
     @Override
     public void onClose() {
-        this.minecraft.setScreen(this.parent);
+        minecraft.setScreenAndShow(parent);
     }
 
     @Override
