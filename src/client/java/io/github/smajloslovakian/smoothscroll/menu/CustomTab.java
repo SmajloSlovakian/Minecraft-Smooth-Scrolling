@@ -3,11 +3,8 @@ package io.github.smajloslovakian.smoothscroll.menu;
 import java.util.List;
 import java.util.Arrays;
 import java.util.function.Consumer;
-
-import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.tabs.Tab;
-import net.minecraft.client.gui.layouts.Layout;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.network.chat.Component;
 
@@ -50,11 +47,5 @@ public class CustomTab implements Tab {
     @Override
     public Component getTabExtraNarration() {
         return Component.literal("Custom Tab Smooth Scrolling Settings");
-    }
-
-    @Override
-    public Layout getLayout() {
-        SmoothSc.print("TRIED TO GET LAYOUT OF CUSTOMTAB, RETURNING NULL");
-        return null;
     }
 }
