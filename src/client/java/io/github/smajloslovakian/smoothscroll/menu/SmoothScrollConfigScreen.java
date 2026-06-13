@@ -1,12 +1,11 @@
 package io.github.smajloslovakian.smoothscroll.menu;
 
-import java.util.ArrayList;
-
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.tabs.TabManager;
-import net.minecraft.client.gui.components.tabs.TabNavigationBar;
+import net.minecraft.client.gui.components.ScrollableLayout;
+import net.minecraft.client.gui.components.StringWidget;
+import net.minecraft.client.gui.layouts.GridLayout;
+import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
@@ -15,45 +14,45 @@ import io.github.smajloslovakian.smoothscroll.cfg.CfgValue;
 public class SmoothScrollConfigScreen extends Screen {
     private final Screen parent;
 
-    private final TabManager tabManager;
-    private TabNavigationBar tabNav;
-    private ArrayList<CustomTab> tabs;
+    private final HeaderAndFooterLayout layout;
     private Button button1;
     private Button button2;
+    private ScrollableLayout scrollableLayout;
 
     public SmoothScrollConfigScreen(Screen parent) {
         super(Component.translatable("smoothscroll.config.title"));
         this.parent = parent;
-        this.tabManager = new TabManager(this::addRenderableWidget, this::removeWidget);
+        layout = new HeaderAndFooterLayout(this);
     }
 
-    @Override
     protected void init() {
         SmoothSc.cfg.loadAndSave();
 
-        //SmoothSc.print(SmoothSc.mc.getWindow().getScaledWidth() + " x " + SmoothSc.mc.getWindow().getScaledHeight());
+        GridLayout contents = (new GridLayout()).columnSpacing(8).rowSpacing(4);
+        scrollableLayout = new ScrollableLayout(minecraft, contents, layout.getContentHeight());
+        layout.addToContents(scrollableLayout);
+        contents.defaultCellSetting().alignHorizontallyCenter();
+        GridLayout.RowHelper rowHelper = contents.createRowHelper(2);
 
-        tabs = new ArrayList<CustomTab>();
         for (CfgValue cfgValue : SmoothSc.cfg.getConfigForModifying().getList()) {
             var cfglist = cfgValue.getList();
             if (cfglist != null) {
-                var widgets = new ArrayList<AbstractWidget>();
+                rowHelper.addChild(new StringWidget(cfgValue.getDisplayName(), font), 2);
                 for (CfgValue innerCfgValue : cfglist) {
                     var a = innerCfgValue.generateWidget();
                     if (a[0] != null) {
-                        widgets.add(a[0]);
-                        widgets.add(a[1]);
+                        a[1].setWidth(50);
+                        rowHelper.addChild(a[0]);
+                        rowHelper.addChild(a[1]);
                     }
                 }
-                // var entryList = new EntryListWidget<Entry<ClickableWidget>>(SmoothSc.mc, 200, 200, 10, 10);
-                var newTab = new CustomTab(cfgValue.getDisplayName(), widgets.toArray(new AbstractWidget[0]));
-                tabs.add(newTab);
+                rowHelper.addChild(new StringWidget(Component.empty(), font), 2);
             }
         }
 
-        this.tabNav = TabNavigationBar.builder(this.tabManager, 0, 0, this.width, 15).build();
-        this.addRenderableWidget(tabNav);
-        //this.addDrawableChild(ButtonWidget.builder(Text.literal("print"), button -> {SmoothSc.print(button.getHeight() + "" + button.getWidth());}).build());
+        GridLayout footer = (GridLayout)this.layout.addToFooter((new GridLayout()).columnSpacing(8).rowSpacing(4));
+        contents.defaultCellSetting().alignHorizontallyCenter();
+        rowHelper = footer.createRowHelper(2);
         button1 = Button.builder(
             Component.translatable("smoothscroll.config.save"), button -> {
                 SmoothSc.cfg.getConfigForModifying().recursiveSaveTempValue();
@@ -64,47 +63,29 @@ public class SmoothScrollConfigScreen extends Screen {
             Component.translatable("smoothscroll.config.exit"), button -> {
                 this.onClose();
             }).build();
-        this.addRenderableWidget(button1);
-        this.addRenderableWidget(button2);
-        this.tabNav.selectTab(0, false);
-        //this.tabNav.updateWidth(this.width);
-        //this.tabNav.arrangeElements();
-        reposition();
-    }
-
-    void reposition() {
-        //SmoothSc.print(SmoothSc.mc.getWindow().getScaledWidth() + " x " + SmoothSc.mc.getWindow().getScaledHeight());
-        for (CustomTab tab : tabs) {
-            int a = -1;
-            for (AbstractWidget widget : tab.children) {
-                a++;
-                var x = SmoothSc.mc.getWindow().getGuiScaledWidth() / 6;
-                if (a % 2 == 0) {
-                    widget.setPosition(x, 50 + a * 22 / 2);
-                }
-                else {
-                    widget.setRectangle(20, 20, x + 152, 50 + (a - 1) * 22 / 2);
-                }
-            }
-        }
-        button1.setPosition(SmoothSc.mc.getWindow().getGuiScaledWidth() / 2, SmoothSc.mc.getWindow().getGuiScaledHeight() - 27);
-        button2.setPosition(SmoothSc.mc.getWindow().getGuiScaledWidth() / 2 - 150, SmoothSc.mc.getWindow().getGuiScaledHeight() - 27);
-    }
-
-    @Override
-    public void resize(int width, int height) {
-        super.resize(width, height);
-        reposition();
+        
+        rowHelper.addChild(button1);
+        rowHelper.addChild(button2);
+        layout.addTitleHeader(title, font);
+        this.layout.visitWidgets((x$0) -> this.addRenderableWidget(x$0));
+        layout.arrangeElements();
     }
 
     @Override
     public void onClose() {
-        minecraft.setScreenAndShow(parent);
+        minecraft.gui.setScreen(parent);
     }
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         SmoothSc.cfg.getConfigForModifying().refreshDisableRecursive();
         super.extractRenderState(graphics, mouseX, mouseY, delta);
+    }
+
+    @Override
+    protected void repositionElements() {
+        scrollableLayout.setMaxHeight(layout.getContentHeight());
+        layout.arrangeElements();
+        //scrollableLayout.arrangeElements();
     }
 }

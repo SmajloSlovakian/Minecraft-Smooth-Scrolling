@@ -59,7 +59,7 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
 
         float rowCount = calculateRowCount();
         if (rowCount != 0) {
-            if (mouseY - y > 60) {
+            if (mouseY - y > 60 && smoothScrollOffs != 0) {
                 rowOffset = 1;
             }
             else {

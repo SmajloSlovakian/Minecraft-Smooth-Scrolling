@@ -29,6 +29,13 @@ public class RenderPassMixin {
         width = Math.clamp(width + x, renderArea.x(), renderArea.x() + renderArea.width()) - x;
         height = Math.clamp(height + y, renderArea.y(), renderArea.y() + renderArea.height()) - y;
 
+        if (width == 0 || height == 0) {
+            width = 1;
+            height = 1;
+            x = renderArea.x();
+            y = renderArea.y();
+        }
+
         operation.call(x, y, width, height);
     }
 }

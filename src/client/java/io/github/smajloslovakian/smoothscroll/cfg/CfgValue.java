@@ -155,7 +155,7 @@ public class CfgValue {
     }
 
     public AbstractWidget[] generateWidget() {
-        myResetButton = Button.builder(Component.literal("🗑"), button -> {this.defaultToTemp();}).build();
+        myResetButton = Button.builder(Component.translatable("controls.reset"), button -> {this.defaultToTemp();}).build();
 
 
         if (this.getValue() instanceof Number) {
