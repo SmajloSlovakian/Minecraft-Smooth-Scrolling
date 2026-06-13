@@ -84,7 +84,7 @@ public class SmoothScrollConfigScreen extends Screen {
 
     @Override
     protected void repositionElements() {
-        scrollableLayout.setMaxHeight(layout.getContentHeight());
+        scrollableLayout.setMaxHeight(Math.max(layout.getContentHeight(), 0));
         layout.arrangeElements();
         //scrollableLayout.arrangeElements();
     }
