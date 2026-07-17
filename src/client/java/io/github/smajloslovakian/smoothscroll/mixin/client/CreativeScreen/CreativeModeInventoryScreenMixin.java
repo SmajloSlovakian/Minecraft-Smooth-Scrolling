@@ -155,6 +155,10 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         pixelscroll -= SmScCfg.creativeScreenAmount * scrollY;
         scrollOffs = Math.clamp(pixelsToScrollOffs(pixelscroll), 0, 1);
         
+        if (scrollY != 1 && scrollY != -1) {
+            smoothScrollOffs = scrollOffs;
+        }
+
         return ret;
     }
     @Override

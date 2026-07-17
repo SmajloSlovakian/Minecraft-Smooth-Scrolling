@@ -104,6 +104,11 @@ public class SuggestionsListMixin {
 
         targetScrollPos = (float) newTarget;
 
+        SmoothSc.print(scroll);
+        if (scroll != 1 && scroll != -1) {
+            smoothScrollPos = targetScrollPos;
+        }
+
         return ret;
     }
 

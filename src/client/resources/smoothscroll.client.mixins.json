@@ -10,6 +10,7 @@
 		"Chat.ChatComponentMixin",
 		"Chat.ChatComponentMixin$DrawingBackgroundGraphicsAccessMixin",
 		"Chat.ChatComponentMixin$DrawingFocusedGraphicsAccessMixin",
+		"Chat.CommandSuggestionsMixin",
 		"Chat.SuggestionsListMixin",
 		"CreativeScreen.CreativeModeInventoryScreenMixin",
 		"CreativeScreen.ItemPickerMenuMixin",

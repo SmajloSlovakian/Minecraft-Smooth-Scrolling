@@ -41,7 +41,11 @@ public abstract class EditBoxMixin extends AbstractWidget {
         if (!isHovered()) {
             return false;
         }
-        targetScrollPos = (float) Mth.clamp(targetScrollPos - (verticalAmount + horizontalAmount) * SmScCfg.textAmount, 0, font.width(value));
+        targetScrollPos = (float) Mth.clamp(targetScrollPos - (verticalAmount - horizontalAmount) * SmScCfg.textAmount, 0, font.width(value));
+
+        if (horizontalAmount != 1 && verticalAmount != 1 && horizontalAmount != -1 && verticalAmount != -1) {
+            smoothScrollPos = targetScrollPos;
+        }
         return true;
     }
 

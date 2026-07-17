@@ -157,37 +157,39 @@ public class ChatComponentMixin implements ChatComponentDuck {
 
     }
     
-    boolean scrollWrapDisabled = false;
     @WrapMethod(method = "scrollChat")
     private void scrollWrap(int dir, Operation<Void> operation) {
-        if (scrollWrapDisabled) {
-            operation.call(dir);
-            return;
-        }
-        floatyScroll(dir);
+        // this disables the vanilla scrolling but still clamps the values
+        // the method gets called in addMessageToDisplayQueue, but we replace that behaviour in onNewMessage, so that doesn't matter
+        // mod compatibility hopefully doesn't hinder
+        operation.call(0);
     }
     
     @Override
     public void floatyScroll(double scrollY) {
-        SmoothSc.print(scrollY);
         // target + mousescrollamount * lineamount
         var newTarget = targetScrollPos + (scrollY / 7) * (SmScCfg.chatAmount != 0 ? SmScCfg.chatAmount / getLineHeight() : 7);
-        chatScrollbarPos = (int) Math.ceil(newTarget);
+        targetScrollPos = clampScroll(newTarget);
 
+        if (scrollY != 7 && scrollY != -7) {
+            smoothScrollPos = targetScrollPos;
+        }
+    }
+    @Unique
+    private double clampScroll(double clamping) {
+        chatScrollbarPos = (int) Math.ceil(clamping);
 
         // we'll only use the clamp from the call
-        scrollWrapDisabled = true;
         scrollChat(0);
-        scrollWrapDisabled = false;
 
-        if (newTarget > chatScrollbarPos) {
-            newTarget = chatScrollbarPos;
+        if (clamping > chatScrollbarPos) {
+            clamping = chatScrollbarPos;
         }
-        if (newTarget < 0) {
-            newTarget = 0;
+        if (clamping < 0) {
+            clamping = 0;
         }
 
-        targetScrollPos = newTarget;
+        return clamping;
     }
     
     @ModifyVariable(method = "forEachLine", at = @At(value = "STORE"), name = "alpha")
@@ -199,7 +201,12 @@ public class ChatComponentMixin implements ChatComponentDuck {
     @ModifyVariable(method = "addMessageToDisplayQueue", at = @At("STORE"), name = "lines")
     private List<FormattedCharSequence> onNewMessage(List<FormattedCharSequence> lines) {
         if (refreshing) return lines;
+        if (targetScrollPos > 0) {
+            targetScrollPos += lines.size();
+            targetScrollPos = clampScroll(targetScrollPos);
+        }
         smoothScrollPos += lines.size();
+        scrollChat(0);
         return lines;
     }
 

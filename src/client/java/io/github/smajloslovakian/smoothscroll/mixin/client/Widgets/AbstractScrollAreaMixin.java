@@ -60,6 +60,11 @@ public abstract class AbstractScrollAreaMixin extends AbstractWidget {
             setScrollAmount(targetScrollPos - SmScCfg.entryListAmount * vA);
         }
         targetScrollPos = scrollAmount;
+
+        if (vA != 1 && vA != -1) {
+            smoothScrollPos = targetScrollPos;
+        }
+
         if (SmScCfg.entryListSmoothness != 0) {
             setScrollAmount(prevScrollPos);
         }
