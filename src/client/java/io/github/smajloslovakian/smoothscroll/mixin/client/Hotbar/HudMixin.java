@@ -3,7 +3,7 @@ package io.github.smajloslovakian.smoothscroll.mixin.client.Hotbar;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Hud;
@@ -57,7 +57,7 @@ public class HudMixin implements HudDuck {
 		operation.call(graphics, deltaTracker);
 	}
 
-	@WrapOperation(method = "extractItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V", ordinal = 1))
+	@WrapOperation(method = "extractItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V", ordinal = 1))
 	private void moveSelector(GuiGraphicsExtractor graphics, RenderPipeline pipeline, Identifier location, int x, int y, int width, int height, Operation<Void> operation) {
 		Inventory inv = SmoothSc.mc.player.getInventory();
 		var hotbarStart = x - inv.getSelectedSlot() * slotWidth;
@@ -108,7 +108,7 @@ public class HudMixin implements HudDuck {
 		masked = true;
 	}
 
-	@WrapOperation(method = "extractItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V", ordinal = 0))
+	@WrapOperation(method = "extractItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V", ordinal = 0))
 	private void moveHotbar(GuiGraphicsExtractor graphics, RenderPipeline pipeline, Identifier location, int x, int y, int width, int height, Operation<Void> operation) {
 		moveWholeHotbar(graphics, () -> operation.call(graphics, pipeline, location, x, y, width, height));
 	}

@@ -6,6 +6,7 @@
 	"client": [
 		"Hotbar.HudMixin",
 		"Hotbar.MouseHandlerMixin",
+		"Chat.ChatScreenMixin",
 		"Chat.ChatComponentMixin",
 		"Chat.ChatComponentMixin$DrawingBackgroundGraphicsAccessMixin",
 		"Chat.ChatComponentMixin$DrawingFocusedGraphicsAccessMixin",

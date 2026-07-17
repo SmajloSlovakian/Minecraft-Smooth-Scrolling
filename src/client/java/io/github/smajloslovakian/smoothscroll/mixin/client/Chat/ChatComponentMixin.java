@@ -27,13 +27,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.TransformationAccess;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
+import io.github.smajloslovakian.smoothscroll.duck.ChatComponentDuck;
 
 /*
  * Priority
  * >1000: bedrockify needs to move the chatBottom first, so i can smooth it out
  */
 @Mixin(value = ChatComponent.class, priority = 1001)
-public class ChatComponentMixin {
+public class ChatComponentMixin implements ChatComponentDuck {
 
     private final String renderMethodSignature = "extractRenderState(Lnet/minecraft/client/gui/components/ChatComponent$ChatGraphicsAccess;IILnet/minecraft/client/gui/components/ChatComponent$DisplayMode;)V";
 
@@ -156,15 +157,28 @@ public class ChatComponentMixin {
 
     }
     
+    boolean scrollWrapDisabled = false;
     @WrapMethod(method = "scrollChat")
     private void scrollWrap(int dir, Operation<Void> operation) {
+        if (scrollWrapDisabled) {
+            operation.call(dir);
+            return;
+        }
+        floatyScroll(dir);
+    }
+    
+    @Override
+    public void floatyScroll(double scrollY) {
+        SmoothSc.print(scrollY);
         // target + mousescrollamount * lineamount
-        var newTarget = targetScrollPos + (dir / 7f) * (SmScCfg.chatAmount != 0 ? SmScCfg.chatAmount / getLineHeight() : 7);
+        var newTarget = targetScrollPos + (scrollY / 7) * (SmScCfg.chatAmount != 0 ? SmScCfg.chatAmount / getLineHeight() : 7);
         chatScrollbarPos = (int) Math.ceil(newTarget);
 
 
         // we'll only use the clamp from the call
-        operation.call(0);
+        scrollWrapDisabled = true;
+        scrollChat(0);
+        scrollWrapDisabled = false;
 
         if (newTarget > chatScrollbarPos) {
             newTarget = chatScrollbarPos;
@@ -271,6 +285,9 @@ public class ChatComponentMixin {
 
     @Shadow
     public boolean isChatFocused() {return false;}
+
+    @Shadow
+    public void scrollChat(int dir) {}
 
     @Unique
     private double getDrawOffset() {
