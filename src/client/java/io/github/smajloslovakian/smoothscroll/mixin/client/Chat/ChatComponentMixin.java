@@ -83,14 +83,13 @@ public class ChatComponentMixin {
             smoothChatBottom = chatBottom / (double) getLineHeight();
         }
         smoothChatBottom = (smoothChatBottom - chatBottom / (double) getLineHeight()) * Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + chatBottom / (double) getLineHeight();
-        //return (int) Math.round(smoothChatBottom * getLineHeight());
-        //SmoothSc.printt(smoothChatBottom, chatBottom, smoothChatBottom * getLineHeight(), chatBottom / (double) getLineHeight(), getLineHeight());
-        //graphics.fill(0, 0, 10, 10, ARGB.color(50, 255, 0, 0));
+        
+        // originally i mapped the chat rendering to y = 0, but the chatting mod expects chatbottom to be unchanged
+        // this means, we have to compensate for the moved chat with pose translating by -chatbottom
         graphics.updatePose((pose) -> {
-            pose.translate(0, (float) smoothChatBottom * getLineHeight() * scale);
+            pose.translate(0, (float) smoothChatBottom * getLineHeight() * scale - chatBottom);
         });
-        //graphics.fill(0, 0, 10, 10, ARGB.color(50, 0, 255, 0));
-        return 0;
+        return chatBottom;
     }
     
     @WrapOperation(method = renderMethodSignature, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/ChatComponent;forEachLine(Lnet/minecraft/client/gui/components/ChatComponent$AlphaCalculator;Lnet/minecraft/client/gui/components/ChatComponent$LineConsumer;)I"))
@@ -118,15 +117,15 @@ public class ChatComponentMixin {
     
     @Unique
     private void enMask(TransformationAccess transformationAccess, int chatBottom) {
-        int maskTop = (int) Math.round((/*smoothChatBottom*/ - smoothMaskHeight) * getLineHeight());
-        int maskBottom = 0;//(int) Math.round(smoothChatBottom * getLineHeight());
+        int maskTop = (int) Math.round((/*smoothChatBottom*/ - smoothMaskHeight) * getLineHeight()) + chatBottom;
+        int maskBottom = 0 + chatBottom;//(int) Math.round(smoothChatBottom * getLineHeight());
 
         // this lets underlined text, diacritics and stuff overflow two pixels above or under chat
         if (smoothScrollPos == targetScrollPos && getDrawOffset() == 0 && smoothMaskHeight != 0) {
             if (Math.abs(smoothMaskHeight - targetMaskHeight) * getLineHeight() < epsilon) {
-                maskTop -= 2;
+                maskTop -= 32;
             }
-            maskBottom += 2;
+            maskBottom += 32;
         }
 
         // this only affects text and the other only affects everything else... wtf mojank?
