@@ -22,7 +22,9 @@
 		"Widgets.EditBoxMixin",
 		"Miscellaneous.TransformationMixin",
 		"Miscellaneous.MinecraftClientMixin",
-		"Miscellaneous.RenderPassMixin"
+		"Miscellaneous.RenderPassMixin",
+		"Miscellaneous.SDLEventHandlerMixin",
+		"Miscellaneous.RenderSystemMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

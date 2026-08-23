@@ -31,6 +31,12 @@ public class SmScCfg extends NewConfig {
     public static float textMargin;
     public static boolean textCustomUpdate;
 
+    public static float inertiaDeceleration;
+    public static float inertiaStop;
+    public static float inertiaThreshold;
+    public static float touchpadThreshold;
+    public static float touchpadTimeThreshold;
+
     public static boolean enableMaskDebug;
 
     static CfgValue template = new CfgValueBuilder("root", new ArrayList<CfgValue>(Arrays.asList(
@@ -73,6 +79,15 @@ public class SmScCfg extends NewConfig {
             new CfgValueBuilder("Custom Cursor Update", true).translatable("smoothscroll.config.text_input.custom_cursor_update").tooltip(Component.translatable("smoothscroll.config.tooltip.custom_cursor_update")).build()
         ))).translatable("smoothscroll.config.text_input").build(),
 
+        new CfgValueBuilder("Touchpad", new ArrayList<CfgValue>(Arrays.asList(
+            new CfgValueBuilder("Inertia Deceleration", 90f).translatable("smoothscroll.config.touchpad.inertia_deceleration").tooltip(Component.translatable("smoothscroll.config.touchpad.inertia_deceleration.tooltip")).minMax(0, 100).map(0.0, "smoothscroll.config.value.off").map(100.0, "smoothscroll.config.value.no_deceleration").step(1).format("smoothscroll.config.format.percent").build(),
+            new CfgValueBuilder("Inertia Stop Threshold", 0.005f).translatable("smoothscroll.config.touchpad.inertia_stop").tooltip(Component.translatable("smoothscroll.config.touchpad.inertia_stop.tooltip")).minMax(0, 0.5f).map(0.0, "smoothscroll.config.value.off").step(0.001).build(),
+            new CfgValueBuilder("Inertia Start Threshold", 0.05f).translatable("smoothscroll.config.touchpad.inertia_start").tooltip(Component.translatable("smoothscroll.config.touchpad.inertia_start.tooltip")).minMax(0, 1).map(0.0, "smoothscroll.config.value.off").step(0.001).build(),
+            new CfgValueBuilder("Touchpad Threshold", 0.25f).translatable("smoothscroll.config.touchpad.threshold").tooltip(Component.translatable("smoothscroll.config.touchpad.threshold.tooltip")).minMax(0, 5).map(0.0, "smoothscroll.config.value.off").step(0.01).build(),
+            new CfgValueBuilder("Touchpad Time Threshold", 0.02f).translatable("smoothscroll.config.touchpad.time").tooltip(Component.translatable("smoothscroll.config.touchpad.time.tooltip")).minMax(0, 0.25f).map(0.0, "smoothscroll.config.value.off").step(0.001).format("smoothscroll.config.format.second").build()
+            
+        ))).translatable("smoothscroll.config.touchpad").build(),
+
         new CfgValueBuilder("Misc", new ArrayList<CfgValue>(Arrays.asList(
             new CfgValueBuilder("Enable mask debug", false).translatable("smoothscroll.config.misc.enable_mask_debug").build()
         ))).translatable("smoothscroll.config.misc").build(),
@@ -108,6 +123,12 @@ public class SmScCfg extends NewConfig {
         textAmount = (float) root.get("Text Input Field").get("Speed").getValue();
         textMargin = (float) root.get("Text Input Field").get("Cursor Margin").getValue();
         textCustomUpdate = (boolean) root.get("Text Input Field").get("Custom Cursor Update").getValue();
+
+        inertiaDeceleration = (float) root.get("Touchpad").get("Inertia Deceleration").getValue() / 100f;
+        inertiaStop = (float) root.get("Touchpad").get("Inertia Stop Threshold").getValue();
+        inertiaThreshold = (float) root.get("Touchpad").get("Inertia Start Threshold").getValue();
+        touchpadThreshold = (float) root.get("Touchpad").get("Inertia Start Threshold").getValue();
+        touchpadTimeThreshold = (float) root.get("Touchpad").get("Touchpad Time Threshold").getValue() * 1_000_000_000;
 
         enableMaskDebug = (boolean) root.get("Misc").get("Enable mask debug").getValue();
     }

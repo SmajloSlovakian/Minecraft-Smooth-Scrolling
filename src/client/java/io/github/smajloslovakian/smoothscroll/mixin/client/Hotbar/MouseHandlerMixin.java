@@ -15,6 +15,7 @@ public class MouseHandlerMixin {
 
     @WrapMethod(method = "onScroll")
     private void onScrollWrap(long handle, double xoffset, double yoffset, Operation<Void> operation) {
+        //SmoothSc.print(yoffset);
         if (SmoothSc.mc.player == null) {
             operation.call(handle, xoffset, yoffset);
             return;

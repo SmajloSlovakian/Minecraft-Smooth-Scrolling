@@ -41,5 +41,18 @@
   "smoothscroll.config.tooltip.hotbar_static_selector": "Moves the whole hotbar instead of the selector. This is experimental and the feature can be removed if it is hard to port.",
   "smoothscroll.config.format.percent": "%s: %s %%",
   "smoothscroll.config.format.pixels": "%s: %s px",
-  "smoothscroll.config.format.default": "%s: %s"
+  "smoothscroll.config.format.default": "%s: %s",
+  "smoothscroll.config.format.second": "%s: %s s",
+  "smoothscroll.config.touchpad": "Touchpad",
+  "smoothscroll.config.touchpad.inertia_deceleration": "Inertia Deceleration",
+  "smoothscroll.config.touchpad.inertia_stop": "Inertia Stop Threshold",
+  "smoothscroll.config.touchpad.inertia_start": "Inertia Start Threshold",
+  "smoothscroll.config.touchpad.threshold": "Touchpad Threshold",
+  "smoothscroll.config.touchpad.time": "Touchpad Time Threshold",
+  "smoothscroll.config.touchpad.inertia_deceleration.tooltip": "How slowly does the inertia slow down",
+  "smoothscroll.config.touchpad.inertia_stop.tooltip": "When inertia reaches this value, it abruptly stops",
+  "smoothscroll.config.touchpad.inertia_start.tooltip": "How much scroll amount is needed in order to apply inertia",
+  "smoothscroll.config.touchpad.threshold.tooltip": "Scroll amount below this value is considered touchpad scrolled",
+  "smoothscroll.config.touchpad.time.tooltip": "How fast should scroll events be called in order to inherit being considered touchpad scrolled",
+  "smoothscroll.config.value.no_deceleration": "Weeeeee!"
 }

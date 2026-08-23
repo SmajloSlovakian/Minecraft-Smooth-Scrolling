@@ -19,11 +19,13 @@ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen.It
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import io.github.smajloslovakian.smoothscroll.Globals;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 import io.github.smajloslovakian.smoothscroll.duck.CreativeModeInventoryScreenDuck;
@@ -56,6 +58,22 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
 
         //SmoothSc.print(scrollOffs);
         smoothScrollOffs = (smoothScrollOffs - scrollOffs) * (float) Math.pow(SmScCfg.creativeScreenSmoothness, SmoothSc.getLastFrameDuration()) + scrollOffs;
+
+        // inertial scrolling
+        // very buggy
+        /*
+        if (scrollMomentum != 0) {
+            //SmoothSc.print(scrollMomentum);
+            var signum = Mth.sign(scrollMomentum);
+            //scrollMomentum -= (scrollMomentum > 0 ? 1 : -1) * 5 * SmoothSc.getLastFrameDuration();
+            scrollMomentum *= Math.pow(0.9, SmoothSc.getLastFrameDuration());
+            if (signum != Mth.sign(scrollMomentum)) {
+                scrollMomentum = 0;
+            }
+            var offset = pixelsToScrollOffs((float) scrollMomentum);
+            smoothScrollOffs = Math.clamp(smoothScrollOffs + offset, 0, 1);
+            scrollOffs = Math.clamp(scrollOffs + offset, 0, 1);
+        }*/
 
         float rowCount = calculateRowCount();
         if (rowCount != 0) {
@@ -143,21 +161,30 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         }
     }
 
+    private double scrollMomentum = 0;
+
     @WrapMethod(method = "mouseScrolled")
     private boolean mouseScrolledWrap(double x, double y, double scrollX, double scrollY, Operation<Boolean> operation) {
+        //SmoothSc.print(scrollY);
         var prevScroll = scrollOffs;
         var ret = operation.call(x, y, scrollX, scrollY);
-        if (scrollOffs == prevScroll || SmScCfg.creativeScreenAmount == 0) {
+
+        // inertial scrolling
+        // very buggy
+        /*if (scrollY != 1 && scrollY != -1 && Math.abs(scrollY) > 0.1) {
+            scrollOffs = prevScroll;
+            scrollMomentum = -SmScCfg.creativeScreenAmount * scrollY;
             return ret;
-        }
+        }*/
 
         var pixelscroll = scrollOffsToPixels(prevScroll);
         pixelscroll -= SmScCfg.creativeScreenAmount * scrollY;
         scrollOffs = Math.clamp(pixelsToScrollOffs(pixelscroll), 0, 1);
-        
-        if (scrollY != 1 && scrollY != -1) {
+        if (Globals.touchpadScrolledY) {
             smoothScrollOffs = scrollOffs;
         }
+        scrollMomentum = 0;
+        
 
         return ret;
     }
