@@ -24,6 +24,8 @@ import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import io.github.smajloslovakian.smoothscroll.Globals;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.TransformationAccess;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
@@ -170,7 +172,8 @@ public class ChatComponentMixin implements ChatComponentDuck {
         var newTarget = targetScrollPos + (scrollY / 7) * (SmScCfg.chatAmount != 0 ? SmScCfg.chatAmount / getLineHeight() : 7);
         targetScrollPos = clampScroll(newTarget);
 
-        if (scrollY != 7 && scrollY != -7) {
+        
+        if (Globals.touchpadScrolledY) {
             smoothScrollPos = targetScrollPos;
         }
     }

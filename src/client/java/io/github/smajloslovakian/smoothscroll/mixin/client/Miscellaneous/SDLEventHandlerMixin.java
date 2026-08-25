@@ -59,8 +59,9 @@ public class SDLEventHandlerMixin {
         if (Math.abs(inertia) < SmScCfg.inertiaStop) {
             return;
         }
+        // TODO inertia will be applied every frame, it needs to account for that
         inertia *= Math.pow(SmScCfg.inertiaDeceleration, SmoothSc.getLastFrameDuration());
-        SmoothSc.mc.execute(() -> SmoothSc.mc.mouseHandler.onScroll(SmoothSc.mc.getWindow().handle(), 0, inertia));
+        SmoothSc.mc.execute(() -> SmoothSc.mc.mouseHandler.onScroll(SmoothSc.mc.getWindow().handle(), 0, inertia * SmoothSc.getLastFrameDuration()));
     }
 
 }

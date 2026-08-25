@@ -21,6 +21,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.Message;
+
+import io.github.smajloslovakian.smoothscroll.Globals;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
@@ -104,8 +106,7 @@ public class SuggestionsListMixin {
 
         targetScrollPos = (float) newTarget;
 
-        SmoothSc.print(scroll);
-        if (scroll != 1 && scroll != -1) {
+        if (Globals.touchpadScrolledY) {
             smoothScrollPos = targetScrollPos;
         }
 

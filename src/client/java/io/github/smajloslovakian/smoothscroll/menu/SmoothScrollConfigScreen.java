@@ -41,6 +41,7 @@ public class SmoothScrollConfigScreen extends Screen {
                 for (CfgValue innerCfgValue : cfglist) {
                     var a = innerCfgValue.generateWidget();
                     if (a[0] != null) {
+                        a[0].setWidth(150 * 2);
                         a[1].setWidth(50);
                         rowHelper.addChild(a[0]);
                         rowHelper.addChild(a[1]);

@@ -12,6 +12,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractScrollArea;
 import net.minecraft.client.gui.components.AbstractWidget;
+import io.github.smajloslovakian.smoothscroll.Globals;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
@@ -61,7 +62,7 @@ public abstract class AbstractScrollAreaMixin extends AbstractWidget {
         }
         targetScrollPos = scrollAmount;
 
-        if (vA != 1 && vA != -1) {
+        if (Globals.touchpadScrolledY) {
             smoothScrollPos = targetScrollPos;
         }
 

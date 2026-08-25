@@ -24,6 +24,7 @@ public class SmoothSc implements ClientModInitializer {
 	public static SmScCfg cfg;
 	public static boolean isSmoothScrollingRefurbishedLoaded;
 	//public static boolean isCondensedInventoryLoaded;
+	public static boolean isWindows = System.getProperty("os.name") == "Windows";
 
 
 	@Override

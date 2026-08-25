@@ -161,21 +161,11 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         }
     }
 
-    private double scrollMomentum = 0;
-
     @WrapMethod(method = "mouseScrolled")
     private boolean mouseScrolledWrap(double x, double y, double scrollX, double scrollY, Operation<Boolean> operation) {
         //SmoothSc.print(scrollY);
         var prevScroll = scrollOffs;
         var ret = operation.call(x, y, scrollX, scrollY);
-
-        // inertial scrolling
-        // very buggy
-        /*if (scrollY != 1 && scrollY != -1 && Math.abs(scrollY) > 0.1) {
-            scrollOffs = prevScroll;
-            scrollMomentum = -SmScCfg.creativeScreenAmount * scrollY;
-            return ret;
-        }*/
 
         var pixelscroll = scrollOffsToPixels(prevScroll);
         pixelscroll -= SmScCfg.creativeScreenAmount * scrollY;
@@ -183,7 +173,6 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         if (Globals.touchpadScrolledY) {
             smoothScrollOffs = scrollOffs;
         }
-        scrollMomentum = 0;
         
 
         return ret;

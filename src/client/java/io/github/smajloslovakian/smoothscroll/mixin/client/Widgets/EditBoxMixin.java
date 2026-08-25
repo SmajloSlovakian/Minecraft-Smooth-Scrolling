@@ -20,6 +20,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
+import io.github.smajloslovakian.smoothscroll.Globals;
 import io.github.smajloslovakian.smoothscroll.SmoothSc;
 import io.github.smajloslovakian.smoothscroll.cfg.SmScCfg;
 
@@ -43,7 +44,7 @@ public abstract class EditBoxMixin extends AbstractWidget {
         }
         targetScrollPos = (float) Mth.clamp(targetScrollPos - (verticalAmount - horizontalAmount) * SmScCfg.textAmount, 0, font.width(value));
 
-        if (horizontalAmount != 1 && verticalAmount != 1 && horizontalAmount != -1 && verticalAmount != -1) {
+        if (Globals.touchpadScrolledY) {
             smoothScrollPos = targetScrollPos;
         }
         return true;
