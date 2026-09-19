@@ -45,7 +45,27 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
 
     @WrapOperation(method = "extractBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blit(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIII)V"))
     private void drawBackgroundWrap(GuiGraphicsExtractor graphics, RenderPipeline renderPipeline, Identifier texture, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight, Operation<Void> operation, @Local(name = "mouseY") int mouseY, @Local(name = "mouseX") int mouseX) {
+        var ix = x + 8;
+        var iy = y + 17;
+        var iu = u + 8;
+        var iv = v + 17;
+        var iwidth = 162;
+        var iheight = 90;/* */
+
+        // transparent background compatibility
+        // up, down, left, right
+        graphics.enableScissor(-10000, -10000, 10000, iy + 1);
         operation.call(graphics, renderPipeline, texture, x, y, u, v, width, height, textureWidth, textureHeight);
+        graphics.disableScissor();
+        graphics.enableScissor(-10000, iy + iheight - 1, 10000, 10000);
+        operation.call(graphics, renderPipeline, texture, x, y, u, v, width, height, textureWidth, textureHeight);
+        graphics.disableScissor();
+        graphics.enableScissor(-10000, iy + 1, ix, iy + iheight - 1);
+        operation.call(graphics, renderPipeline, texture, x, y, u, v, width, height, textureWidth, textureHeight);
+        graphics.disableScissor();
+        graphics.enableScissor(ix + iwidth, iy + 1, 10000, iy + iheight - 1);
+        operation.call(graphics, renderPipeline, texture, x, y, u, v, width, height, textureWidth, textureHeight);
+        graphics.disableScissor();
 
         if (FabricLoader.getInstance().getObjectShare().get("flow:is_caching_screen") instanceof Boolean isCaching && isCaching)
             return;
@@ -58,22 +78,6 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
 
         //SmoothSc.print(scrollOffs);
         smoothScrollOffs = (smoothScrollOffs - scrollOffs) * (float) Math.pow(SmScCfg.creativeScreenSmoothness, SmoothSc.getLastFrameDuration()) + scrollOffs;
-
-        // inertial scrolling
-        // very buggy
-        /*
-        if (scrollMomentum != 0) {
-            //SmoothSc.print(scrollMomentum);
-            var signum = Mth.sign(scrollMomentum);
-            //scrollMomentum -= (scrollMomentum > 0 ? 1 : -1) * 5 * SmoothSc.getLastFrameDuration();
-            scrollMomentum *= Math.pow(0.9, SmoothSc.getLastFrameDuration());
-            if (signum != Mth.sign(scrollMomentum)) {
-                scrollMomentum = 0;
-            }
-            var offset = pixelsToScrollOffs((float) scrollMomentum);
-            smoothScrollOffs = Math.clamp(smoothScrollOffs + offset, 0, 1);
-            scrollOffs = Math.clamp(scrollOffs + offset, 0, 1);
-        }*/
 
         float rowCount = calculateRowCount();
         if (rowCount != 0) {
@@ -94,12 +98,6 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         // xy 142, 63
         // ixiy 150, 80
         // ixxiyy 311, 169
-        var ix = x + 8;
-        var iy = y + 17;
-        var iu = u + 8;
-        var iv = v + 17;
-        var iwidth = 162;
-        var iheight = 90;/* */
 
         mouseInBounds = mouseX >= ix && mouseX < ix + iwidth && mouseY >= iy && mouseY < iy + iheight;
 
@@ -108,17 +106,27 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         //graphics.fill(x, y, x+1000, y+1000, ARGB.color(50, 0, 255, 255));
 
         graphics.enableScissor(ix, iy + 1, ix + iwidth, iy + iheight - 1);
+
         graphics.pose().pushMatrix();
         //graphics.pose().translate(8, 17);
         graphics.pose().translate(0, yOffset);
-        operation.call(graphics, renderPipeline, texture, x, y, u, v, width, height, textureWidth, textureHeight);
-        graphics.pose().translate(0, slotSize * 5);
+
         if (SmScCfg.creativeUseScissorTexture) {
-            graphics.enableScissor(ix, iy + 1, ix + iwidth, iy + iheight - 1);
+            graphics.enableScissor(ix, iy, ix + iwidth, iy + iheight + 1);
+            operation.call(graphics, renderPipeline, texture, x, y, u, v, width, height, textureWidth, textureHeight);
+            graphics.disableScissor();
+
+            graphics.pose().translate(0, slotSize * 5);
+
+            graphics.enableScissor(ix, iy + 1, ix + iwidth, iy + iheight);
             operation.call(graphics, renderPipeline, texture, x, y, u, v, width, height, textureWidth, textureHeight);
             graphics.disableScissor();
         } else {
-            operation.call(graphics, renderPipeline, texture, x, iy, u, iv, width, iheight, textureWidth, textureHeight);
+            operation.call(graphics, renderPipeline, texture, ix, iy, iu, iv, iwidth, iheight, textureWidth, textureHeight);
+
+            graphics.pose().translate(0, slotSize * 5);
+
+            operation.call(graphics, renderPipeline, texture, ix, iy, iu, iv, iwidth, iheight, textureWidth, textureHeight);
         }
         graphics.pose().popMatrix();
 
@@ -166,6 +174,12 @@ public abstract class CreativeModeInventoryScreenMixin extends AbstractContainer
         //SmoothSc.print(scrollY);
         var prevScroll = scrollOffs;
         var ret = operation.call(x, y, scrollX, scrollY);
+        
+        // if unscrollable
+        if (!ret) {
+            return ret;
+        }
+
 
         var pixelscroll = scrollOffsToPixels(prevScroll);
         pixelscroll -= SmScCfg.creativeScreenAmount * scrollY;
