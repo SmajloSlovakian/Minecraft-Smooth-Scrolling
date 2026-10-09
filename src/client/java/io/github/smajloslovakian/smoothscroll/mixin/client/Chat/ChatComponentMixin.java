@@ -87,10 +87,11 @@ public class ChatComponentMixin implements ChatComponentDuck {
         }
         smoothChatBottom = (smoothChatBottom - chatBottom / (double) getLineHeight()) * Math.pow(SmScCfg.chatOpeningSmoothness, SmoothSc.getLastFrameDuration()) + chatBottom / (double) getLineHeight();
 
+        //SmoothSc.printt(chatBottom / (double) getLineHeight(), smoothChatBottom);
         // originally i mapped the chat rendering to y = 0, but the chatting mod expects chatbottom to be unchanged
         // this means, we have to compensate for the moved chat with pose translating by -chatbottom
         graphics.updatePose((pose) -> {
-            pose.translate(0, (float) smoothChatBottom * getLineHeight() * scale - chatBottom);
+            pose.translate(0, (float) smoothChatBottom * getLineHeight() * scale - chatBottom * scale);
         });
         return chatBottom;
     }
@@ -142,7 +143,7 @@ public class ChatComponentMixin implements ChatComponentDuck {
             context.enableScissor(-10, maskTop, getWidth() + 1000, maskBottom);
         }
         if (SmScCfg.enableMaskDebug)
-            context.fill(-10000, -10000, context.guiWidth(), context.guiHeight(), ARGB.color(50, 255, 255, 0));
+            context.fill(-10000, -10000, context.guiWidth() + 999999999, context.guiHeight() + 999999999, ARGB.color(50, 255, 255, 0));
     }
     @Unique
     private void deMask(TransformationAccess transformationAccess) {
