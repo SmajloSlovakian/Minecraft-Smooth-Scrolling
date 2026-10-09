@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.platform.SDLEventHandler;
 
 import io.github.smajloslovakian.smoothscroll.Globals;
@@ -26,7 +27,7 @@ public class SDLEventHandlerMixin {
     private boolean SDL_PollEventWrap(SDL_Event event, Operation<Boolean> operation) {
         var ret = operation.call(event);
         if (event.type() != 32512) {
-            SmoothSc.printt(event.type(), event.wheel().which());
+            SmoothSc.printt("poll: ", event.type(), event.wheel().which());
         }
         return ret;
     }
@@ -34,11 +35,13 @@ public class SDLEventHandlerMixin {
     @Inject(method = "handleMouseWheelEvent", at = @At("HEAD"))
     private void handleMouseWheelEvent(SDL_Event event, CallbackInfo ci) {
         inertia = 0;
+        //SmoothSc.printt(Util.getNanos() - lastScrollYTime, (int) SmScCfg.touchpadTimeThreshold);
+        
         // checks, whether it should consider this event touchpad-scroll
         // if the previous event was considered as such and was within touchpadTimeThreshold nanoseconds, it is also considered as touchpad-scroll
         // if the scroll amount is low enough, it is considered as touchpad-scroll
         // if the previous event was within touchpadTimeThreshold nanoseconds and is of different absolute amount, it is considered as touchpad-scroll
-        if (Math.abs(event.wheel().y()) < SmScCfg.touchpadThreshold || (Util.getNanos() - lastScrollYTime < SmScCfg.touchpadTimeThreshold && (Globals.touchpadScrolledY || Math.abs(lastScrollY) != Math.abs(event.wheel().y())))) {
+        if (Math.abs(event.wheel().y()) < SmScCfg.touchpadThreshold || (Util.getNanos() - lastScrollYTime < SmScCfg.touchpadTimeThreshold && (Globals.touchpadScrolledY || (!SmScCfg.expectMerged && Math.abs(lastScrollY) != Math.abs(event.wheel().y()))))) {
             Globals.touchpadScrolledY = true;
             if (Math.abs(event.wheel().y()) > SmScCfg.inertiaThreshold) {
                 inertia = event.wheel().y();

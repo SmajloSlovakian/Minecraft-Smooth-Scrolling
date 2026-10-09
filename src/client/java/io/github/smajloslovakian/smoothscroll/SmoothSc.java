@@ -24,7 +24,7 @@ public class SmoothSc implements ClientModInitializer {
 	public static SmScCfg cfg;
 	public static boolean isSmoothScrollingRefurbishedLoaded;
 	//public static boolean isCondensedInventoryLoaded;
-	public static boolean isWindows = System.getProperty("os.name") == "Windows";
+	public static boolean isWindows = System.getProperty("os.name").contains("Windows");
 
 
 	@Override
@@ -34,6 +34,7 @@ public class SmoothSc implements ClientModInitializer {
 		//FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/y_offset", 0);
 		//FabricLoader.getInstance().getObjectShare().put("smoothscroll:creative_screen/item_count", 0);
 
+		printt(isWindows, System.getProperty("os.name"));
 		cfg = new SmScCfg();
 	}
 

@@ -36,6 +36,7 @@ public class SmScCfg extends NewConfig {
     public static float inertiaThreshold;
     public static float touchpadThreshold;
     public static float touchpadTimeThreshold;
+    public static boolean expectMerged;
 
     public static boolean enableMaskDebug;
 
@@ -43,7 +44,7 @@ public class SmScCfg extends NewConfig {
         new CfgValueBuilder("Notes", new ArrayList<String>(Arrays.asList(
             "Smoothness values are in %. Scrolling speed values are in pixels.",
             "0 % means animation off (no smoothness) and bigger values mean slower animation speed (high smoothness).",
-            "Press F3+T in a world to update the config.",
+            "Press F3+T to update the config.",
             "To access config ingame, use the mod modmenu."
         ))).translatable("smoothscroll.config.notes").build(),
 
@@ -80,11 +81,15 @@ public class SmScCfg extends NewConfig {
         ))).translatable("smoothscroll.config.text_input").build(),
 
         new CfgValueBuilder("Touchpad", new ArrayList<CfgValue>(Arrays.asList(
-            new CfgValueBuilder("Inertia Deceleration", SmoothSc.isWindows ? 0 : 90f).translatable("smoothscroll.config.touchpad.inertia_deceleration").tooltip(Component.translatable("smoothscroll.config.touchpad.inertia_deceleration.tooltip")).minMax(0, 100).map(0.0, "smoothscroll.config.value.off").map(100.0, "smoothscroll.config.value.no_deceleration").step(1).format("smoothscroll.config.format.percent").build(),
+            new CfgValueBuilder("Inertia Deceleration", SmoothSc.isWindows ? 0f : 90f).translatable("smoothscroll.config.touchpad.inertia_deceleration").tooltip(Component.translatable("smoothscroll.config.touchpad.inertia_deceleration.tooltip")).minMax(0, 100).map(0.0, "smoothscroll.config.value.off").map(100.0, "smoothscroll.config.value.no_deceleration").step(1).format("smoothscroll.config.format.percent").build(),
             new CfgValueBuilder("Inertia Stop Threshold", 0.005f).translatable("smoothscroll.config.touchpad.inertia_stop").tooltip(Component.translatable("smoothscroll.config.touchpad.inertia_stop.tooltip")).minMax(0, 0.5f).map(0.0, "smoothscroll.config.value.off").step(0.001).build(),
             new CfgValueBuilder("Inertia Start Threshold", 0.05f).translatable("smoothscroll.config.touchpad.inertia_start").tooltip(Component.translatable("smoothscroll.config.touchpad.inertia_start.tooltip")).minMax(0, 1).map(0.0, "smoothscroll.config.value.off").step(0.001).build(),
             new CfgValueBuilder("Touchpad Threshold", 0.25f).translatable("smoothscroll.config.touchpad.threshold").tooltip(Component.translatable("smoothscroll.config.touchpad.threshold.tooltip")).minMax(0, 5).map(0.0, "smoothscroll.config.value.off").step(0.01).build(),
-            new CfgValueBuilder("Touchpad Time Threshold", 0.02f).translatable("smoothscroll.config.touchpad.time").tooltip(Component.translatable("smoothscroll.config.touchpad.time.tooltip")).minMax(0, 0.25f).map(0.0, "smoothscroll.config.value.off").step(0.001).format("smoothscroll.config.format.second").build()
+            new CfgValueBuilder("Touchpad Time Threshold", 0.02f).translatable("smoothscroll.config.touchpad.time").tooltip(Component.translatable("smoothscroll.config.touchpad.time.tooltip")).minMax(0, 0.25f).map(0.0, "smoothscroll.config.value.off").step(0.001).format("smoothscroll.config.format.second").build(),
+            // Windows tends to add up scroll events when they happen in the same frame
+            // this means we need to have an even less reliable way to tell if the event
+            // is made by a touchpad or a mouse to not appear buggy to regular mouse users
+            new CfgValueBuilder("Expect Merged Scroll Values", SmoothSc.isWindows).translatable("smoothscroll.config.touchpad.expect_merged").tooltip(Component.translatable("smoothscroll.config.touchpad.expect_merged.tooltip")).build()
             
         ))).translatable("smoothscroll.config.touchpad").build(),
 
@@ -129,6 +134,7 @@ public class SmScCfg extends NewConfig {
         inertiaThreshold = (float) root.get("Touchpad").get("Inertia Start Threshold").getValue();
         touchpadThreshold = (float) root.get("Touchpad").get("Touchpad Threshold").getValue();
         touchpadTimeThreshold = (float) root.get("Touchpad").get("Touchpad Time Threshold").getValue() * 1_000_000_000;
+        expectMerged = (boolean) root.get("Touchpad").get("Expect Merged Scroll Values").getValue();
 
         enableMaskDebug = (boolean) root.get("Misc").get("Enable mask debug").getValue();
     }
